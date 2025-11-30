@@ -1,0 +1,167 @@
+// كود Google Apps Script لنظام الحضور والغياب
+// انسخ هذا الكود بالكامل وضعه في محرر النصوص في Google Sheets
+
+function doGet(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet();
+  var action = e.parameter.action;
+
+  if (action == 'getStudents') {
+    return getStudents(sheet);
+  } else if (action == 'getTeachers') {
+    return getTeachers(sheet);
+  } else if (action == 'getAbsences') {
+    return getAbsences(sheet);
+  }
+}
+
+function doPost(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet();
+  var params = JSON.parse(e.postData.contents);
+  var action = params.action;
+
+  if (action == 'addAbsence') {
+    return addAbsence(sheet, params.data);
+  } else if (action == 'deleteAbsence') {
+    return deleteAbsence(sheet, params.id);
+  } else if (action == 'addTeacher') {
+    return addTeacher(sheet, params.data);
+  } else if (action == 'deleteTeacher') {
+    return deleteTeacher(sheet, params.id);
+  } else if (action == 'importStudents') {
+    return importStudents(sheet, params.data);
+  } else if (action == 'deleteStudent') {
+    return deleteStudent(sheet, params.id);
+  }
+}
+
+// --- Helper Functions ---
+
+function getStudents(sheet) {
+  var s = sheet.getSheetByName('Students');
+  if (!s) { setupSheets(sheet); s = sheet.getSheetByName('Students'); }
+  var data = s.getDataRange().getValues();
+  var students = [];
+  // Skip header row
+  for (var i = 1; i < data.length; i++) {
+    students.push({
+      id: data[i][0],
+      name: data[i][1],
+      grade: data[i][2],
+      section: data[i][3]
+    });
+  }
+  return ContentService.createTextOutput(JSON.stringify(students)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function getTeachers(sheet) {
+  var s = sheet.getSheetByName('Teachers');
+  if (!s) { setupSheets(sheet); s = sheet.getSheetByName('Teachers'); }
+  var data = s.getDataRange().getValues();
+  var teachers = [];
+  for (var i = 1; i < data.length; i++) {
+    teachers.push({
+      id: data[i][0],
+      name: data[i][1],
+      username: data[i][2],
+      password: data[i][3],
+      role: data[i][4]
+    });
+  }
+  return ContentService.createTextOutput(JSON.stringify(teachers)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function getAbsences(sheet) {
+  var s = sheet.getSheetByName('Absences');
+  if (!s) { setupSheets(sheet); s = sheet.getSheetByName('Absences'); }
+  var data = s.getDataRange().getValues();
+  var absences = [];
+  for (var i = 1; i < data.length; i++) {
+    absences.push({
+      id: data[i][0],
+      studentId: data[i][1],
+      studentName: data[i][2],
+      grade: data[i][3],
+      section: data[i][4],
+      date: data[i][5],
+      teacher: data[i][6],
+      notes: data[i][7]
+    });
+  }
+  return ContentService.createTextOutput(JSON.stringify(absences)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function addAbsence(sheet, data) {
+  var s = sheet.getSheetByName('Absences');
+  s.appendRow([data.id, data.studentId, data.studentName, data.grade, data.section, data.date, data.teacher, data.notes]);
+  return ContentService.createTextOutput(JSON.stringify({status: 'success'})).setMimeType(ContentService.MimeType.JSON);
+}
+
+function deleteAbsence(sheet, id) {
+  var s = sheet.getSheetByName('Absences');
+  var data = s.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][0] == id) {
+      s.deleteRow(i + 1);
+      return ContentService.createTextOutput(JSON.stringify({status: 'success'})).setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+  return ContentService.createTextOutput(JSON.stringify({status: 'error'})).setMimeType(ContentService.MimeType.JSON);
+}
+
+function addTeacher(sheet, data) {
+  var s = sheet.getSheetByName('Teachers');
+  s.appendRow([data.id, data.name, data.username, data.password, data.role]);
+  return ContentService.createTextOutput(JSON.stringify({status: 'success'})).setMimeType(ContentService.MimeType.JSON);
+}
+
+function deleteTeacher(sheet, id) {
+  var s = sheet.getSheetByName('Teachers');
+  var data = s.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][0] == id) {
+      s.deleteRow(i + 1);
+      return ContentService.createTextOutput(JSON.stringify({status: 'success'})).setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+  return ContentService.createTextOutput(JSON.stringify({status: 'error'})).setMimeType(ContentService.MimeType.JSON);
+}
+
+function importStudents(sheet, studentsList) {
+  var s = sheet.getSheetByName('Students');
+  // Optional: Clear existing students if you want a fresh import
+  // s.getRange(2, 1, s.getLastRow(), 4).clearContent();
+  
+  studentsList.forEach(function(st) {
+    s.appendRow([st.id, st.name, st.grade, st.section]);
+  });
+  return ContentService.createTextOutput(JSON.stringify({status: 'success'})).setMimeType(ContentService.MimeType.JSON);
+}
+
+function deleteStudent(sheet, id) {
+  var s = sheet.getSheetByName('Students');
+  var data = s.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][0] == id) {
+      s.deleteRow(i + 1);
+      return ContentService.createTextOutput(JSON.stringify({status: 'success'})).setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+  return ContentService.createTextOutput(JSON.stringify({status: 'error'})).setMimeType(ContentService.MimeType.JSON);
+}
+
+function setupSheets(sheet) {
+  if (!sheet.getSheetByName('Students')) {
+    var s = sheet.insertSheet('Students');
+    s.appendRow(['ID', 'Name', 'Grade', 'Section']);
+  }
+  if (!sheet.getSheetByName('Teachers')) {
+    var s = sheet.insertSheet('Teachers');
+    s.appendRow(['ID', 'Name', 'Username', 'Password', 'Role']);
+    // Add default admin
+    s.appendRow([1, 'المدير', 'admin', '1234', 'admin']);
+  }
+  if (!sheet.getSheetByName('Absences')) {
+    var s = sheet.insertSheet('Absences');
+    s.appendRow(['ID', 'StudentID', 'StudentName', 'Grade', 'Section', 'Date', 'Teacher', 'Notes']);
+  }
+}

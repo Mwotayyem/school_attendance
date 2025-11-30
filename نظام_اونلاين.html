@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام الحضور والغياب (أونلاين) - مرتبط بـ Google Sheets</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        /* نفس التنسيقات تماماً من النظام النهائي */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .page {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Loading Overlay */
+        #loadingOverlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Styles from previous file */
+        .login-card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            max-width: 450px;
+            width: 100%;
+            margin: 0 auto;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .logo-circle {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        h1 {
+            font-size: 32px;
+            color: #1a202c;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: #718096;
+            font-size: 16px;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+            text-align: right;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2d3748;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 15px;
+            font-family: 'Cairo', sans-serif;
+            transition: all 0.3s ease;
+            background: #f7fafc;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .app-header {
+            background: white;
+            border-radius: 20px;
+            padding: 25px 35px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .header-right h2 {
+            font-size: 28px;
+            color: #1a202c;
+            margin-bottom: 5px;
+        }
+
+        .btn-logout {
+            padding: 12px 24px;
+            background: #fff;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            color: #e53e3e;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .content {
+            display: grid;
+            gap: 30px;
+        }
+
+        .form-card,
+        .stats-card,
+        .table-card {
+            background: white;
+            border-radius: 20px;
+            padding: 35px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        h3 {
+            font-size: 22px;
+            color: #1a202c;
+            margin-bottom: 25px;
+            font-weight: 700;
+        }
+
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .stat-card-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 32px;
+        }
+
+        .stat-card-value {
+            font-size: 36px;
+            font-weight: 900;
+            color: #1a202c;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .btn-export,
+        .btn-import,
+        .btn-print,
+        .btn-secondary {
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Cairo', sans-serif;
+            border: none;
+            color: white;
+        }
+
+        .btn-export {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        }
+
+        .btn-import {
+            background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+        }
+
+        .btn-print {
+            background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+        }
+
+        .btn-secondary {
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        th {
+            padding: 16px;
+            text-align: right;
+            color: white;
+            font-weight: 700;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 16px;
+            text-align: right;
+            border-bottom: 1px solid #e2e8f0;
+            color: #2d3748;
+        }
+
+        .btn-delete {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Cairo', sans-serif;
+            background: #fff5f5;
+            border: 1px solid #fc8181;
+            color: #e53e3e;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .notification.success {
+            border-right: 4px solid #48bb78;
+        }
+
+        .notification.error {
+            border-right: 4px solid #e53e3e;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 600;
+            color: #718096;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Teacher View Styles */
+        .filters-and-search {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .students-list-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            max-height: 60vh;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .student-item {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+        }
+
+        .student-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .student-info {
+            flex: 1;
+        }
+
+        .student-name {
+            font-weight: 700;
+            color: #2d3748;
+            font-size: 1.05rem;
+            margin-bottom: 4px;
+        }
+
+        .student-details {
+            font-size: 0.85rem;
+            color: #718096;
+        }
+
+        .btn-absent {
+            background: #fff5f5;
+            color: #c53030;
+            border: 1px solid #feb2b2;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9rem;
+        }
+
+        .btn-absent:hover {
+            background: #c53030;
+            color: white;
+            border-color: #c53030;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loadingOverlay">
+        <div class="spinner"></div>
+        <p>جاري الاتصال بقاعدة البيانات...</p>
+    </div>
+
+    <div class="container">
+        <!-- Login Page -->
+        <div id="loginPage" class="page active">
+            <div class="login-card">
+                <div class="logo-section">
+                    <div class="logo-circle">
+                        <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+                            <path d="M30 5L35 20H50L38 29L43 44L30 35L17 44L22 29L10 20H25L30 5Z" fill="white" />
+                        </svg>
+                    </div>
+                    <h1>نظام الحضور والغياب</h1>
+                    <p class="subtitle">نسخة الأونلاين (Google Sheets)</p>
+                </div>
+                <div class="login-form">
+                    <div class="input-group">
+                        <label for="username">اسم المستخدم</label>
+                        <input type="text" id="username" placeholder="أدخل اسم المستخدم">
+                    </div>
+                    <div class="input-group">
+                        <label for="password">كلمة المرور</label>
+                        <input type="password" id="password" placeholder="أدخل كلمة المرور">
+                    </div>
+                    <button class="btn-primary" onclick="login()"><span>تسجيل الدخول</span></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Teacher Page -->
+        <div id="teacherPage" class="page">
+            <header class="app-header">
+                <div class="header-content">
+                    <div class="header-right">
+                        <h2>مرحباً، <span id="teacherName">المعلم</span></h2>
+                        <p class="header-subtitle">تسجيل غياب الطلاب</p>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-logout" onclick="logout()">تسجيل خروج</button>
+                    </div>
+                </div>
+            </header>
+            <div class="content">
+                <div class="form-card">
+                    <h3>تسجيل غياب جديد</h3>
+                    <div class="filters-and-search">
+                        <div class="input-group">
+                            <label>الصف</label>
+                            <select id="filterGrade" onchange="renderStudentList()">
+                                <option value="">كل الصفوف</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>الشعبة</label>
+                            <select id="filterSection" onchange="renderStudentList()">
+                                <option value="">كل الشعب</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>بحث بالاسم</label>
+                            <input type="text" id="searchStudent" placeholder="ابحث..." onkeyup="renderStudentList()">
+                        </div>
+                    </div>
+                    <div class="students-list-container" id="studentsListContainer"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Page -->
+        <div id="adminPage" class="page">
+            <header class="app-header">
+                <div class="header-content">
+                    <div class="header-right">
+                        <h2>لوحة تحكم المدير</h2>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-logout" onclick="logout()">تسجيل خروج</button>
+                    </div>
+                </div>
+            </header>
+            <div class="content">
+                <div class="stats-overview">
+                    <div class="stat-card">
+                        <div class="stat-card-icon"
+                            style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">📚</div>
+                        <div class="stat-card-info">
+                            <p class="stat-card-label">الغيابات</p>
+                            <p class="stat-card-value" id="totalAbsences">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-icon"
+                            style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">👥</div>
+                        <div class="stat-card-info">
+                            <p class="stat-card-label">الطلاب</p>
+                            <p class="stat-card-value" id="totalStudents">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-icon"
+                            style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">👨‍🏫</div>
+                        <div class="stat-card-info">
+                            <p class="stat-card-label">المعلمين</p>
+                            <p class="stat-card-value" id="totalTeachers">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-card">
+                    <div class="table-header">
+                        <h3>سجل الغيابات</h3>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn-import" onclick="showManagementModal()">⚙️ إدارة</button>
+                            <button class="btn-print" onclick="window.print()">🖨️ طباعة</button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>الطالب</th>
+                                    <th>الصف</th>
+                                    <th>الشعبة</th>
+                                    <th>التاريخ</th>
+                                    <th>المعلم</th>
+                                    <th>ملاحظات</th>
+                                    <th>حذف</th>
+                                </tr>
+                            </thead>
+                            <tbody id="absencesTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Management Modal -->
+    <div id="managementModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>إدارة النظام</h2><button class="modal-close" onclick="closeManagementModal()">×</button>
+            </div>
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('students')">الطلاب</button>
+                <button class="tab" onclick="switchTab('teachers')">المعلمين</button>
+            </div>
+            <div id="studentsTab" class="tab-content active">
+                <div class="input-group">
+                    <label>استيراد (Excel/CSV)</label>
+                    <input type="file" accept=".xlsx,.csv" onchange="importStudents(event)">
+                </div>
+                <h4>قائمة الطلاب (<span id="studentsCount">0</span>)</h4>
+                <div style="max-height: 300px; overflow-y: auto;">
+                    <table style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>الاسم</th>
+                                <th>الصف</th>
+                                <th>الشعبة</th>
+                                <th>حذف</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentsListBody"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="teachersTab" class="tab-content">
+                <div class="input-group"><input type="text" id="newTeacherName" placeholder="الاسم"></div>
+                <div class="input-group"><input type="text" id="newTeacherUsername" placeholder="اسم المستخدم"></div>
+                <div class="input-group"><input type="password" id="newTeacherPassword" placeholder="كلمة المرور"></div>
+                <button class="btn-primary" onclick="addTeacher()">إضافة معلم</button>
+                <h4 style="margin-top:20px">المعلمين (<span id="teachersCount">0</span>)</h4>
+                <div style="max-height: 300px; overflow-y: auto;">
+                    <table style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>الاسم</th>
+                                <th>المستخدم</th>
+                                <th>حذف</th>
+                            </tr>
+                        </thead>
+                        <tbody id="teachersListBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script>
+        // ==========================================
+        // 🔴 هام جداً: ضع رابط Google Apps Script هنا
+        // ==========================================
+        const SCRIPT_URL = "ضع_الرابط_هنا";
+        // ==========================================
+
+        let allStudents = [];
+        let allTeachers = [];
+        let allAbsences = [];
+
+        // --- API Functions ---
+        async function fetchData(action) {
+            showLoading(true);
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=${action}`);
+                const data = await response.json();
+                showLoading(false);
+                return data;
+            } catch (error) {
+                showLoading(false);
+                console.error('Error fetching data:', error);
+                showNotification('خطأ في الاتصال بقاعدة البيانات', 'error');
+                return [];
+            }
+        }
+
+        async function postData(action, data) {
+            showLoading(true);
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: action, data: data })
+                });
+                const result = await response.json();
+                showLoading(false);
+                return result;
+            } catch (error) {
+                showLoading(false);
+                console.error('Error posting data:', error);
+                showNotification('فشل تنفيذ العملية', 'error');
+                return { status: 'error' };
+            }
+        }
+
+        async function deleteItem(action, id) {
+            showLoading(true);
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: action, id: id })
+                });
+                const result = await response.json();
+                showLoading(false);
+                return result;
+            } catch (error) {
+                showLoading(false);
+                return { status: 'error' };
+            }
+        }
+
+        // --- Core Functions ---
+        async function login() {
+            if (SCRIPT_URL === "ضع_الرابط_هنا") {
+                alert("الرجاء وضع رابط Google Apps Script في الكود أولاً!");
+                return;
+            }
+
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+
+            if (!username || !password) return;
+
+            // Fetch teachers to verify login
+            allTeachers = await fetchData('getTeachers');
+
+            const user = allTeachers.find(t => t.username === username && t.password === password);
+
+            if (user) {
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                document.getElementById('loginPage').classList.remove('active');
+
+                // Load initial data
+                allStudents = await fetchData('getStudents');
+                allAbsences = await fetchData('getAbsences');
+
+                if (user.role === 'admin') {
+                    document.getElementById('adminPage').classList.add('active');
+                    loadAdminData();
+                } else {
+                    document.getElementById('teacherName').textContent = user.name;
+                    document.getElementById('teacherPage').classList.add('active');
+                    initTeacherView();
+                }
+            } else {
+                showNotification('بيانات الدخول غير صحيحة', 'error');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('currentUser');
+            location.reload();
+        }
+
+        // --- Teacher View ---
+        function initTeacherView() {
+            const grades = [...new Set(allStudents.map(s => s.grade))].sort();
+            const sections = [...new Set(allStudents.map(s => s.section))].sort();
+
+            document.getElementById('filterGrade').innerHTML = '<option value="">كل الصفوف</option>' + grades.map(g => `<option value="${g}">${g}</option>`).join('');
+            document.getElementById('filterSection').innerHTML = '<option value="">كل الشعب</option>' + sections.map(s => `<option value="${s}">${s}</option>`).join('');
+
+            renderStudentList();
+        }
+
+        function renderStudentList() {
+            const grade = document.getElementById('filterGrade').value;
+            const section = document.getElementById('filterSection').value;
+            const search = document.getElementById('searchStudent').value.toLowerCase();
+
+            const filtered = allStudents.filter(s => {
+                return (!grade || s.grade === grade) &&
+                    (!section || s.section === section) &&
+                    (!search || s.name.toLowerCase().includes(search));
+            });
+
+            const container = document.getElementById('studentsListContainer');
+            container.innerHTML = filtered.map(s => `
+                <div class="student-item">
+                    <div class="student-info">
+                        <div class="student-name">${s.name}</div>
+                        <div class="student-details">${s.grade} - ${s.section}</div>
+                    </div>
+                    <button class="btn-absent" onclick="confirmAbsence(${s.id}, '${s.name}', '${s.grade}', '${s.section}')">
+                        🔴 غياب
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        async function confirmAbsence(id, name, grade, section) {
+            const notes = prompt(`تسجيل غياب: ${name}\nملاحظات:`);
+            if (notes === null) return;
+
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            const absenceData = {
+                id: Date.now(),
+                studentId: id,
+                studentName: name,
+                grade: grade,
+                section: section,
+                date: new Date().toISOString().split('T')[0],
+                teacher: user.name,
+                notes: notes
+            };
+
+            const result = await postData('addAbsence', absenceData);
+            if (result.status === 'success') {
+                showNotification('تم تسجيل الغياب', 'success');
+                allAbsences = await fetchData('getAbsences'); // Refresh
+            }
+        }
+
+        // --- Admin View ---
+        function loadAdminData() {
+            updateStats();
+            renderAbsencesTable();
+        }
+
+        function updateStats() {
+            document.getElementById('totalAbsences').textContent = allAbsences.length;
+            document.getElementById('totalStudents').textContent = allStudents.length;
+            document.getElementById('totalTeachers').textContent = allTeachers.length;
+        }
+
+        function renderAbsencesTable() {
+            const tbody = document.getElementById('absencesTableBody');
+            tbody.innerHTML = allAbsences.slice().reverse().map((a, i) => `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td><strong>${a.studentName}</strong></td>
+                    <td>${a.grade}</td>
+                    <td>${a.section}</td>
+                    <td>${a.date}</td>
+                    <td>${a.teacher}</td>
+                    <td>${a.notes || '-'}</td>
+                    <td><button class="btn-delete" onclick="deleteAbsence(${a.id})">حذف</button></td>
+                </tr>
+            `).join('');
+        }
+
+        async function deleteAbsence(id) {
+            if (!confirm('حذف هذا السجل؟')) return;
+            const result = await deleteItem('deleteAbsence', id);
+            if (result.status === 'success') {
+                allAbsences = await fetchData('getAbsences');
+                loadAdminData();
+                showNotification('تم الحذف', 'success');
+            }
+        }
+
+        // --- Management ---
+        function showManagementModal() {
+            document.getElementById('managementModal').classList.add('show');
+            switchTab('students');
+        }
+        function closeManagementModal() { document.getElementById('managementModal').classList.remove('show'); }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            if (tab === 'students') {
+                document.querySelector('.tab:nth-child(1)').classList.add('active');
+                document.getElementById('studentsTab').classList.add('active');
+                renderStudentsMgmt();
+            } else {
+                document.querySelector('.tab:nth-child(2)').classList.add('active');
+                document.getElementById('teachersTab').classList.add('active');
+                renderTeachersMgmt();
+            }
+        }
+
+        function renderStudentsMgmt() {
+            document.getElementById('studentsCount').textContent = allStudents.length;
+            document.getElementById('studentsListBody').innerHTML = allStudents.map(s => `
+                <tr><td>${s.name}</td><td>${s.grade}</td><td>${s.section}</td><td><button class="btn-delete" onclick="deleteStudent(${s.id})">حذف</button></td></tr>
+            `).join('');
+        }
+
+        function renderTeachersMgmt() {
+            document.getElementById('teachersCount').textContent = allTeachers.length;
+            document.getElementById('teachersListBody').innerHTML = allTeachers.map(t => `
+                <tr><td>${t.name}</td><td>${t.username}</td><td><button class="btn-delete" onclick="deleteTeacher(${t.id})">حذف</button></td></tr>
+            `).join('');
+        }
+
+        async function addTeacher() {
+            const name = document.getElementById('newTeacherName').value;
+            const user = document.getElementById('newTeacherUsername').value;
+            const pass = document.getElementById('newTeacherPassword').value;
+            if (!name || !user || !pass) return;
+
+            const result = await postData('addTeacher', { id: Date.now(), name: name, username: user, password: pass, role: 'teacher' });
+            if (result.status === 'success') {
+                allTeachers = await fetchData('getTeachers');
+                renderTeachersMgmt();
+                showNotification('تمت الإضافة', 'success');
+            }
+        }
+
+        async function deleteTeacher(id) {
+            if (!confirm('حذف المعلم؟')) return;
+            const result = await deleteItem('deleteTeacher', id);
+            if (result.status === 'success') {
+                allTeachers = await fetchData('getTeachers');
+                renderTeachersMgmt();
+                showNotification('تم الحذف', 'success');
+            }
+        }
+
+        async function deleteStudent(id) {
+            if (!confirm('حذف الطالب؟')) return;
+            const result = await deleteItem('deleteStudent', id);
+            if (result.status === 'success') {
+                allStudents = await fetchData('getStudents');
+                renderStudentsMgmt();
+                showNotification('تم الحذف', 'success');
+            }
+        }
+
+        function importStudents(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async function (e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+
+                const students = jsonData.map((row, i) => ({
+                    id: Date.now() + i,
+                    name: row['الاسم'] || row['Name'],
+                    grade: row['الصف'] || row['Grade'],
+                    section: row['الشعبة'] || row['Section']
+                })).filter(s => s.name);
+
+                const result = await postData('importStudents', students);
+                if (result.status === 'success') {
+                    allStudents = await fetchData('getStudents');
+                    renderStudentsMgmt();
+                    showNotification(`تم استيراد ${students.length} طالب`, 'success');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function showLoading(show) { document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none'; }
+        function showNotification(msg, type) {
+            const n = document.getElementById('notification');
+            n.textContent = msg; n.className = `notification ${type} show`;
+            setTimeout(() => n.classList.remove('show'), 3000);
+        }
+    </script>
+</body>
+
+</html>
