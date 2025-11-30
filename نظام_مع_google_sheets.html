@@ -567,396 +567,390 @@
                 </div>
             </div>
 
-            <div id="notification" class="notification"></div>
-            <div id="loading" class="loading">
-                <div class="spinner"></div>
-            </div>
+            }
 
-            <script>
-                const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyv3PgfGVlHoRQ7KQ5M2kaLdRXQ3LHvLTRamqswGMrJX6VqRjchFxybYVEkxwTfb1Q/exec';
+            async function loadStudents() {
+            const response = await apiCall('getStudents');
 
-                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-                document.getElementById('loginPage').classList.add('active');
-                document.getElementById('username').value = '';
-                document.getElementById('password').value = '';
-                }
+            if (response.status === 'success') {
+            students = response.data.map(s => ({
+            id: s['id'],
+            name: s['الاسم الكامل'] || s['الاسم'] || 'بدون اسم',
+            school: s['المدرسة'] || '',
+            grade: s['الصف'] || '',
+            section: s['الشعبة'] || '',
+            pathway: s['المرحلة / القسم / المسار'] || '',
+            details: s
+            }));
+            } else {
+            students = [];
+            showNotification('فشل تحميل الطلاب', 'error');
+            }
 
-                async function loadStudents() {
-                    const response = await apiCall('getStudents');
+            populateFilters();
+            await checkDailyAbsences();
+            renderTeacherStudentList();
+            }
 
-                    if (response.status === 'success') {
-                        students = response.data.map(s => ({
-                            id: s['id'],
-                            name: s['الاسم الكامل'] || s['الاسم'] || 'بدون اسم',
-                            school: s['المدرسة'] || '',
-                            grade: s['الصف'] || '',
-                            section: s['الشعبة'] || '',
-                            pathway: s['المرحلة / القسم / المسار'] || '',
-                            details: s
-                        }));
-                    } else {
-                        students = [];
-                        showNotification('فشل تحميل الطلاب', 'error');
-                    }
+            function populateFilters() {
+            const grades = [...new Set(students.map(s => s.grade).filter(Boolean))];
+            const sections = [...new Set(students.map(s => s.section).filter(Boolean))];
+            const pathways = [...new Set(students.map(s => s.pathway).filter(Boolean))];
 
-                    populateFilters();
-                    await checkDailyAbsences();
-                    renderTeacherStudentList();
-                }
+            const gradeSelect = document.getElementById('filterGrade');
+            const sectionSelect = document.getElementById('filterSection');
+            const pathwaySelect = document.getElementById('filterPathway');
 
-                function populateFilters() {
-                    const grades = [...new Set(students.map(s => s.grade).filter(Boolean))];
-                    const sections = [...new Set(students.map(s => s.section).filter(Boolean))];
-                    const pathways = [...new Set(students.map(s => s.pathway).filter(Boolean))];
+            gradeSelect.innerHTML = '<option value="">الكل</option>' + grades.map(g => `<option value="${g}">${g}
+            </option>`).join('');
+            sectionSelect.innerHTML = '<option value="">الكل</option>' + sections.map(s => `<option value="${s}">${s}
+            </option>`).join('');
+            pathwaySelect.innerHTML = '<option value="">الكل</option>' + pathways.map(p => `<option value="${p}">${p}
+            </option>`).join('');
+            }
 
-                    const gradeSelect = document.getElementById('filterGrade');
-                    const sectionSelect = document.getElementById('filterSection');
-                    const pathwaySelect = document.getElementById('filterPathway');
+            function filterStudents() {
+            renderTeacherStudentList();
+            }
 
-                    gradeSelect.innerHTML = '<option value="">الكل</option>' + grades.map(g => `<option value="${g}">${g}</option>`).join('');
-                    sectionSelect.innerHTML = '<option value="">الكل</option>' + sections.map(s => `<option value="${s}">${s}</option>`).join('');
-                    pathwaySelect.innerHTML = '<option value="">الكل</option>' + pathways.map(p => `<option value="${p}">${p}</option>`).join('');
-                }
+            async function checkDailyAbsences() {
+            const date = document.getElementById('absenceDate').value;
+            const response = await apiCall('getAbsences');
+            if (response.status === 'success') {
+            todayAbsences = response.data.filter(a => a.date === date).map(a => a.studentId);
+            }
+            renderTeacherStudentList();
+            }
 
-                function filterStudents() {
-                    renderTeacherStudentList();
-                }
+            function renderTeacherStudentList() {
+            const gradeFilter = document.getElementById('filterGrade').value;
+            const sectionFilter = document.getElementById('filterSection').value;
+            const pathwayFilter = document.getElementById('filterPathway').value;
+            const searchName = document.getElementById('searchName').value.toLowerCase();
 
-                async function checkDailyAbsences() {
-                    const date = document.getElementById('absenceDate').value;
-                    const response = await apiCall('getAbsences');
-                    if (response.status === 'success') {
-                        todayAbsences = response.data.filter(a => a.date === date).map(a => a.studentId);
-                    }
-                    renderTeacherStudentList();
-                }
+            const filteredStudents = students.filter(s => {
+            return (!gradeFilter || s.grade === gradeFilter) &&
+            (!sectionFilter || s.section === sectionFilter) &&
+            (!pathwayFilter || s.pathway === pathwayFilter) &&
+            (!searchName || s.name.toLowerCase().includes(searchName));
+            });
 
-                function renderTeacherStudentList() {
-                    const gradeFilter = document.getElementById('filterGrade').value;
-                    const sectionFilter = document.getElementById('filterSection').value;
-                    const pathwayFilter = document.getElementById('filterPathway').value;
-                    const searchName = document.getElementById('searchName').value.toLowerCase();
+            const container = document.getElementById('teacherStudentsList');
+            if (!container) return;
 
-                    const filteredStudents = students.filter(s => {
-                        return (!gradeFilter || s.grade === gradeFilter) &&
-                            (!sectionFilter || s.section === sectionFilter) &&
-                            (!pathwayFilter || s.pathway === pathwayFilter) &&
-                            (!searchName || s.name.toLowerCase().includes(searchName));
-                    });
-
-                    const container = document.getElementById('teacherStudentsList');
-                    if (!container) return;
-
-                    container.innerHTML = `<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;">
+            container.innerHTML = `<div
+                style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;">
                 ${filteredStudents.map(s => {
-                        const isAbsent = todayAbsences.includes(s.id);
-                        return `
-                    <div style="background: ${isAbsent ? '#fff5f5' : '#f8fafc'}; padding: 15px; border-radius: 10px; border: 1px solid ${isAbsent ? '#fc8181' : '#e2e8f0'}; transition: all 0.3s;">
-                        <div style="font-weight: bold; margin-bottom: 5px;">${s.name}</div>
-                        <div style="font-size: 13px; color: #718096; margin-bottom: 10px;">
-                            ${s.grade} | ${s.section}${s.pathway ? ' | ' + s.pathway : ''}
-                        </div>
-                        <div style="display: flex; gap: 10px;">
-                            <button onclick="toggleAbsence('${s.id}', this)" 
-                                style="flex: 1; background: ${isAbsent ? '#e53e3e' : '#fff'}; color: ${isAbsent ? '#fff' : '#e53e3e'}; border: 1px solid #e53e3e; padding: 8px; border-radius: 8px; cursor: pointer; font-weight: bold;">
-                                ${isAbsent ? '🟢 حاضر (تراجع)' : '🔴 غياب'}
-                            </button>
-                            <button onclick="showStudentDetails('${s.id}')" style="background: none; border: 1px solid #667eea; color: #667eea; padding: 8px; border-radius: 8px; cursor: pointer;">
-                                📄 التفاصيل
-                            </button>
-                        </div>
+                const isAbsent = todayAbsences.includes(s.id);
+                return `
+                <div
+                    style="background: ${isAbsent ? '#fff5f5' : '#f8fafc'}; padding: 15px; border-radius: 10px; border: 1px solid ${isAbsent ? '#fc8181' : '#e2e8f0'}; transition: all 0.3s;">
+                    <div style="font-weight: bold; margin-bottom: 5px;">${s.name}</div>
+                    <div style="font-size: 13px; color: #718096; margin-bottom: 10px;">
+                        ${s.grade} | ${s.section}${s.pathway ? ' | ' + s.pathway : ''}
                     </div>
-                    `;
-                    }).join('')}
-            </div>`;
-                }
-
-                async function toggleAbsence(studentId, btn) {
-                    const date = document.getElementById('absenceDate').value;
-                    if (!date) {
-                        showNotification('الرجاء اختيار التاريخ', 'error');
-                        return;
-                    }
-
-                    const isAbsent = todayAbsences.includes(Number(studentId)) || todayAbsences.includes(String(studentId));
-                    const student = students.find(s => s.id == studentId);
-
-                    btn.disabled = true;
-                    btn.textContent = 'جاري المعالجة...';
-
-                    if (isAbsent) {
-                        // إلغاء الغياب - إرجاع الطالب حاضر
-                        const response = await apiCall('deleteAbsence', { studentId, date });
-                        if (response.status === 'success') {
-                            todayAbsences = todayAbsences.filter(id => id != studentId);
-                            showNotification('تم إلغاء الغياب - الطالب حاضر', 'success');
-                        } else {
-                            showNotification('فشل العملية', 'error');
-                        }
-                    } else {
-                        // تسجيل غياب
-                        const absence = {
-                            studentId,
-                            studentName: student.name,
-                            grade: student.grade,
-                            section: student.section,
-                            date,
-                            teacher: currentUser.name,
-                            notes: ''
-                        };
-                        const response = await apiCall('submitAbsence', absence);
-                        if (response.status === 'success') {
-                            todayAbsences.push(studentId);
-                            showNotification('تم تسجيل الغياب', 'success');
-                        } else {
-                            showNotification('فشل العملية', 'error');
-                        }
-                    }
-
-                    renderTeacherStudentList();
-                }
-
-                async function loadAdminData() {
-                    const teachersRes = await apiCall('getTeachers');
-                    if (teachersRes.status === 'success') {
-                        teachers = teachersRes.data;
-                        renderTeachersTable();
-                    }
-
-                    const studentsRes = await apiCall('getStudents');
-                    if (studentsRes.status === 'success') {
-                        document.getElementById('totalStudents').textContent = studentsRes.data.length;
-                    }
-
-                    const absencesRes = await apiCall('getAbsences');
-                    if (absencesRes.status === 'success') {
-                        absences = absencesRes.data;
-                        renderAbsencesTable();
-                        updateStats();
-                    }
-                }
-
-                function renderTeachersTable() {
-                    const tbody = document.getElementById('teachersTableBody');
-                    tbody.innerHTML = teachers.map(t => `
-                <tr>
-                    <td>${t.name}</td>
-                    <td>${t.username}</td>
-                    <td style="font-family: monospace; color: #a0aec0;">••••••</td>
-                    <td>
-                        <button class="btn-edit" onclick="showEditTeacherModal(${t.id})">تعديل</button>
-                        <button class="btn-delete" onclick="deleteTeacher(${t.id})">حذف</button>
-                    </td>
-                </tr>
-            `).join('');
-                    document.getElementById('totalTeachers').textContent = teachers.length;
-                }
-
-                async function saveNewTeacher() {
-                    const name = document.getElementById('newTeacherName').value;
-                    const username = document.getElementById('newTeacherUsername').value;
-                    const password = document.getElementById('newTeacherPassword').value;
-
-                    if (!name || !username || !password) {
-                        showNotification('الرجاء ملء جميع الحقول', 'error');
-                        return;
-                    }
-
-                    const response = await apiCall('addTeacher', { name, username, password });
-                    if (response.status === 'success') {
-                        document.getElementById('addTeacherModal').style.display = 'none';
-                        document.getElementById('newTeacherName').value = '';
-                        document.getElementById('newTeacherUsername').value = '';
-                        document.getElementById('newTeacherPassword').value = '';
-                        showNotification('تم إضافة المعلم', 'success');
-                        loadAdminData();
-                    } else {
-                        showNotification('فشل إضافة المعلم', 'error');
-                    }
-                }
-
-                function showEditTeacherModal(id) {
-                    const teacher = teachers.find(t => t.id == id);
-                    if (!teacher) return;
-
-                    document.getElementById('editTeacherId').value = teacher.id;
-                    document.getElementById('editTeacherName').value = teacher.name;
-                    document.getElementById('editTeacherUsername').value = teacher.username;
-                    document.getElementById('editTeacherModal').style.display = 'flex';
-                }
-
-                async function saveEditTeacher() {
-                    const id = document.getElementById('editTeacherId').value;
-                    const name = document.getElementById('editTeacherName').value;
-                    const username = document.getElementById('editTeacherUsername').value;
-
-                    if (!name || !username) {
-                        showNotification('الرجاء ملء الاسم واسم المستخدم', 'error');
-                        return;
-                    }
-
-                    const data = { id, name, username };
-
-                    const response = await apiCall('updateTeacher', data);
-                    if (response.status === 'success') {
-                        document.getElementById('editTeacherModal').style.display = 'none';
-                        showNotification('تم تحديث بيانات المعلم', 'success');
-                        loadAdminData();
-                    } else {
-                        showNotification('فشل التحديث', 'error');
-                    }
-                }
-
-                async function deleteTeacher(id) {
-                    if (!confirm('هل أنت متأكد من حذف هذا المعلم؟')) return;
-                    const response = await apiCall('deleteTeacher', { id });
-                    if (response.status === 'success') {
-                        showNotification('تم حذف المعلم', 'success');
-                        loadAdminData();
-                    } else {
-                        showNotification('فشل حذف المعلم', 'error');
-                    }
-                }
-
-                function showAddTeacherModal() {
-                    document.getElementById('addTeacherModal').style.display = 'flex';
-                }
-
-                function openChangePasswordModal() {
-                    document.getElementById('changePasswordModal').style.display = 'flex';
-                }
-
-                async function submitNewPassword() {
-                    const newPass = document.getElementById('newPasswordInput').value;
-                    if (!newPass) {
-                        showNotification('الرجاء إدخال كلمة المرور الجديدة', 'error');
-                        return;
-                    }
-
-                    const response = await apiCall('changePassword', {
-                        username: currentUser.username,
-                        newPassword: newPass
-                    });
-
-                    if (response.status === 'success') {
-                        showNotification('تم تغيير كلمة المرور', 'success');
-                        document.getElementById('changePasswordModal').style.display = 'none';
-                        document.getElementById('newPasswordInput').value = '';
-                    } else {
-                        showNotification('فشل التغيير', 'error');
-                    }
-                }
-
-                function openChangeAdminPasswordModal() {
-                    document.getElementById('changeAdminPasswordModal').style.display = 'flex';
-                }
-
-                async function submitNewAdminPassword() {
-                    const newPass = document.getElementById('newAdminPasswordInput').value;
-                    if (!newPass) {
-                        showNotification('الرجاء إدخال كلمة المرور الجديدة', 'error');
-                        return;
-                    }
-
-                    const response = await apiCall('changeAdminPassword', {
-                        newPassword: newPass
-                    });
-
-                    if (response.status === 'success') {
-                        showNotification('تم تغيير كلمة مرور المدير', 'success');
-                        document.getElementById('changeAdminPasswordModal').style.display = 'none';
-                        document.getElementById('newAdminPasswordInput').value = '';
-                    } else {
-                        showNotification('فشل التغيير', 'error');
-                    }
-                }
-
-                function openEditAdminProfileModal() {
-                    document.getElementById('newAdminUsernameInput').value = currentUser.username;
-                    document.getElementById('editAdminProfileModal').style.display = 'flex';
-                }
-
-                async function submitNewAdminUsername() {
-                    const newUsername = document.getElementById('newAdminUsernameInput').value.trim();
-                    if (!newUsername) {
-                        showNotification('الرجاء إدخال اسم المستخدم الجديد', 'error');
-                        return;
-                    }
-
-                    const response = await apiCall('updateAdminUsername', {
-                        oldUsername: currentUser.username,
-                        newUsername: newUsername
-                    });
-
-                    if (response.status === 'success') {
-                        currentUser.username = newUsername;
-                        showNotification('تم تحديث اسم المستخدم', 'success');
-                        document.getElementById('editAdminProfileModal').style.display = 'none';
-                    } else {
-                        showNotification('فشل التحديث', 'error');
-                    }
-                }
-
-                function showStudentDetails(id) {
-                    const student = students.find(s => s.id == id);
-                    if (!student) return;
-
-                    const detailsContent = document.getElementById('studentDetailsContent');
-                    detailsContent.innerHTML = Object.entries(student.details).map(([key, value]) => `
-                <div style="background: #f7fafc; padding: 10px; border-radius: 8px;">
-                    <div style="font-size: 12px; color: #718096; margin-bottom: 4px;">${key}</div>
-                    <div style="font-weight: 600;">${value || '-'}</div>
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="toggleAbsence('${s.id}', this)"
+                            style="flex: 1; background: ${isAbsent ? '#e53e3e' : '#fff'}; color: ${isAbsent ? '#fff' : '#e53e3e'}; border: 1px solid #e53e3e; padding: 8px; border-radius: 8px; cursor: pointer; font-weight: bold;">
+                            ${isAbsent ? '🟢 حاضر (تراجع)' : '🔴 غياب'}
+                        </button>
+                        <button onclick="showStudentDetails('${s.id}')"
+                            style="background: none; border: 1px solid #667eea; color: #667eea; padding: 8px; border-radius: 8px; cursor: pointer;">
+                            📄 التفاصيل
+                        </button>
+                    </div>
                 </div>
+                `;
+                }).join('')}
+            </div>`;
+            }
+
+            async function toggleAbsence(studentId, btn) {
+            const date = document.getElementById('absenceDate').value;
+            if (!date) {
+            showNotification('الرجاء اختيار التاريخ', 'error');
+            return;
+            }
+
+            const isAbsent = todayAbsences.includes(Number(studentId)) || todayAbsences.includes(String(studentId));
+            const student = students.find(s => s.id == studentId);
+
+            btn.disabled = true;
+            btn.textContent = 'جاري المعالجة...';
+
+            if (isAbsent) {
+            // إلغاء الغياب - إرجاع الطالب حاضر
+            const response = await apiCall('deleteAbsence', { studentId, date });
+            if (response.status === 'success') {
+            todayAbsences = todayAbsences.filter(id => id != studentId);
+            showNotification('تم إلغاء الغياب - الطالب حاضر', 'success');
+            } else {
+            showNotification('فشل العملية', 'error');
+            }
+            } else {
+            // تسجيل غياب
+            const absence = {
+            studentId,
+            studentName: student.name,
+            grade: student.grade,
+            section: student.section,
+            date,
+            teacher: currentUser.name,
+            notes: ''
+            };
+            const response = await apiCall('submitAbsence', absence);
+            if (response.status === 'success') {
+            todayAbsences.push(studentId);
+            showNotification('تم تسجيل الغياب', 'success');
+            } else {
+            showNotification('فشل العملية', 'error');
+            }
+            }
+
+            renderTeacherStudentList();
+            }
+
+            async function loadAdminData() {
+            const teachersRes = await apiCall('getTeachers');
+            if (teachersRes.status === 'success') {
+            teachers = teachersRes.data;
+            renderTeachersTable();
+            }
+
+            const studentsRes = await apiCall('getStudents');
+            if (studentsRes.status === 'success') {
+            document.getElementById('totalStudents').textContent = studentsRes.data.length;
+            }
+
+            const absencesRes = await apiCall('getAbsences');
+            if (absencesRes.status === 'success') {
+            absences = absencesRes.data;
+            renderAbsencesTable();
+            updateStats();
+            }
+            }
+
+            function renderTeachersTable() {
+            const tbody = document.getElementById('teachersTableBody');
+            tbody.innerHTML = teachers.map(t => `
+            <tr>
+                <td>${t.name}</td>
+                <td>${t.username}</td>
+                <td style="font-family: monospace; color: #a0aec0;">••••••</td>
+                <td>
+                    <button class="btn-edit" onclick="showEditTeacherModal(${t.id})">تعديل</button>
+                    <button class="btn-delete" onclick="deleteTeacher(${t.id})">حذف</button>
+                </td>
+            </tr>
+            `).join('');
+            document.getElementById('totalTeachers').textContent = teachers.length;
+            }
+
+            async function saveNewTeacher() {
+            const name = document.getElementById('newTeacherName').value;
+            const username = document.getElementById('newTeacherUsername').value;
+            const password = document.getElementById('newTeacherPassword').value;
+
+            if (!name || !username || !password) {
+            showNotification('الرجاء ملء جميع الحقول', 'error');
+            return;
+            }
+
+            const response = await apiCall('addTeacher', { name, username, password });
+            if (response.status === 'success') {
+            document.getElementById('addTeacherModal').style.display = 'none';
+            document.getElementById('newTeacherName').value = '';
+            document.getElementById('newTeacherUsername').value = '';
+            document.getElementById('newTeacherPassword').value = '';
+            showNotification('تم إضافة المعلم', 'success');
+            loadAdminData();
+            } else {
+            showNotification('فشل إضافة المعلم', 'error');
+            }
+            }
+
+            function showEditTeacherModal(id) {
+            const teacher = teachers.find(t => t.id == id);
+            if (!teacher) return;
+
+            document.getElementById('editTeacherId').value = teacher.id;
+            document.getElementById('editTeacherName').value = teacher.name;
+            document.getElementById('editTeacherUsername').value = teacher.username;
+            document.getElementById('editTeacherModal').style.display = 'flex';
+            }
+
+            async function saveEditTeacher() {
+            const id = document.getElementById('editTeacherId').value;
+            const name = document.getElementById('editTeacherName').value;
+            const username = document.getElementById('editTeacherUsername').value;
+
+            if (!name || !username) {
+            showNotification('الرجاء ملء الاسم واسم المستخدم', 'error');
+            return;
+            }
+
+            const data = { id, name, username };
+
+            const response = await apiCall('updateTeacher', data);
+            if (response.status === 'success') {
+            document.getElementById('editTeacherModal').style.display = 'none';
+            showNotification('تم تحديث بيانات المعلم', 'success');
+            loadAdminData();
+            } else {
+            showNotification('فشل التحديث', 'error');
+            }
+            }
+
+            async function deleteTeacher(id) {
+            if (!confirm('هل أنت متأكد من حذف هذا المعلم؟')) return;
+            const response = await apiCall('deleteTeacher', { id });
+            if (response.status === 'success') {
+            showNotification('تم حذف المعلم', 'success');
+            loadAdminData();
+            } else {
+            showNotification('فشل حذف المعلم', 'error');
+            }
+            }
+
+            function showAddTeacherModal() {
+            document.getElementById('addTeacherModal').style.display = 'flex';
+            }
+
+            function openChangePasswordModal() {
+            document.getElementById('changePasswordModal').style.display = 'flex';
+            }
+
+            async function submitNewPassword() {
+            const newPass = document.getElementById('newPasswordInput').value;
+            if (!newPass) {
+            showNotification('الرجاء إدخال كلمة المرور الجديدة', 'error');
+            return;
+            }
+
+            const response = await apiCall('changePassword', {
+            username: currentUser.username,
+            newPassword: newPass
+            });
+
+            if (response.status === 'success') {
+            showNotification('تم تغيير كلمة المرور', 'success');
+            document.getElementById('changePasswordModal').style.display = 'none';
+            document.getElementById('newPasswordInput').value = '';
+            } else {
+            showNotification('فشل التغيير', 'error');
+            }
+            }
+
+            function openChangeAdminPasswordModal() {
+            document.getElementById('changeAdminPasswordModal').style.display = 'flex';
+            }
+
+            async function submitNewAdminPassword() {
+            const newPass = document.getElementById('newAdminPasswordInput').value;
+            if (!newPass) {
+            showNotification('الرجاء إدخال كلمة المرور الجديدة', 'error');
+            return;
+            }
+
+            const response = await apiCall('changeAdminPassword', {
+            newPassword: newPass
+            });
+
+            if (response.status === 'success') {
+            showNotification('تم تغيير كلمة مرور المدير', 'success');
+            document.getElementById('changeAdminPasswordModal').style.display = 'none';
+            document.getElementById('newAdminPasswordInput').value = '';
+            } else {
+            showNotification('فشل التغيير', 'error');
+            }
+            }
+
+            function openEditAdminProfileModal() {
+            document.getElementById('newAdminUsernameInput').value = currentUser.username;
+            document.getElementById('editAdminProfileModal').style.display = 'flex';
+            }
+
+            async function submitNewAdminUsername() {
+            const newUsername = document.getElementById('newAdminUsernameInput').value.trim();
+            if (!newUsername) {
+            showNotification('الرجاء إدخال اسم المستخدم الجديد', 'error');
+            return;
+            }
+
+            const response = await apiCall('updateAdminUsername', {
+            oldUsername: currentUser.username,
+            newUsername: newUsername
+            });
+
+            if (response.status === 'success') {
+            currentUser.username = newUsername;
+            showNotification('تم تحديث اسم المستخدم', 'success');
+            document.getElementById('editAdminProfileModal').style.display = 'none';
+            } else {
+            showNotification('فشل التحديث', 'error');
+            }
+            }
+
+            function showStudentDetails(id) {
+            const student = students.find(s => s.id == id);
+            if (!student) return;
+
+            const detailsContent = document.getElementById('studentDetailsContent');
+            detailsContent.innerHTML = Object.entries(student.details).map(([key, value]) => `
+            <div style="background: #f7fafc; padding: 10px; border-radius: 8px;">
+                <div style="font-size: 12px; color: #718096; margin-bottom: 4px;">${key}</div>
+                <div style="font-weight: 600;">${value || '-'}</div>
+            </div>
             `).join('');
 
-                    document.getElementById('studentDetailsModal').style.display = 'flex';
-                }
+            document.getElementById('studentDetailsModal').style.display = 'flex';
+            }
 
-                function closeStudentDetailsModal() {
-                    document.getElementById('studentDetailsModal').style.display = 'none';
-                }
+            function closeStudentDetailsModal() {
+            document.getElementById('studentDetailsModal').style.display = 'none';
+            }
 
-                function renderAbsencesTable() {
-                    const tbody = document.getElementById('absencesTableBody');
-                    tbody.innerHTML = absences.map(a => `
-                <tr>
-                    <td>${a.studentName}</td>
-                    <td>${a.grade} - ${a.section}</td>
-                    <td>${a.date}</td>
-                    <td>${a.teacher}</td>
-                </tr>
+            function renderAbsencesTable() {
+            const tbody = document.getElementById('absencesTableBody');
+            tbody.innerHTML = absences.map(a => `
+            <tr>
+                <td>${a.studentName}</td>
+                <td>${a.grade} - ${a.section}</td>
+                <td>${a.date}</td>
+                <td>${a.teacher}</td>
+            </tr>
             `).join('');
-                }
+            }
 
-                function updateStats() {
-                    const today = new Date().toISOString().split('T')[0];
-                    const todayCount = absences.filter(a => a.date === today).length;
-                    document.getElementById('todayAbsencesCount').textContent = todayCount;
-                }
+            function updateStats() {
+            const today = new Date().toISOString().split('T')[0];
+            const todayCount = absences.filter(a => a.date === today).length;
+            document.getElementById('todayAbsencesCount').textContent = todayCount;
+            }
 
-                function showLoading() {
-                    document.getElementById('loading').style.display = 'flex';
-                }
+            function showLoading() {
+            document.getElementById('loading').style.display = 'flex';
+            }
 
-                function hideLoading() {
-                    document.getElementById('loading').style.display = 'none';
-                }
+            function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+            }
 
-                function showNotification(message, type) {
-                    const notification = document.getElementById('notification');
-                    notification.textContent = message;
-                    notification.className = `notification ${type} show`;
-                    setTimeout(() => {
-                        notification.classList.remove('show');
-                    }, 3000);
-                }
+            function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type} show`;
+            setTimeout(() => {
+            notification.classList.remove('show');
+            }, 3000);
+            }
 
-                // Close modals when clicking outside
-                window.onclick = function (event) {
-                    if (event.target.classList.contains('modal')) {
-                        event.target.style.display = 'none';
-                    }
-                }
+            // Close modals when clicking outside
+            window.onclick = function (event) {
+            if (event.target.classList.contains('modal')) {
+            event.target.style.display = 'none';
+            }
+            }
             </script>
 </body>
 
