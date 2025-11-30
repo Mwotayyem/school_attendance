@@ -115,60 +115,6 @@ function doPost(e) {
         // --- تغيير كلمة مرور المدير ---
         if (action === 'changeAdminPassword') {
             adminSheet.getRange(2, 2).setValue(requestData.newPassword);
-            return jsonResponse({ status: 'success', message: 'تم تغيير كلمة مرور المدير' });
-        }
-
-        // --- التحقق من بيانات المدير ---
-        if (action === 'checkAdmin') {
-            var adminData = adminSheet.getRange(2, 1, 1, 2).getValues()[0];
-            if (adminData[0] === requestData.username && adminData[1] === requestData.password) {
-                return jsonResponse({ status: 'success', message: 'تم التحقق بنجاح' });
-            }
-            return jsonResponse({ status: 'error', message: 'بيانات غير صحيحة' });
-        }
-
-        // --- تحديث اسم مستخدم المدير ---
-        if (action === 'updateAdminUsername') {
-            var adminData = adminSheet.getRange(2, 1, 1, 2).getValues()[0];
-            if (adminData[0] === requestData.oldUsername) {
-                adminSheet.getRange(2, 1).setValue(requestData.newUsername);
-                return jsonResponse({ status: 'success', message: 'تم تحديث اسم المستخدم' });
-            }
-            return jsonResponse({ status: 'error', message: 'اسم المستخدم القديم غير صحيح' });
-        }
-
-        // --- تسجيل غياب ---
-        if (action === 'submitAbsence') {
-            absenceSheet.appendRow([
-                requestData.studentId,
-                requestData.studentName,
-                requestData.grade,
-                requestData.section,
-                requestData.date,
-                requestData.teacher,
-                requestData.notes,
-                new Date()
-            ]);
-            return jsonResponse({ status: 'success', message: 'تم تسجيل الغياب' });
-        }
-
-        // --- حذف غياب (تراجع) ---
-        if (action === 'deleteAbsence') {
-            var rows = absenceSheet.getDataRange().getValues();
-            // البحث عن الغياب وحذفه (مطابقة الطالب والتاريخ)
-            for (var i = rows.length - 1; i >= 1; i--) { // البحث من الأسفل للأحدث
-                if (rows[i][0] == requestData.studentId && rows[i][4] == requestData.date) {
-                    absenceSheet.deleteRow(i + 1);
-                    return jsonResponse({ status: 'success', message: 'تم إلغاء الغياب' });
-                }
-            }
-            return jsonResponse({ status: 'error', message: 'سجل الغياب غير موجود' });
-        }
-
-        // --- جلب الغيابات (للتقرير) ---
-        if (action === 'getAbsences') {
-            var rows = absenceSheet.getDataRange().getValues();
-            var absences = [];
             for (var i = 1; i < rows.length; i++) {
                 absences.push({
                     studentId: rows[i][0],
