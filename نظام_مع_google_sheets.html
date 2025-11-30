@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام الحضور والغياب - Google Sheets</title>
+    <title>نظام الحضور والغياب - سحاب الثانوية للبنات</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     <style>
         * {
@@ -142,11 +142,6 @@
             box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
         }
 
-        .btn-primary:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
         .app-header {
             background: white;
             border-radius: 20px;
@@ -174,6 +169,11 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+        }
+
+        .header-subtitle {
+            color: #718096;
+            font-size: 14px;
         }
 
         .btn-logout {
@@ -205,13 +205,6 @@
             color: #1a202c;
             margin-bottom: 25px;
             font-weight: 700;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
         }
 
         .stats-overview {
@@ -368,9 +361,9 @@
         <div id="loginPage" class="page active">
             <div class="login-card">
                 <div class="logo-section">
-                    <div class="logo-circle">🌐</div>
+                    <div class="logo-circle">🏫</div>
                     <h1>نظام الحضور والغياب</h1>
-                    <p class="subtitle">متصل بـ Google Sheets</p>
+                    <p class="subtitle">سحاب الثانوية للبنات</p>
                 </div>
                 <div class="login-form">
                     <div class="input-group">
@@ -401,26 +394,43 @@
             </header>
             <div class="content">
                 <div class="form-card">
-                    <h3>تسجيل غياب جديد</h3>
-                    <div class="form-grid">
-                        <div class="input-group">
-                            <label for="studentSelect">اسم الطالب</label>
-                            <select id="studentSelect">
-                                <option value="">اختر الطالب</option>
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3>قائمة الطلاب</h3>
+                        <button onclick="openChangePasswordModal()"
+                            style="background: none; border: 1px solid #cbd5e0; padding: 5px 10px; border-radius: 5px; cursor: pointer;">🔑
+                            تغيير كلمة المرور</button>
+                    </div>
+
+                    <!-- Filters & Search -->
+                    <div
+                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; background: #f8fafc; padding: 15px; border-radius: 10px;">
+                        <div class="input-group" style="margin-bottom: 0;">
+                            <label>الصف</label>
+                            <select id="filterGrade" onchange="filterStudents()">
+                                <option value="">الكل</option>
                             </select>
                         </div>
-                        <div class="input-group">
-                            <label for="absenceDate">التاريخ</label>
-                            <input type="date" id="absenceDate">
+                        <div class="input-group" style="margin-bottom: 0;">
+                            <label>الشعبة</label>
+                            <select id="filterSection" onchange="filterStudents()">
+                                <option value="">الكل</option>
+                            </select>
+                        </div>
+                        <div class="input-group" style="margin-bottom: 0;">
+                            <label>بحث بالاسم</label>
+                            <input type="text" id="searchName" oninput="filterStudents()"
+                                placeholder="اكتب اسم الطالب...">
+                        </div>
+                        <div class="input-group" style="margin-bottom: 0;">
+                            <label>تاريخ الغياب</label>
+                            <input type="date" id="absenceDate" onchange="checkDailyAbsences()">
                         </div>
                     </div>
-                    <div class="input-group">
-                        <label for="notes">ملاحظات (اختياري)</label>
-                        <textarea id="notes" rows="3" placeholder="أي ملاحظات إضافية..."></textarea>
+
+                    <div id="teacherStudentsList">
+                        <!-- Students Grid will be here -->
                     </div>
-                    <button class="btn-primary" onclick="submitAbsence()">
-                        <span>تسجيل الغياب</span>
-                    </button>
                 </div>
             </div>
         </div>
@@ -431,11 +441,13 @@
                 <div class="header-content">
                     <div class="header-right">
                         <h2>لوحة تحكم المدير</h2>
+                        <p class="header-subtitle">سحاب الثانوية للبنات</p>
                     </div>
                     <button class="btn-logout" onclick="logout()">تسجيل خروج</button>
                 </div>
             </header>
             <div class="content">
+                <!-- Stats -->
                 <div class="stats-overview">
                     <div class="stat-card">
                         <div class="stat-card-icon"
@@ -463,10 +475,40 @@
                     </div>
                 </div>
 
-                <div class="table-card">
-                    <h3>سجل الغيابات</h3>
+                <!-- Teachers Management -->
+                <div class="table-card" style="margin-bottom: 30px;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3>إدارة المعلمين</h3>
+                        <button onclick="showAddTeacherModal()" class="btn-primary"
+                            style="width: auto; padding: 10px 20px;">+ إضافة معلم</button>
+                    </div>
                     <div class="table-responsive">
                         <table>
+                            <thead>
+                                <tr>
+                                    <th>الاسم</th>
+                                    <th>اسم المستخدم</th>
+                                    <th>كلمة المرور</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="teachersTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Absence Report -->
+                <div class="table-card">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3>سجل الغيابات</h3>
+                        <button onclick="printReport()"
+                            style="background: #48bb78; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-family: 'Cairo';">🖨️
+                            طباعة التقرير</button>
+                    </div>
+                    <div class="table-responsive" id="printableReport">
+                        <table id="reportTable">
                             <thead>
                                 <tr>
                                     <th>#</th>
@@ -474,9 +516,8 @@
                                     <th>الصف</th>
                                     <th>الشعبة</th>
                                     <th>التاريخ</th>
-                                    <th>المعلم</th>
+                                    <th>المعلم المسجل</th>
                                     <th>ملاحظات</th>
-                                    <th>الإجراءات</th>
                                 </tr>
                             </thead>
                             <tbody id="absencesTableBody"></tbody>
@@ -485,332 +526,252 @@
                 </div>
             </div>
         </div>
-        <!-- Student Details Modal -->
-        <div id="studentDetailsModal" class="modal"
+
+        <!-- Add Teacher Modal -->
+        <div id="addTeacherModal" class="modal"
             style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
             <div class="modal-content"
-                style="background: white; border-radius: 20px; padding: 40px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto;">
-                <div class="modal-header"
-                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-                    <h2>تفاصيل الطالب</h2>
-                    <button class="modal-close" onclick="closeStudentDetailsModal()"
-                        style="background: none; border: none; font-size: 30px; cursor: pointer; color: #718096;">×</button>
+                style="background: white; border-radius: 20px; padding: 40px; max-width: 400px; width: 90%;">
+                <h3>إضافة معلم جديد</h3>
+                <div class="input-group">
+                    <label>الاسم</label>
+                    <input type="text" id="newTeacherName">
                 </div>
-                <div id="studentDetailsContent"
-                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: right;">
-                    <!-- Details will be injected here -->
+                <div class="input-group">
+                    <label>اسم المستخدم</label>
+                    <input type="text" id="newTeacherUsername">
+                </div>
+                <div class="input-group">
+                    <label>كلمة المرور</label>
+                    <input type="text" id="newTeacherPassword">
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-primary" onclick="saveNewTeacher()">حفظ</button>
+                    <button onclick="document.getElementById('addTeacherModal').style.display='none'"
+                        style="padding: 16px; border: 1px solid #e2e8f0; background: white; border-radius: 12px; cursor: pointer; font-family: 'Cairo';">إلغاء</button>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div id="notification" class="notification"></div>
-    <div id="loading" class="loading">
-        <div class="spinner"></div>
-    </div>
-
-    <script>
-        // ⚠️ ضع رابط Google Apps Script Web App هنا
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbztTjlqlux3_flMod5-Anno5j4ZdhTBe5d5CpbWpAl4h2v4M9NvmY6bjUaIcJWsxYXj/exec';
-
-        let currentUser = null;
-        let students = [];
-        let teachers = [];
-        let absences = [];
-
-        // Set today's date
-        const dateInput = document.getElementById('absenceDate');
-        if (dateInput) dateInput.valueAsDate = new Date();
-
-        async function apiCall(action, data = {}) {
-            showLoading();
-            try {
-                // Using standard fetch. Note: SCRIPT_URL must be deployed with "Who has access: Anyone"
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action, ...data })
-                });
-
-                const result = await response.json();
-                return result;
-            } catch (error) {
-                console.error('API Error:', error);
-                // Fallback for demo/testing if API fails or URL is placeholder
-                if (action === 'getStudents' && SCRIPT_URL.includes('ضع_رابط')) {
-                    return { status: 'success', data: [] };
-                }
-                return { status: 'error', message: error.message };
-            } finally {
-                hideLoading();
-            }
-        }
-
-        async function login() {
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value;
-
-            if (!username || !password) {
-                showNotification('الرجاء إدخال اسم المستخدم وكلمة المرور', 'error');
-                return;
-            }
-
-            showLoading();
-
-            // Simulated login - in production, this would call the API or check a sheet
-            if (username === 'admin' && password === '1234') {
-                currentUser = { id: 1, name: 'المدير', username: 'admin', role: 'admin' };
-                document.getElementById('loginPage').classList.remove('active');
-                document.getElementById('adminPage').classList.add('active');
-                await loadAdminData();
-                showNotification('تم تسجيل الدخول بنجاح', 'success');
-            } else if (username === 'teacher1' && password === '1234') {
-                currentUser = { id: 2, name: 'محمد أحمد', username: 'teacher1', role: 'teacher' };
-                document.getElementById('teacherName').textContent = currentUser.name;
-                document.getElementById('loginPage').classList.remove('active');
-                document.getElementById('teacherPage').classList.add('active');
-                await loadStudents();
-                showNotification('تم تسجيل الدخول بنجاح', 'success');
-            } else {
-                showNotification('اسم المستخدم أو كلمة المرور غير صحيحة', 'error');
-            }
-
-            hideLoading();
-        }
-
-        function logout() {
-            currentUser = null;
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById('loginPage').classList.add('active');
-            document.getElementById('username').value = '';
-            document.getElementById('password').value = '';
-        }
-
-        async function loadStudents() {
-            const response = await apiCall('getStudents');
-
-            if (response.status === 'success' && response.data && response.data.length > 0) {
-                students = response.data.map(s => {
-                    // Map Excel Columns (A-Z) to our internal structure
-                    // F: Full Name, J: School, K: Grade, L: Section
-                    return {
-                        id: s['id'] || Math.random(),
-                        name: s['الاسم الكامل'] || s['الاسم'] || 'بدون اسم',
-                        school: s['المدرسة'] || '',
-                        grade: s['الصف'] || '',
-                        section: s['الشعبة'] || '',
-                        details: s // Store full object for details view
-                    };
-                });
-            } else {
-                // Mock data if API not connected yet
-                students = [
-                    {
-                        id: 1,
-                        name: 'مثال: أحمد محمد',
-                        grade: 'العاشر',
-                        section: 'أ',
-                        school: 'المدرسة النموذجية',
-                        details: { 'الرقم الوطني / الشخصي': '1234567890', 'الاسم الكامل': 'أحمد محمد علي', 'المدرسة': 'المدرسة النموذجية', 'الصف': 'العاشر', 'الشعبة': 'أ' }
-                    }
-                ];
-                if (!SCRIPT_URL.includes('ضع_رابط')) {
-                    // Only show error if URL is set but failed
-                    // showNotification('فشل تحميل الطلاب', 'error');
-                }
-            }
-
-            const select = document.getElementById('studentSelect');
-            if (select) {
-                select.innerHTML = '<option value="">اختر الطالب</option>';
-                students.forEach(s => {
-                    select.innerHTML += `<option value="${s.id}">${s.name} - ${s.grade} ${s.section}</option>`;
-                });
-            }
-
-            // Also render the list for the teacher to see details
-            renderTeacherStudentList();
-        }
-
-        function renderTeacherStudentList() {
-            // Check if we have a container for the list, if not create one
-            let container = document.getElementById('teacherStudentsList');
-            if (!container) {
-                const formCard = document.querySelector('#teacherPage .form-card');
-                if (formCard) {
-                    const listDiv = document.createElement('div');
-                    listDiv.id = 'teacherStudentsList';
-                    listDiv.style.marginTop = '30px';
-                    listDiv.innerHTML = '<h4>قائمة الطلاب</h4><div id="teacherStudentsGrid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; margin-top: 15px;"></div>';
-                    formCard.appendChild(listDiv);
-                    container = document.getElementById('teacherStudentsGrid');
-                }
-            } else {
-                container = document.getElementById('teacherStudentsGrid');
-            }
-
-            if (container) {
-                container.innerHTML = students.map(s => `
-                    <div style="background: #f8fafc; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0;">
-                        <div style="font-weight: bold; margin-bottom: 5px;">${s.name}</div>
-                        <div style="font-size: 13px; color: #718096; margin-bottom: 10px;">
-                            ${s.school ? s.school + ' | ' : ''} ${s.grade} | ${s.section}
-                        </div>
-                        <button onclick="showStudentDetails('${s.id}')" style="background: none; border: 1px solid #667eea; color: #667eea; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px;">
-                            📄 التفاصيل الكاملة
-                        </button>
-                    </div>
-                `).join('');
-            }
-        }
-
-        function showStudentDetails(id) {
-            const student = students.find(s => s.id == id);
-            if (!student) return;
-
-            const details = student.details || {};
-            const container = document.getElementById('studentDetailsContent');
-
-            // Define fields to show based on user request
-            const fields = [
-                { label: 'الرقم الوطني', key: 'الرقم الوطني / الشخصي' },
-                { label: 'الاسم الكامل', key: 'الاسم الكامل' },
-                { label: 'المدرسة', key: 'المدرسة' },
-                { label: 'الصف', key: 'الصف' },
-                { label: 'الشعبة', key: 'الشعبة' },
-                { label: 'الجنس', key: 'الجنس' },
-                { label: 'تاريخ الميلاد', key: 'تاريخ الميلاد' },
-                { label: 'الجنسية', key: 'الجنسية' },
-                { label: 'المحافظة', key: 'المحافظة' },
-                { label: 'المديرية', key: 'المديرية' },
-                { label: 'اسم الأب', key: 'اسم الأب' },
-                { label: 'اسم الجد', key: 'اسم الجد' },
-                { label: 'اسم العائلة', key: 'اسم العائلة' },
-                { label: 'الهاتف الأساسي', key: 'الهاتف الأساسي' },
-                { label: 'هاتف ولي الأمر', key: 'هاتف ولي الأمر' }
-            ];
-
-            container.innerHTML = fields.map(f => `
-                <div style="background: #f7fafc; padding: 10px; border-radius: 8px;">
-                    <strong style="color: #667eea; display: block; margin-bottom: 5px; font-size: 12px;">${f.label}</strong>
-                    <span style="color: #2d3748; font-weight: 600;">${details[f.key] || '-'}</span>
+        <!-- Change Password Modal -->
+        <div id="changePasswordModal" class="modal"
+            style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
+            <div class="modal-content"
+                style="background: white; border-radius: 20px; padding: 40px; max-width: 400px; width: 90%;">
+                <h3>تغيير كلمة المرور</h3>
+                <div class="input-group">
+                    <label>كلمة المرور الجديدة</label>
+                    <input type="password" id="newPasswordInput">
                 </div>
-            `).join('');
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-primary" onclick="submitNewPassword()">تغيير</button>
+                    <button onclick="document.getElementById('changePasswordModal').style.display='none'" const
+                        response=await apiCall('changePassword', { username: currentUser.username, newPassword: newPass
+                        }); if (response.status==='success' ) { showNotification('تم تغيير كلمة المرور', 'success' );
+                        document.getElementById('changePasswordModal').style.display='none' ;
+                        document.getElementById('newPasswordInput').value='' ; } else { showNotification('فشل
+                        التغيير', 'error' ); } } function renderAbsencesTable() { const
+                        tbody=document.getElementById('absencesTableBody');
+                        tbody.innerHTML=absences.slice().reverse().map((a, i)=> `
+                        <tr>
+                            <td>${i + 1}</td>
+                            <td><strong>${a.studentName}</strong></td>
+                            <td>${a.grade}</td>
+                            <td>${a.section}</td>
+                            <td>${a.date}</td>
+                            <td>${a.teacher}</td>
+                            <td>${a.notes || '-'}</td>
+                        </tr>
+                        `).join('');
+                        }
 
-            document.getElementById('studentDetailsModal').style.display = 'flex';
-        }
+                        function updateStats() {
+                        document.getElementById('totalAbsences').textContent = absences.length;
+                        }
 
-        function closeStudentDetailsModal() {
-            document.getElementById('studentDetailsModal').style.display = 'none';
-        }
+                        function printReport() {
+                        const printContent = document.getElementById('reportTable').outerHTML;
+                        const today = new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day:
+                        'numeric' });
 
-        async function loadAdminData() {
-            await loadStudents();
-            // In production, fetch absences from Google Sheets
-            // absences = await apiCall('getAbsences'); 
-            absences = [];
-            updateStats();
-            loadAbsencesTable();
-        }
+                        const printWindow = window.open('', '_blank');
+                        printWindow.document.write(`
+                        <!DOCTYPE html>
+                        <html lang="ar" dir="rtl">
 
-        function updateStats() {
-            document.getElementById('totalAbsences').textContent = absences.length;
-            document.getElementById('totalStudents').textContent = students.length;
-            document.getElementById('totalTeachers').textContent = 1;
-        }
+                        <head>
+                            <meta charset="UTF-8">
+                            <title>تقرير الغياب - سحاب الثانوية للبنات</title>
+                            <style>
+                                @media print {
+                                    @page {
+                                        margin: 2cm;
+                                    }
+                                }
 
-        function loadAbsencesTable() {
-            const tbody = document.getElementById('absencesTableBody');
+                                body {
+                                    font-family: 'Arial', sans-serif;
+                                    direction: rtl;
+                                    text-align: right;
+                                    padding: 20px;
+                                }
 
-            if (absences.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 40px;">لا توجد سجلات غياب</td></tr>';
-                return;
-            }
+                                .header {
+                                    text-align: center;
+                                    margin-bottom: 30px;
+                                    border-bottom: 3px solid #667eea;
+                                    padding-bottom: 20px;
+                                }
 
-            tbody.innerHTML = absences.slice().reverse().map((a, i) => `
-                <tr>
-                    <td>${i + 1}</td>
-                    <td><strong>${a.studentName}</strong></td>
-                    <td>${a.grade}</td>
-                    <td>${a.section}</td>
-                    <td>${a.date}</td>
-                    <td>${a.teacher}</td>
-                    <td>${a.notes || '-'}</td>
-                    <td><button class="btn-delete" onclick="deleteAbsence(${a.id})">حذف</button></td>
-                </tr>
-            `).join('');
-        }
+                                .header h1 {
+                                    color: #1a202c;
+                                    font-size: 28px;
+                                    margin: 10px 0;
+                                }
 
-        async function submitAbsence() {
-            const studentId = document.getElementById('studentSelect').value;
-            const date = document.getElementById('absenceDate').value;
-            const notes = document.getElementById('notes').value;
+                                .header h2 {
+                                    color: #667eea;
+                                    font-size: 24px;
+                                    margin: 5px 0;
+                                }
 
-            if (!studentId || !date) {
-                showNotification('الرجاء اختيار الطالب والتاريخ', 'error');
-                return;
-            }
+                                .header p {
+                                    color: #718096;
+                                    font-size: 14px;
+                                    margin: 5px 0;
+                                }
 
-            const student = students.find(s => s.id == studentId);
+                                table {
+                                    width: 100%;
+                                    border-collapse: collapse;
+                                    margin-top: 20px;
+                                }
 
-            const absence = {
-                id: Date.now(),
-                studentId,
-                studentName: student.name,
-                grade: student.grade,
-                section: student.section,
-                date,
-                teacher: currentUser.name,
-                teacherUsername: currentUser.username,
-                notes,
-                timestamp: new Date().toISOString()
-            };
+                                th {
+                                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                    color: white;
+                                    padding: 12px;
+                                    text-align: right;
+                                    font-weight: bold;
+                                }
 
-            // Save to Google Sheets
-            const response = await apiCall('submitAbsence', absence);
+                                td {
+                                    padding: 10px;
+                                    border-bottom: 1px solid #e2e8f0;
+                                    text-align: right;
+                                }
 
-            if (response.status === 'success') {
-                absences.push(absence);
-                document.getElementById('studentSelect').value = '';
-                document.getElementById('notes').value = '';
-                document.getElementById('absenceDate').valueAsDate = new Date();
-                showNotification('تم تسجيل الغياب بنجاح', 'success');
-            } else {
-                showNotification('فشل تسجيل الغياب: ' + (response.message || 'خطأ غير معروف'), 'error');
-            }
-        }
+                                tr:nth-child(even) {
+                                    background: #f7fafc;
+                                }
 
-        async function deleteAbsence(id) {
-            if (!confirm('هل أنت متأكد من حذف هذا السجل؟')) return;
+                                .footer {
+                                    margin-top: 40px;
+                                    text-align: center;
+                                    color: #718096;
+                                    font-size: 12px;
+                                    border-top: 1px solid #e2e8f0;
+                                    padding-top: 20px;
+                                }
 
-            // In production, this would delete from Google Sheets
-            absences = absences.filter(a => a.id !== id);
-            loadAbsencesTable();
-            updateStats();
-            showNotification('تم حذف السجل بنجاح', 'success');
-        }
+                                .stats {
+                                    margin: 20px 0;
+                                    padding: 15px;
+                                    background: #f7fafc;
+                                    border-radius: 8px;
+                                    text-align: center;
+                                }
 
-        function showNotification(message, type) {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.className = `notification ${type} show`;
-            setTimeout(() => notification.classList.remove('show'), 3000);
-        }
+                                .stats strong {
+                                    color: #667eea;
+                                    font-size: 18px;
+                                }
+                            </style>
+                        </head>
 
-        function showLoading() {
-            document.getElementById('loading').classList.add('show');
-        }
+                        <body>
+                            <div class="header">
+                                <h1>🏫 سحاب الثانوية للبنات</h1>
+                                <h2>تقرير الغياب</h2>
+                                <p>تاريخ الطباعة: ${today}</p>
+                            </div>
+                            <div class="stats">
+                                <strong>إجمالي الغيابات: ${absences.length}</strong>
+                            </div>
+                            ${printContent}
+                            <div class="footer">
+                                <p>تم إنشاء هذا التقرير بواسطة نظام الحضور والغياب الإلكتروني</p>
+                                <p>سحاب الثانوية للبنات © ${new Date().getFullYear()}</p>
+                            </div>
+                        </body>
 
-        function hideLoading() {
-            document.getElementById('loading').classList.remove('show');
-        }
+                        </html>
+                        `);
+                        printWindow.document.close();
+                        printWindow.focus();
+                        setTimeout(() => {
+                        printWindow.print();
+                        printWindow.close();
+                        }, 250);
+                        }
 
-        // Allow Enter key to login
-        document.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && document.getElementById('loginPage').classList.contains('active')) {
-                login();
-            }
-        });
-    </script>
+                        function showStudentDetails(id) {
+                        const student = students.find(s => s.id == id);
+                        if (!student) return;
+                        const details = student.details || {};
+                        const container = document.getElementById('studentDetailsContent');
+                        const fields = [
+                        { label: 'الرقم الوطني', key: 'الرقم الوطني / الشخصي' },
+                        { label: 'الاسم الكامل', key: 'الاسم الكامل' },
+                        { label: 'المدرسة', key: 'المدرسة' },
+                        { label: 'الصف', key: 'الصف' },
+                        { label: 'الشعبة', key: 'الشعبة' },
+                        { label: 'الجنس', key: 'الجنس' },
+                        { label: 'تاريخ الميلاد', key: 'تاريخ الميلاد' },
+                        { label: 'الجنسية', key: 'الجنسية' },
+                        { label: 'المحافظة', key: 'المحافظة' },
+                        { label: 'المديرية', key: 'المديرية' },
+                        { label: 'اسم الأب', key: 'اسم الأب' },
+                        { label: 'اسم الجد', key: 'اسم الجد' },
+                        { label: 'اسم العائلة', key: 'اسم العائلة' },
+                        { label: 'الهاتف الأساسي', key: 'الهاتف الأساسي' },
+                        { label: 'هاتف ولي الأمر', key: 'هاتف ولي الأمر' }
+                        ];
+                        container.innerHTML = fields.map(f => `
+                        <div style="background: #f7fafc; padding: 10px; border-radius: 8px;">
+                            <strong
+                                style="color: #667eea; display: block; margin-bottom: 5px; font-size: 12px;">${f.label}</strong>
+                            <span style="color: #2d3748; font-weight: 600;">${details[f.key] || '-'}</span>
+                        </div>
+                        `).join('');
+                        document.getElementById('studentDetailsModal').style.display = 'flex';
+                        }
+
+                        function closeStudentDetailsModal() {
+                        document.getElementById('studentDetailsModal').style.display = 'none';
+                        }
+
+                        function showNotification(message, type) {
+                        const notification = document.getElementById('notification');
+                        notification.textContent = message;
+                        notification.className = `notification ${type} show`;
+                        setTimeout(() => notification.classList.remove('show'), 3000);
+                        }
+
+                        function showLoading() {
+                        document.getElementById('loading').classList.add('show');
+                        }
+
+                        function hideLoading() {
+                        document.getElementById('loading').classList.remove('show');
+                        }
+
+                        document.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter' && document.getElementById('loginPage').classList.contains('active')) {
+                        login();
+                        }
+                        });
+                        </script>
 </body>
 
 </html>
