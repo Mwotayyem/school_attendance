@@ -843,581 +843,231 @@
                         </thead>
                         <tbody id="teachersListBody"></tbody>
                     </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Change Password Modal -->
-    <div id="changePasswordModal" class="modal">
-        <div class="modal-content" style="max-width: 400px;">
-            <div class="modal-header">
-                <h2>تغيير كلمة المرور</h2>
-                <button class="modal-close" onclick="closeChangePasswordModal()">×</button>
-            </div>
-            <div class="input-group">
-                <label>كلمة المرور الحالية</label>
-                <input type="password" id="currentPassword" placeholder="أدخل كلمة المرور الحالية">
-            </div>
-            <div class="input-group">
-                <label>كلمة المرور الجديدة</label>
-                <input type="password" id="newPassword" placeholder="أدخل كلمة المرور الجديدة">
-            </div>
-            <div class="input-group">
-                <label>تأكيد كلمة المرور الجديدة</label>
-                <input type="password" id="confirmPassword" placeholder="أعد إدخال كلمة المرور الجديدة">
-            </div>
-            <button class="btn-primary" onclick="changePassword()">تغيير كلمة المرور</button>
-        </div>
-    </div>
-
-    <div id="notification" class="notification"></div>
-    <div id="printArea" style="display: none;"></div>
-
-    <script>
-        // --- Fixed Students Data ---
-        const FIXED_STUDENTS = [
-            { id: 1, name: "أحمد محمد علي", grade: "العاشر", section: "أ" },
-            { id: 2, name: "فاطمة خالد سعيد", grade: "العاشر", section: "أ" },
-            { id: 3, name: "محمد عبدالله حسن", grade: "العاشر", section: "أ" },
-            { id: 4, name: "سارة أحمد محمود", grade: "العاشر", section: "ب" },
-            { id: 5, name: "علي حسن عبدالله", grade: "العاشر", section: "ب" },
-            { id: 6, name: "نور محمد خالد", grade: "العاشر", section: "ب" },
-            { id: 7, name: "يوسف عمر سالم", grade: "العاشر", section: "ج" },
-            { id: 8, name: "مريم سعيد أحمد", grade: "العاشر", section: "ج" },
-            { id: 9, name: "خالد فهد محمد", grade: "العاشر", section: "ج" },
-            { id: 10, name: "هند علي حسن", grade: "العاشر", section: "د" },
-            { id: 11, name: "عمر محمود سعيد", grade: "العاشر", section: "د" },
-            { id: 12, name: "ليلى خالد عبدالله", grade: "العاشر", section: "د" },
-            { id: 13, name: "سلمان أحمد علي", grade: "الأول ثانوي", section: "أ" },
-            { id: 14, name: "رنا محمد حسن", grade: "الأول ثانوي", section: "أ" },
-            { id: 15, name: "طارق سعيد خالد", grade: "الأول ثانوي", section: "أ" },
-            { id: 16, name: "دانة علي محمود", grade: "الأول ثانوي", section: "ب" },
-            { id: 17, name: "فهد عبدالله أحمد", grade: "الأول ثانوي", section: "ب" },
-            { id: 18, name: "شهد محمد سالم", grade: "الأول ثانوي", section: "ب" },
-            { id: 19, name: "ناصر خالد علي", grade: "الأول ثانوي", section: "ج" },
-            { id: 20, name: "جود حسن محمد", grade: "الأول ثانوي", section: "ج" },
-            { id: 21, name: "بدر سالم أحمد", grade: "الأول ثانوي", section: "ج" },
-            { id: 22, name: "لمى عبدالله خالد", grade: "الأول ثانوي", section: "د" },
-            { id: 23, name: "زياد محمد علي", grade: "الأول ثانوي", section: "د" },
-            { id: 24, name: "ريم حسن سعيد", grade: "الأول ثانوي", section: "د" },
-            { id: 25, name: "عبدالله أحمد محمد", grade: "الثاني ثانوي", section: "أ" },
-            { id: 26, name: "منى خالد علي", grade: "الثاني ثانوي", section: "أ" },
-            { id: 27, name: "حمد سعيد حسن", grade: "الثاني ثانوي", section: "أ" },
-            { id: 28, name: "نورة محمد عبدالله", grade: "الثاني ثانوي", section: "ب" },
-            { id: 29, name: "سعود علي أحمد", grade: "الثاني ثانوي", section: "ب" },
-            { id: 30, name: "غادة حسن خالد", grade: "الثاني ثانوي", section: "ب" },
-            { id: 31, name: "ماجد محمود سالم", grade: "الثاني ثانوي", section: "ج" },
-            { id: 32, name: "هيا أحمد علي", grade: "الثاني ثانوي", section: "ج" },
-            { id: 33, name: "راشد خالد محمد", grade: "الثاني ثانوي", section: "ج" },
-            { id: 34, name: "أمل سعيد حسن", grade: "الثاني ثانوي", section: "د" },
-            { id: 35, name: "تركي عبدالله أحمد", grade: "الثاني ثانوي", section: "د" },
-            { id: 36, name: "لطيفة محمد خالد", grade: "الثاني ثانوي", section: "د" }
-        ];
-
-        // Initialize Data
-        if (!localStorage.getItem('teachers')) {
-            localStorage.setItem('teachers', JSON.stringify([
-                { id: 1, name: 'المدير', username: 'admin', password: '1234', role: 'admin' }
-            ]));
-        }
-
-        function getAllStudents() {
-            const storedStudents = JSON.parse(localStorage.getItem('students') || '[]');
-            if (storedStudents.length === 0) {
-                return FIXED_STUDENTS;
-            }
-            return storedStudents;
-        }
-
-        if (!localStorage.getItem('absences')) localStorage.setItem('absences', JSON.stringify([]));
-
-        // Login System
-        function login() {
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value;
-
-            if (!username || !password) {
-                showNotification('الرجاء إدخال اسم المستخدم وكلمة المرور', 'error');
-                return;
-            }
-
-            const teachers = JSON.parse(localStorage.getItem('teachers'));
-            const user = teachers.find(t => t.username === username && t.password === password);
-
-            if (user) {
-                localStorage.setItem('currentUser', JSON.stringify(user));
-                document.getElementById('loginPage').classList.remove('active');
-
-                if (user.role === 'admin') {
-                    document.getElementById('adminPage').classList.add('active');
-                    loadAdminData();
-                } else {
-                    document.getElementById('teacherName').textContent = user.name;
-                    document.getElementById('teacherPage').classList.add('active');
-                    initTeacherView();
-                }
-                showNotification('تم تسجيل الدخول بنجاح', 'success');
-                document.getElementById('username').value = '';
-                document.getElementById('password').value = '';
-            } else {
-                showNotification('اسم المستخدم أو كلمة المرور غير صحيحة', 'error');
-            }
-        }
-
-        function logout() {
-            localStorage.removeItem('currentUser');
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById('loginPage').classList.add('active');
-        }
-
-        // Teacher View Functions
-        function initTeacherView() {
-            const students = getAllStudents();
-            const grades = [...new Set(students.map(s => s.grade))].sort();
-            const sections = [...new Set(students.map(s => s.section))].sort();
-
-            const gradeSelect = document.getElementById('filterGrade');
-            const sectionSelect = document.getElementById('filterSection');
-
-            gradeSelect.innerHTML = '<option value="">كل الصفوف</option>' +
-                grades.map(g => `<option value="${g}">${g}</option>`).join('');
-
-            sectionSelect.innerHTML = '<option value="">كل الشعب</option>' +
-                sections.map(s => `<option value="${s}">${s}</option>`).join('');
-
-            renderStudentList();
-        }
-
-        function renderStudentList() {
-            const students = getAllStudents();
-            const filterGrade = document.getElementById('filterGrade').value;
-            const filterSection = document.getElementById('filterSection').value;
-            const searchTerm = document.getElementById('searchStudent').value.toLowerCase();
-
-            const filteredStudents = students.filter(s => {
-                const matchGrade = !filterGrade || s.grade === filterGrade;
-                const matchSection = !filterSection || s.section === filterSection;
-                const matchSearch = !searchTerm || s.name.toLowerCase().includes(searchTerm);
-                return matchGrade && matchSection && matchSearch;
-            });
-
-            const container = document.getElementById('studentsListContainer');
-
-            if (filteredStudents.length === 0) {
-                container.innerHTML = '<div style="text-align:center; padding: 20px; color: #718096;">لا يوجد طلاب مطابقين للبحث</div>';
-                return;
-            }
-
-            container.innerHTML = filteredStudents.map(s => `
-                <div class="student-item">
-                    <div class="student-info">
-                        <div class="student-name">${s.name}</div>
-                        <div class="student-details">${s.grade} - شعبة ${s.section}</div>
-                    </div>
-                    <button class="btn-absent" onclick="confirmAbsence(${s.id}, '${s.name}', '${s.grade}', '${s.section}')">
-                        🔴 تسجيل غياب
-                    </button>
-                </div>
-            `).join('');
-        }
-
-        function confirmAbsence(id, name, grade, section) {
-            const notes = prompt(`تسجيل غياب للطالب: ${name}\n\nأضف ملاحظة (اختياري):`);
-            if (notes === null) return;
-
-            const user = JSON.parse(localStorage.getItem('currentUser'));
-            const date = new Date().toISOString().split('T')[0];
-
-            const absence = {
-                id: Date.now(),
-                studentId: id,
-                studentName: name,
-                grade: grade,
-                section: section,
-                date: date,
-                teacher: user.name,
-                teacherUsername: user.username,
-                notes: notes,
-                timestamp: new Date().toISOString()
-            };
-
-            const absences = JSON.parse(localStorage.getItem('absences'));
-            absences.push(absence);
-            localStorage.setItem('absences', JSON.stringify(absences));
-
-            showNotification(`تم تسجيل غياب الطالب: ${name}`, 'success');
-        }
-
-        // Admin Functions
-        function loadAdminData() {
-            updateStats();
-            loadAbsences();
-        }
-
-        function updateStats() {
-            const absences = JSON.parse(localStorage.getItem('absences'));
-            const students = getAllStudents();
-            const teachers = JSON.parse(localStorage.getItem('teachers')).filter(t => t.role !== 'admin');
-
-            document.getElementById('totalAbsences').textContent = absences.length;
-            document.getElementById('totalStudents').textContent = students.length;
-            document.getElementById('totalTeachers').textContent = teachers.length;
-        }
-
-        function loadAbsences() {
-            const absences = JSON.parse(localStorage.getItem('absences'));
-            const tbody = document.getElementById('absencesTableBody');
-
-            if (absences.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">لا توجد غيابات مسجلة</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = absences.slice().reverse().map((a, i) => `
-                <tr>
-                    <td>${i + 1}</td>
-                    <td><strong>${a.studentName}</strong></td>
-                    <td>${a.grade}</td>
-                    <td>${a.section}</td>
-                    <td>${a.date}</td>
-                    <td>${a.teacher}</td>
-                    <td>${a.notes || '-'}</td>
-                    <td>
-                        <button class="btn-delete" onclick="deleteAbsence(${a.id})">حذف</button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        function deleteAbsence(id) {
-            if (confirm('هل أنت متأكد من حذف هذا السجل؟')) {
-                let absences = JSON.parse(localStorage.getItem('absences'));
-                absences = absences.filter(a => a.id !== id);
-                localStorage.setItem('absences', JSON.stringify(absences));
-                loadAbsences();
-                updateStats();
-                showNotification('تم حذف السجل بنجاح', 'success');
-            }
-        }
-
-        // Management Modal Functions
-        function showManagementModal() {
-            document.getElementById('managementModal').classList.add('show');
-            switchTab('students');
-        }
-
-        function closeManagementModal() {
-            document.getElementById('managementModal').classList.remove('show');
-        }
-
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-
-            // Find the button that called this function (if event triggered) or by index
-            // Simplified: just activate based on text content or order
-            if (tabName === 'students') {
-                document.querySelector('.tab:nth-child(1)').classList.add('active');
-                document.getElementById('studentsTab').classList.add('active');
-                loadStudentsList();
-            } else {
-                document.querySelector('.tab:nth-child(2)').classList.add('active');
-                document.getElementById('teachersTab').classList.add('active');
-                loadTeachersList();
-            }
-        }
-
-        function loadStudentsList() {
-            const students = getAllStudents();
-            document.getElementById('studentsCount').textContent = students.length;
-            const tbody = document.getElementById('studentsListBody');
-
-            tbody.innerHTML = students.map(s => `
-                <tr>
-                    <td>${s.name}</td>
-                    <td>${s.grade}</td>
-                    <td>${s.section}</td>
-                    <td>
-                        ${s.id > 1000 ? `<button class="btn-delete" onclick="deleteStudent(${s.id})">حذف</button>` : '<span style="color:#718096; font-size:12px">ثابت</span>'}
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        function importStudents(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array', codepage: 65001 });
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
-
-                    const students = jsonData.map((row, index) => {
-                        let name = row['الاسم'] || row['Name'] || row['name'] || row['اسم الطالب'] || '';
-                        let grade = row['الصف'] || row['Grade'] || row['grade'] || '';
-                        let section = row['الشعبة'] || row['Section'] || row['section'] || '';
-
-                        if (!name) return null;
-
-                        return {
-                            id: Date.now() + index,
-                            name: name.toString().trim(),
-                            grade: grade.toString().trim(),
-                            section: section.toString().trim()
-                        };
-                    }).filter(s => s !== null);
-
-                    if (students.length === 0) {
-                        showNotification('لم يتم العثور على بيانات صالحة في الملف', 'error');
-                        return;
-                    }
-
+                    students = students.filter(s => s.id !== id);
                     localStorage.setItem('students', JSON.stringify(students));
                     loadStudentsList();
                     updateStats();
-                    showNotification(`تم استيراد ${students.length} طالب بنجاح`, 'success');
-                } catch (error) {
-                    console.error(error);
-                    showNotification('حدث خطأ أثناء قراءة الملف', 'error');
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        }
+                    showNotification('تم حذف الطالب بنجاح', 'success');
+                    }
+                    }
 
-        function deleteStudent(id) {
-            if (confirm('هل أنت متأكد من حذف هذا الطالب؟')) {
-                let students = JSON.parse(localStorage.getItem('students') || '[]');
-                students = students.filter(s => s.id !== id);
-                localStorage.setItem('students', JSON.stringify(students));
-                loadStudentsList();
-                updateStats();
-                showNotification('تم حذف الطالب بنجاح', 'success');
-            }
-        }
+                    function loadTeachersList() {
+                    const teachers = JSON.parse(localStorage.getItem('teachers')).filter(t => t.role !== 'admin');
+                    document.getElementById('teachersCount').textContent = teachers.length;
+                    const tbody = document.getElementById('teachersListBody');
 
-        function loadTeachersList() {
-            const teachers = JSON.parse(localStorage.getItem('teachers')).filter(t => t.role !== 'admin');
-            document.getElementById('teachersCount').textContent = teachers.length;
-            const tbody = document.getElementById('teachersListBody');
-
-            tbody.innerHTML = teachers.map(t => `
-                <tr>
-                    <td>${t.name}</td>
-                    <td>${t.username}</td>
-                    <td>
-                        <button class="btn-delete" onclick="deleteTeacher(${t.id})">حذف</button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        function addTeacher() {
-            const name = document.getElementById('newTeacherName').value.trim();
-            const username = document.getElementById('newTeacherUsername').value.trim();
-            const password = document.getElementById('newTeacherPassword').value;
-
-            if (!name || !username || !password) {
-                showNotification('الرجاء ملء جميع الحقول', 'error');
-                return;
-            }
-
-            const teachers = JSON.parse(localStorage.getItem('teachers'));
-            if (teachers.some(t => t.username === username)) {
-                showNotification('اسم المستخدم موجود مسبقاً', 'error');
-                return;
-            }
-
-            teachers.push({
-                id: Date.now(),
-                name: name,
-                username: username,
-                password: password,
-                role: 'teacher'
-            });
-
-            localStorage.setItem('teachers', JSON.stringify(teachers));
-            loadTeachersList();
-            updateStats();
-            showNotification('تم إضافة المعلم بنجاح', 'success');
-
-            document.getElementById('newTeacherName').value = '';
-            document.getElementById('newTeacherUsername').value = '';
-            document.getElementById('newTeacherPassword').value = '';
-        }
-
-        function deleteTeacher(id) {
-            if (confirm('هل أنت متأكد من حذف هذا المعلم؟')) {
-                let teachers = JSON.parse(localStorage.getItem('teachers'));
-                teachers = teachers.filter(t => t.id !== id);
-                localStorage.setItem('teachers', JSON.stringify(teachers));
-                loadTeachersList();
-                updateStats();
-                showNotification('تم حذف المعلم بنجاح', 'success');
-            }
-        }
-
-        // Change Password
-        function showChangePasswordModal() {
-            document.getElementById('changePasswordModal').classList.add('show');
-        }
-
-        function closeChangePasswordModal() {
-            document.getElementById('changePasswordModal').classList.remove('show');
-        }
-
-        function changePassword() {
-            const currentPass = document.getElementById('currentPassword').value;
-            const newPass = document.getElementById('newPassword').value;
-            const confirmPass = document.getElementById('confirmPassword').value;
-            const user = JSON.parse(localStorage.getItem('currentUser'));
-
-            if (user.password !== currentPass) {
-                showNotification('كلمة المرور الحالية غير صحيحة', 'error');
-                return;
-            }
-
-            if (newPass !== confirmPass) {
-                showNotification('كلمة المرور الجديدة غير متطابقة', 'error');
-                return;
-            }
-
-            if (newPass.length < 4) {
-                showNotification('كلمة المرور يجب أن تكون 4 أحرف على الأقل', 'error');
-                return;
-            }
-
-            // Update in teachers list
-            let teachers = JSON.parse(localStorage.getItem('teachers'));
-            const teacherIndex = teachers.findIndex(t => t.id === user.id);
-            teachers[teacherIndex].password = newPass;
-            localStorage.setItem('teachers', JSON.stringify(teachers));
-
-            // Update current user session
-            user.password = newPass;
-            localStorage.setItem('currentUser', JSON.stringify(user));
-
-            closeChangePasswordModal();
-            showNotification('تم تغيير كلمة المرور بنجاح', 'success');
-        }
-
-        // Export/Print
-        function exportData() {
-            const absences = JSON.parse(localStorage.getItem('absences'));
-            if (absences.length === 0) {
-                showNotification('لا توجد بيانات للتصدير', 'error');
-                return;
-            }
-
-            let csv = '\uFEFFاسم الطالب,الصف,الشعبة,التاريخ,المعلم,ملاحظات\n';
-            absences.forEach(a => {
-                csv += `"${a.studentName}","${a.grade}","${a.section}","${a.date}","${a.teacher}","${a.notes || ''}"\n`;
-            });
-
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `غيابات_${new Date().toISOString().split('T')[0]}.csv`;
-            link.click();
-            showNotification('تم تصدير البيانات بنجاح', 'success');
-        }
-
-        function printReport() {
-            const absences = JSON.parse(localStorage.getItem('absences'));
-            if (absences.length === 0) {
-                showNotification('لا توجد بيانات للطباعة', 'error');
-                return;
-            }
-
-            const printArea = document.getElementById('printArea');
-            const today = new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
-
-            let html = `
-                <div style="padding: 40px; font-family: 'Cairo', sans-serif;">
-                    <div style="text-align: center; margin-bottom: 40px;">
-                        <h1 style="color: #1a202c; margin-bottom: 10px;">تقرير الغيابات المدرسية</h1>
-                        <p style="color: #718096; font-size: 18px;">تاريخ الطباعة: ${today}</p>
-                        <p style="color: #718096; font-size: 16px;">إجمالي الغيابات: ${absences.length}</p>
-                    </div>
-                    <table style="width: 100%; border-collapse: collapse; margin-top: 30px;">
-                        <thead>
-                            <tr style="background: #667eea; color: white;">
-                                <th style="padding: 15px; border: 1px solid #ddd;">#</th>
-                                <th style="padding: 15px; border: 1px solid #ddd;">اسم الطالب</th>
-                                <th style="padding: 15px; border: 1px solid #ddd;">الصف</th>
-                                <th style="padding: 15px; border: 1px solid #ddd;">الشعبة</th>
-                                <th style="padding: 15px; border: 1px solid #ddd;">التاريخ</th>
-                                <th style="padding: 15px; border: 1px solid #ddd;">المعلم</th>
-                                <th style="padding: 15px; border: 1px solid #ddd;">ملاحظات</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-            `;
-
-            absences.slice().reverse().forEach((a, i) => {
-                html += `
-                    <tr style="border-bottom: 1px solid #ddd;">
-                        <td style="padding: 12px; border: 1px solid #ddd; text-align: center;">${i + 1}</td>
-                        <td style="padding: 12px; border: 1px solid #ddd;"><strong>${a.studentName}</strong></td>
-                        <td style="padding: 12px; border: 1px solid #ddd;">${a.grade}</td>
-                        <td style="padding: 12px; border: 1px solid #ddd;">${a.section}</td>
-                        <td style="padding: 12px; border: 1px solid #ddd;">${a.date}</td>
-                        <td style="padding: 12px; border: 1px solid #ddd;">${a.teacher}</td>
-                        <td style="padding: 12px; border: 1px solid #ddd;">${a.notes || '-'}</td>
+                    tbody.innerHTML = teachers.map(t => `
+                    <tr>
+                        <td>${t.name}</td>
+                        <td>${t.username}</td>
+                        <td>
+                            <button class="btn-delete" onclick="deleteTeacher(${t.id})">حذف</button>
+                        </td>
                     </tr>
-                `;
-            });
+                    `).join('');
+                    }
 
-            html += `
-                        </tbody>
-                    </table>
-                    <div style="margin-top: 50px; text-align: center; color: #718096;">
-                        <p>نظام الحضور والغياب المدرسي</p>
-                    </div>
-                </div>
-            `;
+                    function addTeacher() {
+                    const name = document.getElementById('newTeacherName').value.trim();
+                    const username = document.getElementById('newTeacherUsername').value.trim();
+                    const password = document.getElementById('newTeacherPassword').value;
 
-            printArea.innerHTML = html;
-            printArea.style.display = 'block';
-            window.print();
-            printArea.style.display = 'none';
-        }
+                    if (!name || !username || !password) {
+                    showNotification('الرجاء ملء جميع الحقول', 'error');
+                    return;
+                    }
 
-        function showNotification(message, type) {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.className = `notification ${type} show`;
-            setTimeout(() => notification.classList.remove('show'), 3000);
-        }
+                    const teachers = JSON.parse(localStorage.getItem('teachers'));
+                    if (teachers.some(t => t.username === username)) {
+                    showNotification('اسم المستخدم موجود مسبقاً', 'error');
+                    return;
+                    }
 
-        // Auto-login
-        window.addEventListener('load', () => {
-            const user = localStorage.getItem('currentUser');
-            if (user) {
-                const userData = JSON.parse(user);
-                document.getElementById('loginPage').classList.remove('active');
-                if (userData.role === 'admin') {
-                    document.getElementById('adminPage').classList.add('active');
-                    loadAdminData();
-                } else {
-                    document.getElementById('teacherName').textContent = userData.name;
-                    document.getElementById('teacherPage').classList.add('active');
-                    initTeacherView();
-                }
-            }
-        });
+                    teachers.push({
+                    id: Date.now(),
+                    name: name,
+                    username: username,
+                    password: password,
+                    role: 'teacher'
+                    });
 
-        // Enter key login
-        document.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && document.getElementById('loginPage').classList.contains('active')) {
-                login();
-            }
-        });
-    </script>
+                    localStorage.setItem('teachers', JSON.stringify(teachers));
+                    loadTeachersList();
+                    updateStats();
+                    showNotification('تم إضافة المعلم بنجاح', 'success');
+
+                    document.getElementById('newTeacherName').value = '';
+                    document.getElementById('newTeacherUsername').value = '';
+                    document.getElementById('newTeacherPassword').value = '';
+                    }
+
+                    function deleteTeacher(id) {
+                    if (confirm('هل أنت متأكد من حذف هذا المعلم؟')) {
+                    let teachers = JSON.parse(localStorage.getItem('teachers'));
+                    teachers = teachers.filter(t => t.id !== id);
+                    localStorage.setItem('teachers', JSON.stringify(teachers));
+                    loadTeachersList();
+                    updateStats();
+                    showNotification('تم حذف المعلم بنجاح', 'success');
+                    }
+                    }
+
+                    // Change Password
+                    function showChangePasswordModal() {
+                    document.getElementById('changePasswordModal').classList.add('show');
+                    }
+
+                    function closeChangePasswordModal() {
+                    document.getElementById('changePasswordModal').classList.remove('show');
+                    }
+
+                    function changePassword() {
+                    const currentPass = document.getElementById('currentPassword').value;
+                    const newPass = document.getElementById('newPassword').value;
+                    const confirmPass = document.getElementById('confirmPassword').value;
+                    const user = JSON.parse(localStorage.getItem('currentUser'));
+
+                    if (user.password !== currentPass) {
+                    showNotification('كلمة المرور الحالية غير صحيحة', 'error');
+                    return;
+                    }
+
+                    if (newPass !== confirmPass) {
+                    showNotification('كلمة المرور الجديدة غير متطابقة', 'error');
+                    return;
+                    }
+
+                    if (newPass.length < 4) { showNotification('كلمة المرور يجب أن تكون 4 أحرف على الأقل', 'error' );
+                        return; } // Update in teachers list let teachers=JSON.parse(localStorage.getItem('teachers'));
+                        const teacherIndex=teachers.findIndex(t=> t.id === user.id);
+                        teachers[teacherIndex].password = newPass;
+                        localStorage.setItem('teachers', JSON.stringify(teachers));
+
+                        // Update current user session
+                        user.password = newPass;
+                        localStorage.setItem('currentUser', JSON.stringify(user));
+
+                        closeChangePasswordModal();
+                        showNotification('تم تغيير كلمة المرور بنجاح', 'success');
+                        }
+
+                        // Export/Print
+                        function exportData() {
+                        const absences = JSON.parse(localStorage.getItem('absences'));
+                        if (absences.length === 0) {
+                        showNotification('لا توجد بيانات للتصدير', 'error');
+                        return;
+                        }
+
+                        let csv = '\uFEFFاسم الطالب,الصف,الشعبة,التاريخ,المعلم,ملاحظات\n';
+                        absences.forEach(a => {
+                        csv += `"${a.studentName}","${a.grade}","${a.section}","${a.date}","${a.teacher}","${a.notes ||
+                        ''}"\n`;
+                        });
+
+                        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                        const link = document.createElement('a');
+                        link.href = URL.createObjectURL(blob);
+                        link.download = `غيابات_${new Date().toISOString().split('T')[0]}.csv`;
+                        link.click();
+                        showNotification('تم تصدير البيانات بنجاح', 'success');
+                        }
+
+                        function printReport() {
+                        const absences = JSON.parse(localStorage.getItem('absences'));
+                        if (absences.length === 0) {
+                        showNotification('لا توجد بيانات للطباعة', 'error');
+                        return;
+                        }
+
+                        const printArea = document.getElementById('printArea');
+                        const today = new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day:
+                        'numeric' });
+
+                        let html = `
+                        <div style="padding: 40px; font-family: 'Cairo', sans-serif;">
+                            <div style="text-align: center; margin-bottom: 40px;">
+                                <h1 style="color: #1a202c; margin-bottom: 10px;">تقرير الغيابات المدرسية</h1>
+                                <p style="color: #718096; font-size: 18px;">تاريخ الطباعة: ${today}</p>
+                                <p style="color: #718096; font-size: 16px;">إجمالي الغيابات: ${absences.length}</p>
+                            </div>
+                            <table style="width: 100%; border-collapse: collapse; margin-top: 30px;">
+                                <thead>
+                                    <tr style="background: #667eea; color: white;">
+                                        <th style="padding: 15px; border: 1px solid #ddd;">#</th>
+                                        <th style="padding: 15px; border: 1px solid #ddd;">اسم الطالب</th>
+                                        <th style="padding: 15px; border: 1px solid #ddd;">الصف</th>
+                                        <th style="padding: 15px; border: 1px solid #ddd;">الشعبة</th>
+                                        <th style="padding: 15px; border: 1px solid #ddd;">التاريخ</th>
+                                        <th style="padding: 15px; border: 1px solid #ddd;">المعلم</th>
+                                        <th style="padding: 15px; border: 1px solid #ddd;">ملاحظات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    `;
+
+                                    absences.slice().reverse().forEach((a, i) => {
+                                    html += `
+                                    <tr style="border-bottom: 1px solid #ddd;">
+                                        <td style="padding: 12px; border: 1px solid #ddd; text-align: center;">${i + 1}
+                                        </td>
+                                        <td style="padding: 12px; border: 1px solid #ddd;">
+                                            <strong>${a.studentName}</strong></td>
+                                        <td style="padding: 12px; border: 1px solid #ddd;">${a.grade}</td>
+                                        <td style="padding: 12px; border: 1px solid #ddd;">${a.section}</td>
+                                        <td style="padding: 12px; border: 1px solid #ddd;">${a.date}</td>
+                                        <td style="padding: 12px; border: 1px solid #ddd;">${a.teacher}</td>
+                                        <td style="padding: 12px; border: 1px solid #ddd;">${a.notes || '-'}</td>
+                                    </tr>
+                                    `;
+                                    });
+
+                                    html += `
+                                </tbody>
+                            </table>
+                            <div style="margin-top: 50px; text-align: center; color: #718096;">
+                                <p>نظام الحضور والغياب المدرسي</p>
+                            </div>
+                        </div>
+                        `;
+
+                        printArea.innerHTML = html;
+                        printArea.style.display = 'block';
+                        window.print();
+                        printArea.style.display = 'none';
+                        }
+
+                        function showNotification(message, type) {
+                        const notification = document.getElementById('notification');
+                        notification.textContent = message;
+                        notification.className = `notification ${type} show`;
+                        setTimeout(() => notification.classList.remove('show'), 3000);
+                        }
+
+                        // Auto-login
+                        window.addEventListener('load', () => {
+                        const user = localStorage.getItem('currentUser');
+                        if (user) {
+                        const userData = JSON.parse(user);
+                        document.getElementById('loginPage').classList.remove('active');
+                        if (userData.role === 'admin') {
+                        document.getElementById('adminPage').classList.add('active');
+                        loadAdminData();
+                        } else {
+                        document.getElementById('teacherName').textContent = userData.name;
+                        document.getElementById('teacherPage').classList.add('active');
+                        initTeacherView();
+                        }
+                        }
+                        });
+
+                        // Enter key login
+                        document.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter' && document.getElementById('loginPage').classList.contains('active')) {
+                        login();
+                        }
+                        });
+                        </script>
 </body>
 
 </html>
