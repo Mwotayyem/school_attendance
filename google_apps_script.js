@@ -127,6 +127,16 @@ function doPost(e) {
             return jsonResponse({ status: 'error', message: 'بيانات غير صحيحة' });
         }
 
+        // --- تحديث اسم مستخدم المدير ---
+        if (action === 'updateAdminUsername') {
+            var adminData = adminSheet.getRange(2, 1, 1, 2).getValues()[0];
+            if (adminData[0] === requestData.oldUsername) {
+                adminSheet.getRange(2, 1).setValue(requestData.newUsername);
+                return jsonResponse({ status: 'success', message: 'تم تحديث اسم المستخدم' });
+            }
+            return jsonResponse({ status: 'error', message: 'اسم المستخدم القديم غير صحيح' });
+        }
+
         // --- تسجيل غياب ---
         if (action === 'submitAbsence') {
             absenceSheet.appendRow([
