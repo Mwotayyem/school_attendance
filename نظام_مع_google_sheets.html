@@ -443,308 +443,214 @@
 
                 <!-- Recent Absences -->
                 <div>
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h3>سجل الغيابات</h3>
-                        <button onclick="window.print()"
-                            style="padding: 10px 20px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; font-family: 'Cairo';">🖨️
-                            طباعة التقرير</button>
+                    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background:
+                    rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
+                    <div class="modal-content"
+                        style="background: white; border-radius: 20px; padding: 40px; max-width: 400px; width: 90%;">
+                        <h3>إضافة معلم جديد</h3>
+                        <div class="input-group">
+                            <label>الاسم</label>
+                            <input type="text" id="newTeacherName">
+                        </div>
+                        <div class="input-group">
+                            <label>اسم المستخدم</label>
+                            <input type="text" id="newTeacherUsername">
+                        </div>
+                        <div class="input-group">
+                            <label>كلمة المرور</label>
+                            <input type="text" id="newTeacherPassword">
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn-primary" onclick="saveNewTeacher()">حفظ</button>
+                            <button onclick="document.getElementById('addTeacherModal').style.display='none'"
+                                style="padding: 16px; border: 1px solid #e2e8f0; background: white; border-radius: 12px; cursor: pointer; font-family: 'Cairo';">إلغاء</button>
+                        </div>
                     </div>
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>الطالب</th>
-                                    <th>الصف</th>
-                                    <th>التاريخ</th>
-                                    <th>المعلم</th>
-                                </tr>
-                            </thead>
-                            <tbody id="absencesTableBody"></tbody>
-                        </table>
+                </div>
+
+                <!-- Edit Teacher Modal (بدون كلمة المرور) -->
+                <div id="editTeacherModal" class="modal"
+                    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
+                    <div class="modal-content"
+                        style="background: white; border-radius: 20px; padding: 40px; max-width: 400px; width: 90%;">
+                        <h3>تعديل بيانات المعلم</h3>
+                        <input type="hidden" id="editTeacherId">
+                        <div class="input-group">
+                            <label>الاسم</label>
+                            <input type="text" id="editTeacherName">
+                        </div>
+                        <div class="input-group">
+                            <label>اسم المستخدم</label>
+                            <input type="text" id="editTeacherUsername">
+                        </div>
+                        <p style="color: #718096; font-size: 13px; margin-bottom: 15px;">ملاحظة: لا يمكن للمدير تغيير
+                            كلمة مرور
+                            المعلم. يمكن للمعلم تغييرها بنفسه.</p>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn-primary" onclick="saveEditTeacher()">حفظ التغييرات</button>
+                            <button onclick="document.getElementById('editTeacherModal').style.display='none'"
+                                style="padding: 16px; border: 1px solid #e2e8f0; background: white; border-radius: 12px; cursor: pointer; font-family: 'Cairo';">إلغاء</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Change Teacher Password Modal -->
+                <div id="changePasswordModal" class="modal"
+                    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
+                    <div class="modal-content"
+                        style="background: white; border-radius: 20px; padding: 40px; max-width: 400px; width: 90%;">
+                        <h3>تغيير كلمة المرور</h3>
+                        <div class="input-group">
+                            <label>كلمة المرور الجديدة</label>
+                            <input type="password" id="newPasswordInput">
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn-primary" onclick="submitNewPassword()">تغيير</button>
+                            <button onclick="document.getElementById('changePasswordModal').style.display='none'"
+                                style="padding: 16px; border: 1px solid #e2e8f0; background: white; border-radius: 12px; cursor: pointer; font-family: 'Cairo';">إلغاء</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Change Admin Password Modal -->
+                <div id="changeAdminPasswordModal" class="modal"
+                    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
+                    <div class="modal-content"
+                        style="background: white; border-radius: 20px; padding: 40px; max-width: 400px; width: 90%;">
+                        <h3>تغيير كلمة مرور المدير</h3>
+                        <div class="input-group">
+                            <label>كلمة المرور الجديدة</label>
+                            <input type="password" id="newAdminPasswordInput">
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn-primary" onclick="submitNewAdminPassword()">تغيير</button>
+                            <button onclick="document.getElementById('changeAdminPasswordModal').style.display='none'"
+                                style="padding: 16px; border: 1px solid #e2e8f0; background: white; border-radius: 12px; cursor: pointer; font-family: 'Cairo';">إلغاء</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Edit Admin Profile Modal -->
+                <div id="editAdminProfileModal" class="modal"
+                    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
+                    <div class="modal-content"
+                        style="background: white; border-radius: 20px; padding: 40px; max-width: 400px; width: 90%;">
+                        <h3>تعديل الملف الشخصي</h3>
+                        <div class="input-group">
+                            <label>اسم المستخدم الجديد</label>
+                            <input type="text" id="newAdminUsernameInput">
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn-primary" onclick="submitNewAdminUsername()">تحديث</button>
+                            <button onclick="document.getElementById('editAdminProfileModal').style.display='none'"
+                                style="padding: 16px; border: 1px solid #e2e8f0; background: white; border-radius: 12px; cursor: pointer; font-family: 'Cairo';">إلغاء</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Student Details Modal -->
+                <div id="studentDetailsModal" class="modal"
+                    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
+                    <div class="modal-content"
+                        style="background: white; border-radius: 20px; padding: 40px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto;">
+                        <div class="modal-header"
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                            <h2>تفاصيل الطالب</h2>
+                            <button class="modal-close" onclick="closeStudentDetailsModal()"
+                                style="background: none; border: none; font-size: 30px; cursor: pointer; color: #718096;">×</button>
+                        </div>
+                        <div id="studentDetailsContent"
+                            style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: right;">
+                            <!-- Details will be injected here -->
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Add Teacher Modal -->
-        <div id="addTeacherModal" class="modal"
-            style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
-            <div class="modal-content"
-                style="background: white; border-radius: 20px; padding: 40px; max-width: 400px; width: 90%;">
-                <h3>إضافة معلم جديد</h3>
-                <div class="input-group">
-                    <label>الاسم</label>
-                    <input type="text" id="newTeacherName">
-                </div>
-                <div class="input-group">
-                    <label>اسم المستخدم</label>
-                    <input type="text" id="newTeacherUsername">
-                </div>
-                <div class="input-group">
-                    <label>كلمة المرور</label>
-                    <input type="text" id="newTeacherPassword">
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn-primary" onclick="saveNewTeacher()">حفظ</button>
-                    <button onclick="document.getElementById('addTeacherModal').style.display='none'"
-                        style="padding: 16px; border: 1px solid #e2e8f0; background: white; border-radius: 12px; cursor: pointer; font-family: 'Cairo';">إلغاء</button>
-                </div>
+            <div id="notification" class="notification"></div>
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
             </div>
-        </div>
 
-        <!-- Edit Teacher Modal (بدون كلمة المرور) -->
-        <div id="editTeacherModal" class="modal"
-            style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
-            <div class="modal-content"
-                style="background: white; border-radius: 20px; padding: 40px; max-width: 400px; width: 90%;">
-                <h3>تعديل بيانات المعلم</h3>
-                <input type="hidden" id="editTeacherId">
-                <div class="input-group">
-                    <label>الاسم</label>
-                    <input type="text" id="editTeacherName">
-                </div>
-                <div class="input-group">
-                    <label>اسم المستخدم</label>
-                    <input type="text" id="editTeacherUsername">
-                </div>
-                <p style="color: #718096; font-size: 13px; margin-bottom: 15px;">ملاحظة: لا يمكن للمدير تغيير كلمة مرور
-                    المعلم. يمكن للمعلم تغييرها بنفسه.</p>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn-primary" onclick="saveEditTeacher()">حفظ التغييرات</button>
-                    <button onclick="document.getElementById('editTeacherModal').style.display='none'"
-                        style="padding: 16px; border: 1px solid #e2e8f0; background: white; border-radius: 12px; cursor: pointer; font-family: 'Cairo';">إلغاء</button>
-                </div>
-            </div>
-        </div>
+            <script>
+                const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyv3PgfGVlHoRQ7KQ5M2kaLdRXQ3LHvLTRamqswGMrJX6VqRjchFxybYVEkxwTfb1Q/exec';
 
-        <!-- Change Teacher Password Modal -->
-        <div id="changePasswordModal" class="modal"
-            style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
-            <div class="modal-content"
-                style="background: white; border-radius: 20px; padding: 40px; max-width: 400px; width: 90%;">
-                <h3>تغيير كلمة المرور</h3>
-                <div class="input-group">
-                    <label>كلمة المرور الجديدة</label>
-                    <input type="password" id="newPasswordInput">
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn-primary" onclick="submitNewPassword()">تغيير</button>
-                    <button onclick="document.getElementById('changePasswordModal').style.display='none'"
-                        style="padding: 16px; border: 1px solid #e2e8f0; background: white; border-radius: 12px; cursor: pointer; font-family: 'Cairo';">إلغاء</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Change Admin Password Modal -->
-        <div id="changeAdminPasswordModal" class="modal"
-            style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
-            <div class="modal-content"
-                style="background: white; border-radius: 20px; padding: 40px; max-width: 400px; width: 90%;">
-                <h3>تغيير كلمة مرور المدير</h3>
-                <div class="input-group">
-                    <label>كلمة المرور الجديدة</label>
-                    <input type="password" id="newAdminPasswordInput">
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn-primary" onclick="submitNewAdminPassword()">تغيير</button>
-                    <button onclick="document.getElementById('changeAdminPasswordModal').style.display='none'"
-                        style="padding: 16px; border: 1px solid #e2e8f0; background: white; border-radius: 12px; cursor: pointer; font-family: 'Cairo';">إلغاء</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Edit Admin Profile Modal -->
-        <div id="editAdminProfileModal" class="modal"
-            style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
-            <div class="modal-content"
-                style="background: white; border-radius: 20px; padding: 40px; max-width: 400px; width: 90%;">
-                <h3>تعديل الملف الشخصي</h3>
-                <div class="input-group">
-                    <label>اسم المستخدم الجديد</label>
-                    <input type="text" id="newAdminUsernameInput">
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn-primary" onclick="submitNewAdminUsername()">تحديث</button>
-                    <button onclick="document.getElementById('editAdminProfileModal').style.display='none'"
-                        style="padding: 16px; border: 1px solid #e2e8f0; background: white; border-radius: 12px; cursor: pointer; font-family: 'Cairo';">إلغاء</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Student Details Modal -->
-        <div id="studentDetailsModal" class="modal"
-            style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
-            <div class="modal-content"
-                style="background: white; border-radius: 20px; padding: 40px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto;">
-                <div class="modal-header"
-                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-                    <h2>تفاصيل الطالب</h2>
-                    <button class="modal-close" onclick="closeStudentDetailsModal()"
-                        style="background: none; border: none; font-size: 30px; cursor: pointer; color: #718096;">×</button>
-                </div>
-                <div id="studentDetailsContent"
-                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: right;">
-                    <!-- Details will be injected here -->
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="notification" class="notification"></div>
-    <div id="loading" class="loading">
-        <div class="spinner"></div>
-    </div>
-
-    <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyv3PgfGVlHoRQ7KQ5M2kaLdRXQ3LHvLTRamqswGMrJX6VqRjchFxybYVEkxwTfb1Q/exec';
-
-        let currentUser = null;
-        let students = [];
-        let teachers = [];
-        let absences = [];
-        let todayAbsences = [];
-
-        const dateInput = document.getElementById('absenceDate');
-        if (dateInput) dateInput.valueAsDate = new Date();
-
-        async function apiCall(action, data = {}) {
-            showLoading();
-            try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action, ...data })
-                });
-                const result = await response.json();
-                console.log('API Response:', result);
-                return result;
-            } catch (error) {
-                console.error('API Error:', error);
-                return { status: 'error', message: error.message };
-            } finally {
-                hideLoading();
-            }
-        }
-
-        async function login() {
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value;
-
-            if (!username || !password) {
-                showNotification('الرجاء إدخال اسم المستخدم وكلمة المرور', 'error');
-                return;
-            }
-
-            showLoading();
-
-            // التحقق من بيانات المدير عبر API
-            const adminCheck = await apiCall('checkAdmin', { username, password });
-            if (adminCheck.status === 'success') {
-                currentUser = { id: 1, name: 'المدير', username: username, role: 'admin' };
-                document.getElementById('loginPage').classList.remove('active');
-                document.getElementById('adminPage').classList.add('active');
-                await loadAdminData();
-                showNotification('تم تسجيل الدخول بنجاح', 'success');
-            } else {
-                // إذا لم يكن مديراً، تحقق من المعلمين
-                const response = await apiCall('getTeachers');
-                if (response.status === 'success') {
-                    const teacher = response.data.find(t => t.username === username && t.password == password);
-                    if (teacher) {
-                        currentUser = { ...teacher, role: 'teacher' };
-                        document.getElementById('teacherName').textContent = currentUser.name;
-                        document.getElementById('loginPage').classList.remove('active');
-                        document.getElementById('teacherPage').classList.add('active');
-                        await loadStudents();
-                        showNotification('تم تسجيل الدخول بنجاح', 'success');
-                    } else {
-                        showNotification('اسم المستخدم أو كلمة المرور غير صحيحة', 'error');
-                    }
-                } else {
-                    showNotification('خطأ في الاتصال بالخادم', 'error');
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                document.getElementById('loginPage').classList.add('active');
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
                 }
-            }
-            hideLoading();
-        }
 
-        function logout() {
-            currentUser = null;
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById('loginPage').classList.add('active');
-            document.getElementById('username').value = '';
-            document.getElementById('password').value = '';
-        }
+                async function loadStudents() {
+                    const response = await apiCall('getStudents');
 
-        async function loadStudents() {
-            const response = await apiCall('getStudents');
+                    if (response.status === 'success') {
+                        students = response.data.map(s => ({
+                            id: s['id'],
+                            name: s['الاسم الكامل'] || s['الاسم'] || 'بدون اسم',
+                            school: s['المدرسة'] || '',
+                            grade: s['الصف'] || '',
+                            section: s['الشعبة'] || '',
+                            pathway: s['المرحلة / القسم / المسار'] || '',
+                            details: s
+                        }));
+                    } else {
+                        students = [];
+                        showNotification('فشل تحميل الطلاب', 'error');
+                    }
 
-            if (response.status === 'success') {
-                students = response.data.map(s => ({
-                    id: s['id'],
-                    name: s['الاسم الكامل'] || s['الاسم'] || 'بدون اسم',
-                    school: s['المدرسة'] || '',
-                    grade: s['الصف'] || '',
-                    section: s['الشعبة'] || '',
-                    pathway: s['المرحلة / القسم / المسار'] || '',
-                    details: s
-                }));
-            } else {
-                students = [];
-                showNotification('فشل تحميل الطلاب', 'error');
-            }
+                    populateFilters();
+                    await checkDailyAbsences();
+                    renderTeacherStudentList();
+                }
 
-            populateFilters();
-            await checkDailyAbsences();
-            renderTeacherStudentList();
-        }
+                function populateFilters() {
+                    const grades = [...new Set(students.map(s => s.grade).filter(Boolean))];
+                    const sections = [...new Set(students.map(s => s.section).filter(Boolean))];
+                    const pathways = [...new Set(students.map(s => s.pathway).filter(Boolean))];
 
-        function populateFilters() {
-            const grades = [...new Set(students.map(s => s.grade).filter(Boolean))];
-            const sections = [...new Set(students.map(s => s.section).filter(Boolean))];
-            const pathways = [...new Set(students.map(s => s.pathway).filter(Boolean))];
+                    const gradeSelect = document.getElementById('filterGrade');
+                    const sectionSelect = document.getElementById('filterSection');
+                    const pathwaySelect = document.getElementById('filterPathway');
 
-            const gradeSelect = document.getElementById('filterGrade');
-            const sectionSelect = document.getElementById('filterSection');
-            const pathwaySelect = document.getElementById('filterPathway');
+                    gradeSelect.innerHTML = '<option value="">الكل</option>' + grades.map(g => `<option value="${g}">${g}</option>`).join('');
+                    sectionSelect.innerHTML = '<option value="">الكل</option>' + sections.map(s => `<option value="${s}">${s}</option>`).join('');
+                    pathwaySelect.innerHTML = '<option value="">الكل</option>' + pathways.map(p => `<option value="${p}">${p}</option>`).join('');
+                }
 
-            gradeSelect.innerHTML = '<option value="">الكل</option>' + grades.map(g => `<option value="${g}">${g}</option>`).join('');
-            sectionSelect.innerHTML = '<option value="">الكل</option>' + sections.map(s => `<option value="${s}">${s}</option>`).join('');
-            pathwaySelect.innerHTML = '<option value="">الكل</option>' + pathways.map(p => `<option value="${p}">${p}</option>`).join('');
-        }
+                function filterStudents() {
+                    renderTeacherStudentList();
+                }
 
-        function filterStudents() {
-            renderTeacherStudentList();
-        }
+                async function checkDailyAbsences() {
+                    const date = document.getElementById('absenceDate').value;
+                    const response = await apiCall('getAbsences');
+                    if (response.status === 'success') {
+                        todayAbsences = response.data.filter(a => a.date === date).map(a => a.studentId);
+                    }
+                    renderTeacherStudentList();
+                }
 
-        async function checkDailyAbsences() {
-            const date = document.getElementById('absenceDate').value;
-            const response = await apiCall('getAbsences');
-            if (response.status === 'success') {
-                todayAbsences = response.data.filter(a => a.date === date).map(a => a.studentId);
-            }
-            renderTeacherStudentList();
-        }
+                function renderTeacherStudentList() {
+                    const gradeFilter = document.getElementById('filterGrade').value;
+                    const sectionFilter = document.getElementById('filterSection').value;
+                    const pathwayFilter = document.getElementById('filterPathway').value;
+                    const searchName = document.getElementById('searchName').value.toLowerCase();
 
-        function renderTeacherStudentList() {
-            const gradeFilter = document.getElementById('filterGrade').value;
-            const sectionFilter = document.getElementById('filterSection').value;
-            const pathwayFilter = document.getElementById('filterPathway').value;
-            const searchName = document.getElementById('searchName').value.toLowerCase();
+                    const filteredStudents = students.filter(s => {
+                        return (!gradeFilter || s.grade === gradeFilter) &&
+                            (!sectionFilter || s.section === sectionFilter) &&
+                            (!pathwayFilter || s.pathway === pathwayFilter) &&
+                            (!searchName || s.name.toLowerCase().includes(searchName));
+                    });
 
-            const filteredStudents = students.filter(s => {
-                return (!gradeFilter || s.grade === gradeFilter) &&
-                    (!sectionFilter || s.section === sectionFilter) &&
-                    (!pathwayFilter || s.pathway === pathwayFilter) &&
-                    (!searchName || s.name.toLowerCase().includes(searchName));
-            });
+                    const container = document.getElementById('teacherStudentsList');
+                    if (!container) return;
 
-            const container = document.getElementById('teacherStudentsList');
-            if (!container) return;
-
-            container.innerHTML = `<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;">
+                    container.innerHTML = `<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;">
                 ${filteredStudents.map(s => {
-                const isAbsent = todayAbsences.includes(s.id);
-                return `
+                        const isAbsent = todayAbsences.includes(s.id);
+                        return `
                     <div style="background: ${isAbsent ? '#fff5f5' : '#f8fafc'}; padding: 15px; border-radius: 10px; border: 1px solid ${isAbsent ? '#fc8181' : '#e2e8f0'}; transition: all 0.3s;">
                         <div style="font-weight: bold; margin-bottom: 5px;">${s.name}</div>
                         <div style="font-size: 13px; color: #718096; margin-bottom: 10px;">
@@ -761,78 +667,78 @@
                         </div>
                     </div>
                     `;
-            }).join('')}
+                    }).join('')}
             </div>`;
-        }
-
-        async function toggleAbsence(studentId, btn) {
-            const date = document.getElementById('absenceDate').value;
-            if (!date) {
-                showNotification('الرجاء اختيار التاريخ', 'error');
-                return;
-            }
-
-            const isAbsent = todayAbsences.includes(Number(studentId)) || todayAbsences.includes(String(studentId));
-            const student = students.find(s => s.id == studentId);
-
-            btn.disabled = true;
-            btn.textContent = 'جاري المعالجة...';
-
-            if (isAbsent) {
-                // إلغاء الغياب - إرجاع الطالب حاضر
-                const response = await apiCall('deleteAbsence', { studentId, date });
-                if (response.status === 'success') {
-                    todayAbsences = todayAbsences.filter(id => id != studentId);
-                    showNotification('تم إلغاء الغياب - الطالب حاضر', 'success');
-                } else {
-                    showNotification('فشل العملية', 'error');
                 }
-            } else {
-                // تسجيل غياب
-                const absence = {
-                    studentId,
-                    studentName: student.name,
-                    grade: student.grade,
-                    section: student.section,
-                    date,
-                    teacher: currentUser.name,
-                    notes: ''
-                };
-                const response = await apiCall('submitAbsence', absence);
-                if (response.status === 'success') {
-                    todayAbsences.push(studentId);
-                    showNotification('تم تسجيل الغياب', 'success');
-                } else {
-                    showNotification('فشل العملية', 'error');
+
+                async function toggleAbsence(studentId, btn) {
+                    const date = document.getElementById('absenceDate').value;
+                    if (!date) {
+                        showNotification('الرجاء اختيار التاريخ', 'error');
+                        return;
+                    }
+
+                    const isAbsent = todayAbsences.includes(Number(studentId)) || todayAbsences.includes(String(studentId));
+                    const student = students.find(s => s.id == studentId);
+
+                    btn.disabled = true;
+                    btn.textContent = 'جاري المعالجة...';
+
+                    if (isAbsent) {
+                        // إلغاء الغياب - إرجاع الطالب حاضر
+                        const response = await apiCall('deleteAbsence', { studentId, date });
+                        if (response.status === 'success') {
+                            todayAbsences = todayAbsences.filter(id => id != studentId);
+                            showNotification('تم إلغاء الغياب - الطالب حاضر', 'success');
+                        } else {
+                            showNotification('فشل العملية', 'error');
+                        }
+                    } else {
+                        // تسجيل غياب
+                        const absence = {
+                            studentId,
+                            studentName: student.name,
+                            grade: student.grade,
+                            section: student.section,
+                            date,
+                            teacher: currentUser.name,
+                            notes: ''
+                        };
+                        const response = await apiCall('submitAbsence', absence);
+                        if (response.status === 'success') {
+                            todayAbsences.push(studentId);
+                            showNotification('تم تسجيل الغياب', 'success');
+                        } else {
+                            showNotification('فشل العملية', 'error');
+                        }
+                    }
+
+                    renderTeacherStudentList();
                 }
-            }
 
-            renderTeacherStudentList();
-        }
+                async function loadAdminData() {
+                    const teachersRes = await apiCall('getTeachers');
+                    if (teachersRes.status === 'success') {
+                        teachers = teachersRes.data;
+                        renderTeachersTable();
+                    }
 
-        async function loadAdminData() {
-            const teachersRes = await apiCall('getTeachers');
-            if (teachersRes.status === 'success') {
-                teachers = teachersRes.data;
-                renderTeachersTable();
-            }
+                    const studentsRes = await apiCall('getStudents');
+                    if (studentsRes.status === 'success') {
+                        document.getElementById('totalStudents').textContent = studentsRes.data.length;
+                    }
 
-            const studentsRes = await apiCall('getStudents');
-            if (studentsRes.status === 'success') {
-                document.getElementById('totalStudents').textContent = studentsRes.data.length;
-            }
+                    const absencesRes = await apiCall('getAbsences');
+                    if (absencesRes.status === 'success') {
+                        absences = absencesRes.data;
+                        renderAbsencesTable();
+                        updateStats();
+                    }
+                }
 
-            const absencesRes = await apiCall('getAbsences');
-            if (absencesRes.status === 'success') {
-                absences = absencesRes.data;
-                renderAbsencesTable();
-                updateStats();
-            }
-        }
-
-        function renderTeachersTable() {
-            const tbody = document.getElementById('teachersTableBody');
-            tbody.innerHTML = teachers.map(t => `
+                function renderTeachersTable() {
+                    const tbody = document.getElementById('teachersTableBody');
+                    tbody.innerHTML = teachers.map(t => `
                 <tr>
                     <td>${t.name}</td>
                     <td>${t.username}</td>
@@ -843,176 +749,176 @@
                     </td>
                 </tr>
             `).join('');
-            document.getElementById('totalTeachers').textContent = teachers.length;
-        }
+                    document.getElementById('totalTeachers').textContent = teachers.length;
+                }
 
-        async function saveNewTeacher() {
-            const name = document.getElementById('newTeacherName').value;
-            const username = document.getElementById('newTeacherUsername').value;
-            const password = document.getElementById('newTeacherPassword').value;
+                async function saveNewTeacher() {
+                    const name = document.getElementById('newTeacherName').value;
+                    const username = document.getElementById('newTeacherUsername').value;
+                    const password = document.getElementById('newTeacherPassword').value;
 
-            if (!name || !username || !password) {
-                showNotification('الرجاء ملء جميع الحقول', 'error');
-                return;
-            }
+                    if (!name || !username || !password) {
+                        showNotification('الرجاء ملء جميع الحقول', 'error');
+                        return;
+                    }
 
-            const response = await apiCall('addTeacher', { name, username, password });
-            if (response.status === 'success') {
-                document.getElementById('addTeacherModal').style.display = 'none';
-                document.getElementById('newTeacherName').value = '';
-                document.getElementById('newTeacherUsername').value = '';
-                document.getElementById('newTeacherPassword').value = '';
-                showNotification('تم إضافة المعلم', 'success');
-                loadAdminData();
-            } else {
-                showNotification('فشل إضافة المعلم', 'error');
-            }
-        }
+                    const response = await apiCall('addTeacher', { name, username, password });
+                    if (response.status === 'success') {
+                        document.getElementById('addTeacherModal').style.display = 'none';
+                        document.getElementById('newTeacherName').value = '';
+                        document.getElementById('newTeacherUsername').value = '';
+                        document.getElementById('newTeacherPassword').value = '';
+                        showNotification('تم إضافة المعلم', 'success');
+                        loadAdminData();
+                    } else {
+                        showNotification('فشل إضافة المعلم', 'error');
+                    }
+                }
 
-        function showEditTeacherModal(id) {
-            const teacher = teachers.find(t => t.id == id);
-            if (!teacher) return;
+                function showEditTeacherModal(id) {
+                    const teacher = teachers.find(t => t.id == id);
+                    if (!teacher) return;
 
-            document.getElementById('editTeacherId').value = teacher.id;
-            document.getElementById('editTeacherName').value = teacher.name;
-            document.getElementById('editTeacherUsername').value = teacher.username;
-            document.getElementById('editTeacherModal').style.display = 'flex';
-        }
+                    document.getElementById('editTeacherId').value = teacher.id;
+                    document.getElementById('editTeacherName').value = teacher.name;
+                    document.getElementById('editTeacherUsername').value = teacher.username;
+                    document.getElementById('editTeacherModal').style.display = 'flex';
+                }
 
-        async function saveEditTeacher() {
-            const id = document.getElementById('editTeacherId').value;
-            const name = document.getElementById('editTeacherName').value;
-            const username = document.getElementById('editTeacherUsername').value;
+                async function saveEditTeacher() {
+                    const id = document.getElementById('editTeacherId').value;
+                    const name = document.getElementById('editTeacherName').value;
+                    const username = document.getElementById('editTeacherUsername').value;
 
-            if (!name || !username) {
-                showNotification('الرجاء ملء الاسم واسم المستخدم', 'error');
-                return;
-            }
+                    if (!name || !username) {
+                        showNotification('الرجاء ملء الاسم واسم المستخدم', 'error');
+                        return;
+                    }
 
-            const data = { id, name, username };
+                    const data = { id, name, username };
 
-            const response = await apiCall('updateTeacher', data);
-            if (response.status === 'success') {
-                document.getElementById('editTeacherModal').style.display = 'none';
-                showNotification('تم تحديث بيانات المعلم', 'success');
-                loadAdminData();
-            } else {
-                showNotification('فشل التحديث', 'error');
-            }
-        }
+                    const response = await apiCall('updateTeacher', data);
+                    if (response.status === 'success') {
+                        document.getElementById('editTeacherModal').style.display = 'none';
+                        showNotification('تم تحديث بيانات المعلم', 'success');
+                        loadAdminData();
+                    } else {
+                        showNotification('فشل التحديث', 'error');
+                    }
+                }
 
-        async function deleteTeacher(id) {
-            if (!confirm('هل أنت متأكد من حذف هذا المعلم؟')) return;
-            const response = await apiCall('deleteTeacher', { id });
-            if (response.status === 'success') {
-                showNotification('تم حذف المعلم', 'success');
-                loadAdminData();
-            } else {
-                showNotification('فشل حذف المعلم', 'error');
-            }
-        }
+                async function deleteTeacher(id) {
+                    if (!confirm('هل أنت متأكد من حذف هذا المعلم؟')) return;
+                    const response = await apiCall('deleteTeacher', { id });
+                    if (response.status === 'success') {
+                        showNotification('تم حذف المعلم', 'success');
+                        loadAdminData();
+                    } else {
+                        showNotification('فشل حذف المعلم', 'error');
+                    }
+                }
 
-        function showAddTeacherModal() {
-            document.getElementById('addTeacherModal').style.display = 'flex';
-        }
+                function showAddTeacherModal() {
+                    document.getElementById('addTeacherModal').style.display = 'flex';
+                }
 
-        function openChangePasswordModal() {
-            document.getElementById('changePasswordModal').style.display = 'flex';
-        }
+                function openChangePasswordModal() {
+                    document.getElementById('changePasswordModal').style.display = 'flex';
+                }
 
-        async function submitNewPassword() {
-            const newPass = document.getElementById('newPasswordInput').value;
-            if (!newPass) {
-                showNotification('الرجاء إدخال كلمة المرور الجديدة', 'error');
-                return;
-            }
+                async function submitNewPassword() {
+                    const newPass = document.getElementById('newPasswordInput').value;
+                    if (!newPass) {
+                        showNotification('الرجاء إدخال كلمة المرور الجديدة', 'error');
+                        return;
+                    }
 
-            const response = await apiCall('changePassword', {
-                username: currentUser.username,
-                newPassword: newPass
-            });
+                    const response = await apiCall('changePassword', {
+                        username: currentUser.username,
+                        newPassword: newPass
+                    });
 
-            if (response.status === 'success') {
-                showNotification('تم تغيير كلمة المرور', 'success');
-                document.getElementById('changePasswordModal').style.display = 'none';
-                document.getElementById('newPasswordInput').value = '';
-            } else {
-                showNotification('فشل التغيير', 'error');
-            }
-        }
+                    if (response.status === 'success') {
+                        showNotification('تم تغيير كلمة المرور', 'success');
+                        document.getElementById('changePasswordModal').style.display = 'none';
+                        document.getElementById('newPasswordInput').value = '';
+                    } else {
+                        showNotification('فشل التغيير', 'error');
+                    }
+                }
 
-        function openChangeAdminPasswordModal() {
-            document.getElementById('changeAdminPasswordModal').style.display = 'flex';
-        }
+                function openChangeAdminPasswordModal() {
+                    document.getElementById('changeAdminPasswordModal').style.display = 'flex';
+                }
 
-        async function submitNewAdminPassword() {
-            const newPass = document.getElementById('newAdminPasswordInput').value;
-            if (!newPass) {
-                showNotification('الرجاء إدخال كلمة المرور الجديدة', 'error');
-                return;
-            }
+                async function submitNewAdminPassword() {
+                    const newPass = document.getElementById('newAdminPasswordInput').value;
+                    if (!newPass) {
+                        showNotification('الرجاء إدخال كلمة المرور الجديدة', 'error');
+                        return;
+                    }
 
-            const response = await apiCall('changeAdminPassword', {
-                newPassword: newPass
-            });
+                    const response = await apiCall('changeAdminPassword', {
+                        newPassword: newPass
+                    });
 
-            if (response.status === 'success') {
-                showNotification('تم تغيير كلمة مرور المدير', 'success');
-                document.getElementById('changeAdminPasswordModal').style.display = 'none';
-                document.getElementById('newAdminPasswordInput').value = '';
-            } else {
-                showNotification('فشل التغيير', 'error');
-            }
-        }
+                    if (response.status === 'success') {
+                        showNotification('تم تغيير كلمة مرور المدير', 'success');
+                        document.getElementById('changeAdminPasswordModal').style.display = 'none';
+                        document.getElementById('newAdminPasswordInput').value = '';
+                    } else {
+                        showNotification('فشل التغيير', 'error');
+                    }
+                }
 
-        function openEditAdminProfileModal() {
-            document.getElementById('newAdminUsernameInput').value = currentUser.username;
-            document.getElementById('editAdminProfileModal').style.display = 'flex';
-        }
+                function openEditAdminProfileModal() {
+                    document.getElementById('newAdminUsernameInput').value = currentUser.username;
+                    document.getElementById('editAdminProfileModal').style.display = 'flex';
+                }
 
-        async function submitNewAdminUsername() {
-            const newUsername = document.getElementById('newAdminUsernameInput').value.trim();
-            if (!newUsername) {
-                showNotification('الرجاء إدخال اسم المستخدم الجديد', 'error');
-                return;
-            }
+                async function submitNewAdminUsername() {
+                    const newUsername = document.getElementById('newAdminUsernameInput').value.trim();
+                    if (!newUsername) {
+                        showNotification('الرجاء إدخال اسم المستخدم الجديد', 'error');
+                        return;
+                    }
 
-            const response = await apiCall('updateAdminUsername', {
-                oldUsername: currentUser.username,
-                newUsername: newUsername
-            });
+                    const response = await apiCall('updateAdminUsername', {
+                        oldUsername: currentUser.username,
+                        newUsername: newUsername
+                    });
 
-            if (response.status === 'success') {
-                currentUser.username = newUsername;
-                showNotification('تم تحديث اسم المستخدم', 'success');
-                document.getElementById('editAdminProfileModal').style.display = 'none';
-            } else {
-                showNotification('فشل التحديث', 'error');
-            }
-        }
+                    if (response.status === 'success') {
+                        currentUser.username = newUsername;
+                        showNotification('تم تحديث اسم المستخدم', 'success');
+                        document.getElementById('editAdminProfileModal').style.display = 'none';
+                    } else {
+                        showNotification('فشل التحديث', 'error');
+                    }
+                }
 
-        function showStudentDetails(id) {
-            const student = students.find(s => s.id == id);
-            if (!student) return;
+                function showStudentDetails(id) {
+                    const student = students.find(s => s.id == id);
+                    if (!student) return;
 
-            const detailsContent = document.getElementById('studentDetailsContent');
-            detailsContent.innerHTML = Object.entries(student.details).map(([key, value]) => `
+                    const detailsContent = document.getElementById('studentDetailsContent');
+                    detailsContent.innerHTML = Object.entries(student.details).map(([key, value]) => `
                 <div style="background: #f7fafc; padding: 10px; border-radius: 8px;">
                     <div style="font-size: 12px; color: #718096; margin-bottom: 4px;">${key}</div>
                     <div style="font-weight: 600;">${value || '-'}</div>
                 </div>
             `).join('');
 
-            document.getElementById('studentDetailsModal').style.display = 'flex';
-        }
+                    document.getElementById('studentDetailsModal').style.display = 'flex';
+                }
 
-        function closeStudentDetailsModal() {
-            document.getElementById('studentDetailsModal').style.display = 'none';
-        }
+                function closeStudentDetailsModal() {
+                    document.getElementById('studentDetailsModal').style.display = 'none';
+                }
 
-        function renderAbsencesTable() {
-            const tbody = document.getElementById('absencesTableBody');
-            tbody.innerHTML = absences.map(a => `
+                function renderAbsencesTable() {
+                    const tbody = document.getElementById('absencesTableBody');
+                    tbody.innerHTML = absences.map(a => `
                 <tr>
                     <td>${a.studentName}</td>
                     <td>${a.grade} - ${a.section}</td>
@@ -1020,38 +926,38 @@
                     <td>${a.teacher}</td>
                 </tr>
             `).join('');
-        }
+                }
 
-        function updateStats() {
-            const today = new Date().toISOString().split('T')[0];
-            const todayCount = absences.filter(a => a.date === today).length;
-            document.getElementById('todayAbsencesCount').textContent = todayCount;
-        }
+                function updateStats() {
+                    const today = new Date().toISOString().split('T')[0];
+                    const todayCount = absences.filter(a => a.date === today).length;
+                    document.getElementById('todayAbsencesCount').textContent = todayCount;
+                }
 
-        function showLoading() {
-            document.getElementById('loading').style.display = 'flex';
-        }
+                function showLoading() {
+                    document.getElementById('loading').style.display = 'flex';
+                }
 
-        function hideLoading() {
-            document.getElementById('loading').style.display = 'none';
-        }
+                function hideLoading() {
+                    document.getElementById('loading').style.display = 'none';
+                }
 
-        function showNotification(message, type) {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.className = `notification ${type} show`;
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
-        }
+                function showNotification(message, type) {
+                    const notification = document.getElementById('notification');
+                    notification.textContent = message;
+                    notification.className = `notification ${type} show`;
+                    setTimeout(() => {
+                        notification.classList.remove('show');
+                    }, 3000);
+                }
 
-        // Close modals when clicking outside
-        window.onclick = function (event) {
-            if (event.target.classList.contains('modal')) {
-                event.target.style.display = 'none';
-            }
-        }
-    </script>
+                // Close modals when clicking outside
+                window.onclick = function (event) {
+                    if (event.target.classList.contains('modal')) {
+                        event.target.style.display = 'none';
+                    }
+                }
+            </script>
 </body>
 
 </html>
