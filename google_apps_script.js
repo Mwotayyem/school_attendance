@@ -22,6 +22,14 @@ function doPost(e) {
             teachersSheet.appendRow([1, 'معلم افتراضي', 'teacher1', '1234']);
         }
 
+        // إنشاء ورقة المدير إذا لم تكن موجودة
+        var adminSheet = doc.getSheetByName('المدير');
+        if (!adminSheet) {
+            adminSheet = doc.insertSheet('المدير');
+            adminSheet.appendRow(['اسم المستخدم', 'كلمة المرور']);
+            adminSheet.appendRow(['admin', '1234']); // بيانات المدير الافتراضية
+        }
+
         var requestData = JSON.parse(e.postData.contents);
         var action = requestData.action;
 
@@ -90,20 +98,33 @@ function doPost(e) {
             return jsonResponse({ status: 'error', message: 'المستخدم غير موجود' });
         }
 
-        // --- تعديل بيانات معلم ---
+        // --- تعديل بيانات معلم (الاسم واسم المستخدم فقط) ---
         if (action === 'updateTeacher') {
             var rows = teachersSheet.getDataRange().getValues();
             for (var i = 1; i < rows.length; i++) {
                 if (rows[i][0] == requestData.id) {
                     teachersSheet.getRange(i + 1, 2).setValue(requestData.name); // الاسم
                     teachersSheet.getRange(i + 1, 3).setValue(requestData.username); // اسم المستخدم
-                    if (requestData.password) { // تحديث كلمة المرور فقط إذا تم إدخالها
-                        teachersSheet.getRange(i + 1, 4).setValue(requestData.password);
-                    }
+                    // لا يمكن للمدير تغيير كلمة مرور المعلم
                     return jsonResponse({ status: 'success', message: 'تم تحديث بيانات المعلم' });
                 }
             }
             return jsonResponse({ status: 'error', message: 'المعلم غير موجود' });
+        }
+
+        // --- تغيير كلمة مرور المدير ---
+        if (action === 'changeAdminPassword') {
+            adminSheet.getRange(2, 2).setValue(requestData.newPassword);
+            return jsonResponse({ status: 'success', message: 'تم تغيير كلمة مرور المدير' });
+        }
+
+        // --- التحقق من بيانات المدير ---
+        if (action === 'checkAdmin') {
+            var adminData = adminSheet.getRange(2, 1, 1, 2).getValues()[0];
+            if (adminData[0] === requestData.username && adminData[1] === requestData.password) {
+                return jsonResponse({ status: 'success', message: 'تم التحقق بنجاح' });
+            }
+            return jsonResponse({ status: 'error', message: 'بيانات غير صحيحة' });
         }
 
         // --- تسجيل غياب ---
