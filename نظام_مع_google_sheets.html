@@ -504,347 +504,152 @@
         </div>
     </div>
 
-    }
+    <div id="notification" class="notification"></div>
+    <div id="loading" class="loading">
+        <div class="spinner"></div>
+    </div>
 
-    .notification.show {
-    transform: translateX(-50%) translateY(0);
-    opacity: 1;
-    }
+    <script>
+        // ⚠️ ضع رابط Google Apps Script Web App هنا
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbztTjlqlux3_flMod5-Anno5j4ZdhTBe5d5CpbWpAl4h2v4M9NvmY6bjUaIcJWsxYXj/exec';
 
-    .notification.success {
-    border-right: 4px solid #48bb78;
-    }
+        let currentUser = null;
+        let students = [];
+        let teachers = [];
+        let absences = [];
 
-    .notification.error {
-    border-right: 4px solid #e53e3e;
-    }
+        // Set today's date
+        const dateInput = document.getElementById('absenceDate');
+        if (dateInput) dateInput.valueAsDate = new Date();
 
-    .loading {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 3000;
-    align-items: center;
-    justify-content: center;
-    }
+        async function apiCall(action, data = {}) {
+            showLoading();
+            try {
+                // Using standard fetch. Note: SCRIPT_URL must be deployed with "Who has access: Anyone"
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action, ...data })
+                });
 
-    .loading.show {
-    display: flex;
-    }
-
-    .spinner {
-    width: 50px;
-    height: 50px;
-    border: 5px solid #f3f3f3;
-    border-top: 5px solid #667eea;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-    0% {
-    transform: rotate(0deg);
-    }
-
-    100% {
-    transform: rotate(360deg);
-    }
-    }
-    </style>
-    </head>
-
-    <body>
-        <div class="container">
-            <!-- صفحة تسجيل الدخول -->
-            <div id="loginPage" class="page active">
-                <div class="login-card">
-                    <div class="logo-section">
-                        <div class="logo-circle">🌐</div>
-                        <h1>نظام الحضور والغياب</h1>
-                        <p class="subtitle">متصل بـ Google Sheets</p>
-                    </div>
-                    <div class="login-form">
-                        <div class="input-group">
-                            <label for="username">اسم المستخدم</label>
-                            <input type="text" id="username" placeholder="أدخل اسم المستخدم">
-                        </div>
-                        <div class="input-group">
-                            <label for="password">كلمة المرور</label>
-                            <input type="password" id="password" placeholder="أدخل كلمة المرور">
-                        </div>
-                        <button class="btn-primary" onclick="login()" id="loginBtn">
-                            <span>تسجيل الدخول</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- صفحة المعلم -->
-            <div id="teacherPage" class="page">
-                <header class="app-header">
-                    <div class="header-content">
-                        <div class="header-right">
-                            <h2>مرحباً، <span id="teacherName">المعلم</span></h2>
-                            <p class="header-subtitle">تسجيل غياب الطلاب</p>
-                        </div>
-                        <button class="btn-logout" onclick="logout()">تسجيل خروج</button>
-                    </div>
-                </header>
-                <div class="content">
-                    <div class="form-card">
-                        <h3>تسجيل غياب جديد</h3>
-                        <div class="form-grid">
-                            <div class="input-group">
-                                <label for="studentSelect">اسم الطالب</label>
-                                <select id="studentSelect">
-                                    <option value="">اختر الطالب</option>
-                                </select>
-                            </div>
-                            <div class="input-group">
-                                <label for="absenceDate">التاريخ</label>
-                                <input type="date" id="absenceDate">
-                            </div>
-                        </div>
-                        <div class="input-group">
-                            <label for="notes">ملاحظات (اختياري)</label>
-                            <textarea id="notes" rows="3" placeholder="أي ملاحظات إضافية..."></textarea>
-                        </div>
-                        <button class="btn-primary" onclick="submitAbsence()">
-                            <span>تسجيل الغياب</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- صفحة المدير -->
-            <div id="adminPage" class="page">
-                <header class="app-header">
-                    <div class="header-content">
-                        <div class="header-right">
-                            <h2>لوحة تحكم المدير</h2>
-                        </div>
-                        <button class="btn-logout" onclick="logout()">تسجيل خروج</button>
-                    </div>
-                </header>
-                <div class="content">
-                    <div class="stats-overview">
-                        <div class="stat-card">
-                            <div class="stat-card-icon"
-                                style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">📚</div>
-                            <div class="stat-card-info">
-                                <p class="stat-card-label">إجمالي الغيابات</p>
-                                <p class="stat-card-value" id="totalAbsences">0</p>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-card-icon"
-                                style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">👥</div>
-                            <div class="stat-card-info">
-                                <p class="stat-card-label">عدد الطلاب</p>
-                                <p class="stat-card-value" id="totalStudents">0</p>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-card-icon"
-                                style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">👨‍🏫</div>
-                            <div class="stat-card-info">
-                                <p class="stat-card-label">عدد المعلمين</p>
-                                <p class="stat-card-value" id="totalTeachers">0</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="table-card">
-                        <h3>سجل الغيابات</h3>
-                        <div class="table-responsive">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>#</th>
-                                        <th>اسم الطالب</th>
-                                        <th>الصف</th>
-                                        <th>الشعبة</th>
-                                        <th>التاريخ</th>
-                                        <th>المعلم</th>
-                                        <th>ملاحظات</th>
-                                        <th>الإجراءات</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="absencesTableBody"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Student Details Modal -->
-            <div id="studentDetailsModal" class="modal"
-                style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
-                <div class="modal-content"
-                    style="background: white; border-radius: 20px; padding: 40px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto;">
-                    <div class="modal-header"
-                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-                        <h2>تفاصيل الطالب</h2>
-                        <button class="modal-close" onclick="closeStudentDetailsModal()"
-                            style="background: none; border: none; font-size: 30px; cursor: pointer; color: #718096;">×</button>
-                    </div>
-                    <div id="studentDetailsContent"
-                        style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: right;">
-                        <!-- Details will be injected here -->
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="notification" class="notification"></div>
-        <div id="loading" class="loading">
-            <div class="spinner"></div>
-        </div>
-
-        <script>
-            // ⚠️ ضع رابط Google Apps Script Web App هنا
-            const SCRIPT_URL = 'ضع_رابط_Web_App_هنا';
-
-            let currentUser = null;
-            let students = [];
-            let teachers = [];
-            let absences = [];
-
-            // Set today's date
-            const dateInput = document.getElementById('absenceDate');
-            if (dateInput) dateInput.valueAsDate = new Date();
-
-            async function apiCall(action, data = {}) {
-                showLoading();
-                try {
-                    // Using standard fetch. Note: SCRIPT_URL must be deployed with "Who has access: Anyone"
-                    const response = await fetch(SCRIPT_URL, {
-                        method: 'POST',
-                        body: JSON.stringify({ action, ...data })
-                    });
-
-                    const result = await response.json();
-                    return result;
-                } catch (error) {
-                    console.error('API Error:', error);
-                    // Fallback for demo/testing if API fails or URL is placeholder
-                    if (action === 'getStudents' && SCRIPT_URL.includes('ضع_رابط')) {
-                        return { status: 'success', data: [] };
-                    }
-                    return { status: 'error', message: error.message };
-                } finally {
-                    hideLoading();
+                const result = await response.json();
+                return result;
+            } catch (error) {
+                console.error('API Error:', error);
+                // Fallback for demo/testing if API fails or URL is placeholder
+                if (action === 'getStudents' && SCRIPT_URL.includes('ضع_رابط')) {
+                    return { status: 'success', data: [] };
                 }
-            }
-
-            async function login() {
-                const username = document.getElementById('username').value.trim();
-                const password = document.getElementById('password').value;
-
-                if (!username || !password) {
-                    showNotification('الرجاء إدخال اسم المستخدم وكلمة المرور', 'error');
-                    return;
-                }
-
-                showLoading();
-
-                // Simulated login - in production, this would call the API or check a sheet
-                if (username === 'admin' && password === '1234') {
-                    currentUser = { id: 1, name: 'المدير', username: 'admin', role: 'admin' };
-                    document.getElementById('loginPage').classList.remove('active');
-                    document.getElementById('adminPage').classList.add('active');
-                    await loadAdminData();
-                    showNotification('تم تسجيل الدخول بنجاح', 'success');
-                } else if (username === 'teacher1' && password === '1234') {
-                    currentUser = { id: 2, name: 'محمد أحمد', username: 'teacher1', role: 'teacher' };
-                    document.getElementById('teacherName').textContent = currentUser.name;
-                    document.getElementById('loginPage').classList.remove('active');
-                    document.getElementById('teacherPage').classList.add('active');
-                    await loadStudents();
-                    showNotification('تم تسجيل الدخول بنجاح', 'success');
-                } else {
-                    showNotification('اسم المستخدم أو كلمة المرور غير صحيحة', 'error');
-                }
-
+                return { status: 'error', message: error.message };
+            } finally {
                 hideLoading();
             }
+        }
 
-            function logout() {
-                currentUser = null;
-                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-                document.getElementById('loginPage').classList.add('active');
-                document.getElementById('username').value = '';
-                document.getElementById('password').value = '';
+        async function login() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+
+            if (!username || !password) {
+                showNotification('الرجاء إدخال اسم المستخدم وكلمة المرور', 'error');
+                return;
             }
 
-            async function loadStudents() {
-                const response = await apiCall('getStudents');
+            showLoading();
 
-                if (response.status === 'success' && response.data && response.data.length > 0) {
-                    students = response.data.map(s => {
-                        // Map Excel Columns (A-Z) to our internal structure
-                        // F: Full Name, J: School, K: Grade, L: Section
-                        return {
-                            id: s['id'] || Math.random(),
-                            name: s['الاسم الكامل'] || s['الاسم'] || 'بدون اسم',
-                            school: s['المدرسة'] || '',
-                            grade: s['الصف'] || '',
-                            section: s['الشعبة'] || '',
-                            details: s // Store full object for details view
-                        };
-                    });
-                } else {
-                    // Mock data if API not connected yet
-                    students = [
-                        {
-                            id: 1,
-                            name: 'مثال: أحمد محمد',
-                            grade: 'العاشر',
-                            section: 'أ',
-                            school: 'المدرسة النموذجية',
-                            details: { 'الرقم الوطني / الشخصي': '1234567890', 'الاسم الكامل': 'أحمد محمد علي', 'المدرسة': 'المدرسة النموذجية', 'الصف': 'العاشر', 'الشعبة': 'أ' }
-                        }
-                    ];
-                    if (!SCRIPT_URL.includes('ضع_رابط')) {
-                        // Only show error if URL is set but failed
-                        // showNotification('فشل تحميل الطلاب', 'error');
-                    }
-                }
-
-                const select = document.getElementById('studentSelect');
-                if (select) {
-                    select.innerHTML = '<option value="">اختر الطالب</option>';
-                    students.forEach(s => {
-                        select.innerHTML += `<option value="${s.id}">${s.name} - ${s.grade} ${s.section}</option>`;
-                    });
-                }
-
-                // Also render the list for the teacher to see details
-                renderTeacherStudentList();
+            // Simulated login - in production, this would call the API or check a sheet
+            if (username === 'admin' && password === '1234') {
+                currentUser = { id: 1, name: 'المدير', username: 'admin', role: 'admin' };
+                document.getElementById('loginPage').classList.remove('active');
+                document.getElementById('adminPage').classList.add('active');
+                await loadAdminData();
+                showNotification('تم تسجيل الدخول بنجاح', 'success');
+            } else if (username === 'teacher1' && password === '1234') {
+                currentUser = { id: 2, name: 'محمد أحمد', username: 'teacher1', role: 'teacher' };
+                document.getElementById('teacherName').textContent = currentUser.name;
+                document.getElementById('loginPage').classList.remove('active');
+                document.getElementById('teacherPage').classList.add('active');
+                await loadStudents();
+                showNotification('تم تسجيل الدخول بنجاح', 'success');
+            } else {
+                showNotification('اسم المستخدم أو كلمة المرور غير صحيحة', 'error');
             }
 
-            function renderTeacherStudentList() {
-                // Check if we have a container for the list, if not create one
-                let container = document.getElementById('teacherStudentsList');
-                if (!container) {
-                    const formCard = document.querySelector('#teacherPage .form-card');
-                    if (formCard) {
-                        const listDiv = document.createElement('div');
-                        listDiv.id = 'teacherStudentsList';
-                        listDiv.style.marginTop = '30px';
-                        listDiv.innerHTML = '<h4>قائمة الطلاب</h4><div id="teacherStudentsGrid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; margin-top: 15px;"></div>';
-                        formCard.appendChild(listDiv);
-                        container = document.getElementById('teacherStudentsGrid');
+            hideLoading();
+        }
+
+        function logout() {
+            currentUser = null;
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById('loginPage').classList.add('active');
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        }
+
+        async function loadStudents() {
+            const response = await apiCall('getStudents');
+
+            if (response.status === 'success' && response.data && response.data.length > 0) {
+                students = response.data.map(s => {
+                    // Map Excel Columns (A-Z) to our internal structure
+                    // F: Full Name, J: School, K: Grade, L: Section
+                    return {
+                        id: s['id'] || Math.random(),
+                        name: s['الاسم الكامل'] || s['الاسم'] || 'بدون اسم',
+                        school: s['المدرسة'] || '',
+                        grade: s['الصف'] || '',
+                        section: s['الشعبة'] || '',
+                        details: s // Store full object for details view
+                    };
+                });
+            } else {
+                // Mock data if API not connected yet
+                students = [
+                    {
+                        id: 1,
+                        name: 'مثال: أحمد محمد',
+                        grade: 'العاشر',
+                        section: 'أ',
+                        school: 'المدرسة النموذجية',
+                        details: { 'الرقم الوطني / الشخصي': '1234567890', 'الاسم الكامل': 'أحمد محمد علي', 'المدرسة': 'المدرسة النموذجية', 'الصف': 'العاشر', 'الشعبة': 'أ' }
                     }
-                } else {
+                ];
+                if (!SCRIPT_URL.includes('ضع_رابط')) {
+                    // Only show error if URL is set but failed
+                    // showNotification('فشل تحميل الطلاب', 'error');
+                }
+            }
+
+            const select = document.getElementById('studentSelect');
+            if (select) {
+                select.innerHTML = '<option value="">اختر الطالب</option>';
+                students.forEach(s => {
+                    select.innerHTML += `<option value="${s.id}">${s.name} - ${s.grade} ${s.section}</option>`;
+                });
+            }
+
+            // Also render the list for the teacher to see details
+            renderTeacherStudentList();
+        }
+
+        function renderTeacherStudentList() {
+            // Check if we have a container for the list, if not create one
+            let container = document.getElementById('teacherStudentsList');
+            if (!container) {
+                const formCard = document.querySelector('#teacherPage .form-card');
+                if (formCard) {
+                    const listDiv = document.createElement('div');
+                    listDiv.id = 'teacherStudentsList';
+                    listDiv.style.marginTop = '30px';
+                    listDiv.innerHTML = '<h4>قائمة الطلاب</h4><div id="teacherStudentsGrid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; margin-top: 15px;"></div>';
+                    formCard.appendChild(listDiv);
                     container = document.getElementById('teacherStudentsGrid');
                 }
+            } else {
+                container = document.getElementById('teacherStudentsGrid');
+            }
 
-                if (container) {
-                    container.innerHTML = students.map(s => `
+            if (container) {
+                container.innerHTML = students.map(s => `
                     <div style="background: #f8fafc; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0;">
                         <div style="font-weight: bold; margin-bottom: 5px;">${s.name}</div>
                         <div style="font-size: 13px; color: #718096; margin-bottom: 10px;">
@@ -855,73 +660,73 @@
                         </button>
                     </div>
                 `).join('');
-                }
             }
+        }
 
-            function showStudentDetails(id) {
-                const student = students.find(s => s.id == id);
-                if (!student) return;
+        function showStudentDetails(id) {
+            const student = students.find(s => s.id == id);
+            if (!student) return;
 
-                const details = student.details || {};
-                const container = document.getElementById('studentDetailsContent');
+            const details = student.details || {};
+            const container = document.getElementById('studentDetailsContent');
 
-                // Define fields to show based on user request
-                const fields = [
-                    { label: 'الرقم الوطني', key: 'الرقم الوطني / الشخصي' },
-                    { label: 'الاسم الكامل', key: 'الاسم الكامل' },
-                    { label: 'المدرسة', key: 'المدرسة' },
-                    { label: 'الصف', key: 'الصف' },
-                    { label: 'الشعبة', key: 'الشعبة' },
-                    { label: 'الجنس', key: 'الجنس' },
-                    { label: 'تاريخ الميلاد', key: 'تاريخ الميلاد' },
-                    { label: 'الجنسية', key: 'الجنسية' },
-                    { label: 'المحافظة', key: 'المحافظة' },
-                    { label: 'المديرية', key: 'المديرية' },
-                    { label: 'اسم الأب', key: 'اسم الأب' },
-                    { label: 'اسم الجد', key: 'اسم الجد' },
-                    { label: 'اسم العائلة', key: 'اسم العائلة' },
-                    { label: 'الهاتف الأساسي', key: 'الهاتف الأساسي' },
-                    { label: 'هاتف ولي الأمر', key: 'هاتف ولي الأمر' }
-                ];
+            // Define fields to show based on user request
+            const fields = [
+                { label: 'الرقم الوطني', key: 'الرقم الوطني / الشخصي' },
+                { label: 'الاسم الكامل', key: 'الاسم الكامل' },
+                { label: 'المدرسة', key: 'المدرسة' },
+                { label: 'الصف', key: 'الصف' },
+                { label: 'الشعبة', key: 'الشعبة' },
+                { label: 'الجنس', key: 'الجنس' },
+                { label: 'تاريخ الميلاد', key: 'تاريخ الميلاد' },
+                { label: 'الجنسية', key: 'الجنسية' },
+                { label: 'المحافظة', key: 'المحافظة' },
+                { label: 'المديرية', key: 'المديرية' },
+                { label: 'اسم الأب', key: 'اسم الأب' },
+                { label: 'اسم الجد', key: 'اسم الجد' },
+                { label: 'اسم العائلة', key: 'اسم العائلة' },
+                { label: 'الهاتف الأساسي', key: 'الهاتف الأساسي' },
+                { label: 'هاتف ولي الأمر', key: 'هاتف ولي الأمر' }
+            ];
 
-                container.innerHTML = fields.map(f => `
+            container.innerHTML = fields.map(f => `
                 <div style="background: #f7fafc; padding: 10px; border-radius: 8px;">
                     <strong style="color: #667eea; display: block; margin-bottom: 5px; font-size: 12px;">${f.label}</strong>
                     <span style="color: #2d3748; font-weight: 600;">${details[f.key] || '-'}</span>
                 </div>
             `).join('');
 
-                document.getElementById('studentDetailsModal').style.display = 'flex';
+            document.getElementById('studentDetailsModal').style.display = 'flex';
+        }
+
+        function closeStudentDetailsModal() {
+            document.getElementById('studentDetailsModal').style.display = 'none';
+        }
+
+        async function loadAdminData() {
+            await loadStudents();
+            // In production, fetch absences from Google Sheets
+            // absences = await apiCall('getAbsences'); 
+            absences = [];
+            updateStats();
+            loadAbsencesTable();
+        }
+
+        function updateStats() {
+            document.getElementById('totalAbsences').textContent = absences.length;
+            document.getElementById('totalStudents').textContent = students.length;
+            document.getElementById('totalTeachers').textContent = 1;
+        }
+
+        function loadAbsencesTable() {
+            const tbody = document.getElementById('absencesTableBody');
+
+            if (absences.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 40px;">لا توجد سجلات غياب</td></tr>';
+                return;
             }
 
-            function closeStudentDetailsModal() {
-                document.getElementById('studentDetailsModal').style.display = 'none';
-            }
-
-            async function loadAdminData() {
-                await loadStudents();
-                // In production, fetch absences from Google Sheets
-                // absences = await apiCall('getAbsences'); 
-                absences = [];
-                updateStats();
-                loadAbsencesTable();
-            }
-
-            function updateStats() {
-                document.getElementById('totalAbsences').textContent = absences.length;
-                document.getElementById('totalStudents').textContent = students.length;
-                document.getElementById('totalTeachers').textContent = 1;
-            }
-
-            function loadAbsencesTable() {
-                const tbody = document.getElementById('absencesTableBody');
-
-                if (absences.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 40px;">لا توجد سجلات غياب</td></tr>';
-                    return;
-                }
-
-                tbody.innerHTML = absences.slice().reverse().map((a, i) => `
+            tbody.innerHTML = absences.slice().reverse().map((a, i) => `
                 <tr>
                     <td>${i + 1}</td>
                     <td><strong>${a.studentName}</strong></td>
@@ -933,79 +738,79 @@
                     <td><button class="btn-delete" onclick="deleteAbsence(${a.id})">حذف</button></td>
                 </tr>
             `).join('');
+        }
+
+        async function submitAbsence() {
+            const studentId = document.getElementById('studentSelect').value;
+            const date = document.getElementById('absenceDate').value;
+            const notes = document.getElementById('notes').value;
+
+            if (!studentId || !date) {
+                showNotification('الرجاء اختيار الطالب والتاريخ', 'error');
+                return;
             }
 
-            async function submitAbsence() {
-                const studentId = document.getElementById('studentSelect').value;
-                const date = document.getElementById('absenceDate').value;
-                const notes = document.getElementById('notes').value;
+            const student = students.find(s => s.id == studentId);
 
-                if (!studentId || !date) {
-                    showNotification('الرجاء اختيار الطالب والتاريخ', 'error');
-                    return;
-                }
+            const absence = {
+                id: Date.now(),
+                studentId,
+                studentName: student.name,
+                grade: student.grade,
+                section: student.section,
+                date,
+                teacher: currentUser.name,
+                teacherUsername: currentUser.username,
+                notes,
+                timestamp: new Date().toISOString()
+            };
 
-                const student = students.find(s => s.id == studentId);
+            // Save to Google Sheets
+            const response = await apiCall('submitAbsence', absence);
 
-                const absence = {
-                    id: Date.now(),
-                    studentId,
-                    studentName: student.name,
-                    grade: student.grade,
-                    section: student.section,
-                    date,
-                    teacher: currentUser.name,
-                    teacherUsername: currentUser.username,
-                    notes,
-                    timestamp: new Date().toISOString()
-                };
-
-                // Save to Google Sheets
-                const response = await apiCall('submitAbsence', absence);
-
-                if (response.status === 'success') {
-                    absences.push(absence);
-                    document.getElementById('studentSelect').value = '';
-                    document.getElementById('notes').value = '';
-                    document.getElementById('absenceDate').valueAsDate = new Date();
-                    showNotification('تم تسجيل الغياب بنجاح', 'success');
-                } else {
-                    showNotification('فشل تسجيل الغياب: ' + (response.message || 'خطأ غير معروف'), 'error');
-                }
+            if (response.status === 'success') {
+                absences.push(absence);
+                document.getElementById('studentSelect').value = '';
+                document.getElementById('notes').value = '';
+                document.getElementById('absenceDate').valueAsDate = new Date();
+                showNotification('تم تسجيل الغياب بنجاح', 'success');
+            } else {
+                showNotification('فشل تسجيل الغياب: ' + (response.message || 'خطأ غير معروف'), 'error');
             }
+        }
 
-            async function deleteAbsence(id) {
-                if (!confirm('هل أنت متأكد من حذف هذا السجل؟')) return;
+        async function deleteAbsence(id) {
+            if (!confirm('هل أنت متأكد من حذف هذا السجل؟')) return;
 
-                // In production, this would delete from Google Sheets
-                absences = absences.filter(a => a.id !== id);
-                loadAbsencesTable();
-                updateStats();
-                showNotification('تم حذف السجل بنجاح', 'success');
+            // In production, this would delete from Google Sheets
+            absences = absences.filter(a => a.id !== id);
+            loadAbsencesTable();
+            updateStats();
+            showNotification('تم حذف السجل بنجاح', 'success');
+        }
+
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type} show`;
+            setTimeout(() => notification.classList.remove('show'), 3000);
+        }
+
+        function showLoading() {
+            document.getElementById('loading').classList.add('show');
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').classList.remove('show');
+        }
+
+        // Allow Enter key to login
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && document.getElementById('loginPage').classList.contains('active')) {
+                login();
             }
-
-            function showNotification(message, type) {
-                const notification = document.getElementById('notification');
-                notification.textContent = message;
-                notification.className = `notification ${type} show`;
-                setTimeout(() => notification.classList.remove('show'), 3000);
-            }
-
-            function showLoading() {
-                document.getElementById('loading').classList.add('show');
-            }
-
-            function hideLoading() {
-                document.getElementById('loading').classList.remove('show');
-            }
-
-            // Allow Enter key to login
-            document.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter' && document.getElementById('loginPage').classList.contains('active')) {
-                    login();
-                }
-            });
-        </script>
-    </body>
+        });
+    </script>
+</body>
 
 </html>
