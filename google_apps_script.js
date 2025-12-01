@@ -93,22 +93,39 @@ function doPost(e) {
         if (action === 'submitAbsence') {
             // التحقق من عدم وجود غياب مسجل مسبقاً لنفس الطالب في نفس اليوم
             var existingAbsences = absenceSheet.getDataRange().getValues();
+            var requestStudentId = String(requestData.studentId);
+            var requestDate = String(requestData.date); // مثل: 2025-12-01
+
             for (var i = 1; i < existingAbsences.length; i++) {
                 var existingStudentId = String(existingAbsences[i][0]);
                 var existingDate = existingAbsences[i][4];
 
+                // تحويل التاريخ إلى صيغة موحدة
+                var formattedExistingDate = String(existingDate).trim();
+
                 if (existingDate instanceof Date) {
-                    existingDate = Utilities.formatDate(existingDate, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+                    formattedExistingDate = Utilities.formatDate(existingDate, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+                }
+                // إذا كان بصيغة M/D/YYYY
+                else if (formattedExistingDate.indexOf('/') > -1) {
+                    var parts = formattedExistingDate.split('/');
+                    if (parts.length === 3) {
+                        var month = ('0' + parts[0]).slice(-2);
+                        var day = ('0' + parts[1]).slice(-2);
+                        var year = parts[2];
+                        formattedExistingDate = year + '-' + month + '-' + day;
+                    }
                 }
 
-                if (existingStudentId === String(requestData.studentId) &&
-                    String(existingDate) === String(requestData.date)) {
-                    return jsonResponse({ status: 'error', message: 'الغياب مسجل مسبقاً' });
+                // المقارنة بعد التوحيد
+                if (existingStudentId === requestStudentId &&
+                    formattedExistingDate === requestDate) {
+                    return jsonResponse({ status: 'error', message: 'الغياب مسجل مسبقاً لهذا اليوم' });
                 }
             }
 
             absenceSheet.appendRow([
-                String(requestData.studentId),
+                requestStudentId,
                 requestData.studentName,
                 requestData.grade,
                 requestData.section,

@@ -372,7 +372,13 @@
             </div>
 
             <div class="table-container">
-                <h3 style="padding: 20px; margin: 0;">الغيابات الأخيرة</h3>
+                <div style="padding: 20px; display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="margin: 0;">الغيابات الأخيرة</h3>
+                    <button class="btn-primary" onclick="printAbsenceReport()"
+                            style="width: auto; padding: 10px 25px; background: var(--success);">
+                        🖨️ طباعة كشف الغياب
+                    </button>
+                </div>
                 <table>
                     <thead>
                         <tr>
@@ -457,7 +463,99 @@
                 }
             }
         }
+        function printAbsenceReport() {
+            const printWindow = window.open('', '_blank');
+            const today = new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
 
+            // تجميع الغيابات حسب الصف والشعبة
+            const groupedAbsences = {};
+            absences.forEach(a => {
+                const key = `${a.grade} - ${a.section}`;
+                if (!groupedAbsences[key]) {
+                    groupedAbsences[key] = [];
+                }
+                groupedAbsences[key].push(a);
+            });
+
+            const reportHTML = `
+            <!DOCTYPE html>
+            <html lang="ar" dir="rtl">
+            <head>
+                <meta charset="UTF-8">
+                <title>كشف الغياب - سحاب الثانوية للبنات</title>
+                <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+                <style>
+                    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+                    body { padding: 40px; }
+                    .header { text-align: center; margin-bottom: 40px; border-bottom: 3px solid #2c5282; padding-bottom: 20px; }
+                    .header h1 { color: #2c5282; font-size: 28px; margin-bottom: 10px; }
+                    .header h2 { color: #4299e1; font-size: 20px; margin-bottom: 5px; }
+                    .header p { color: #718096; font-size: 16px; }
+                    .section { margin-bottom: 30px; page-break-inside: avoid; }
+                    .section h3 { background: #2c5282; color: white; padding: 12px; border-radius: 8px; margin-bottom: 15px; }
+                    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+                    th, td { padding: 12px; text-align: right; border: 1px solid #e2e8f0; }
+                    th { background: #f8fafc; color: #2d3748; font-weight: 600; }
+                    tr:nth-child(even) { background: #f7fafc; }
+                    .footer { margin-top: 40px; text-align: center; color: #718096; font-size: 14px; border-top: 2px solid #e2e8f0; padding-top: 20px; }
+                    @media print {
+                        body { padding: 20px; }
+                        .section { page-break-inside: avoid; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h1>مدرسة سحاب الثانوية للبنات</h1>
+                    <h2>كشف الغياب</h2>
+                    <p>تاريخ الطباعة: ${today}</p>
+                </div>
+
+                ${Object.entries(groupedAbsences).map(([className, classAbsences]) => `
+                    <div class="section">
+                        <h3>الصف: ${className} (عدد الغيابات: ${classAbsences.length})</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>اسم الطالب</th>
+                                    <th>التاريخ</th>
+                                    <th>المعلم</th>
+                                    <th>ملاحظات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${classAbsences.map((a, idx) => `
+                                    <tr>
+                                        <td>${idx + 1}</td>
+                                        <td>${a.studentName}</td>
+                                        <td>${a.date}</td>
+                                        <td>${a.teacher}</td>
+                                        <td>${a.notes || '-'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `).join('')}
+
+                <div class="footer">
+                    <p>إجمالي الغيابات: ${absences.length}</p>
+                    <p>تم الإنشاء بواسطة نظام الحضور والغياب - سحاب الثانوية للبنات</p>
+                </div>
+
+                <script>
+                    window.onload = function() {
+                        window.print();
+                    }
+    </script>
+</body>
+</html>
+    `;
+
+    printWindow.document.write(reportHTML);
+    printWindow.document.close();
+}
         function logout() {
             currentUser = null;
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -523,61 +621,80 @@
 
             const container = document.getElementById('teacherStudentsList');
             container.innerHTML = `<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;">
-                    ${filteredStudents.map(s => {
-                const isAbsent = todayAbsences.includes(s.id);
-                return `
-                            <div style="background: ${isAbsent ? '#fff5f5' : '#f8fafc'}; padding: 15px; border-radius: 10px; border: 1px solid ${isAbsent ? '#fc8181' : '#e2e8f0'};">
-                                <div style="font-weight: bold; margin-bottom: 5px;">${s.name}</div>
-                                <div style="font-size: 13px; color: #718096; margin-bottom: 10px;">
-                                    ${s.grade} | ${s.section}${s.pathway ? ' | ' + s.pathway : ''}
-                                </div>
-                                <div style="display: flex; gap: 10px;">
-                                    <button onclick="toggleAbsence('${s.id}')"
-                                        style="flex: 1; background: ${isAbsent ? '#e53e3e' : '#fff'}; color: ${isAbsent ? '#fff' : '#e53e3e'}; border: 1px solid #e53e3e; padding: 8px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Cairo';">
-                                        ${isAbsent ? '🟢 حاضر' : '🔴 غياب'}
-                                    </button>
-                                    <button onclick="showStudentDetails('${s.id}')"
-                                        style="background: #bee3f8; color: #2b6cb0; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Cairo';">
-                                        📋 التفاصيل
-                                    </button>
-                                </div>
-                            </div>
-                        `;
-            }).join('')}
-                </div>`;
+    ${filteredStudents.map(s => {
+    const isAbsent = todayAbsences.includes(s.id);
+    return `
+    <div style="background: ${isAbsent ? '#fff5f5' : '#f8fafc'}; padding: 15px; border-radius: 10px; border: 1px solid ${isAbsent ? '#fc8181' : '#e2e8f0'};">
+        <div style="font-weight: bold; margin-bottom: 5px;">${s.name}</div>
+        <div style="font-size: 13px; color: #718096; margin-bottom: 10px;">
+            ${s.grade} | ${s.section}${s.pathway ? ' | ' + s.pathway : ''}
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button onclick="toggleAbsence('${s.id}')"
+                    style="flex: 1; background: ${isAbsent ? '#e53e3e' : '#fff'}; color: ${isAbsent ? '#fff' : '#e53e3e'}; border: 1px solid #e53e3e; padding: 8px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Cairo';">
+                ${isAbsent ? '🟢 حاضر' : '🔴 غياب'}
+            </button>
+            <button onclick="showStudentDetails('${s.id}')"
+                    style="background: #bee3f8; color: #2b6cb0; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Cairo';">
+                📋 التفاصيل
+            </button>
+        </div>
+    </div>
+    `;
+    }).join('')}
+</div>`;
         }
 
         function showStudentDetails(studentId) {
             const student = students.find(s => s.id === studentId);
             if (!student) return;
 
+            // الحقول المطلوبة فقط
+            const allowedFields = [
+                'الرقم الوطني / الشخصي',
+                'اسم المستخدم',
+                'الصف',
+                'المرحلة / القسم / المسار',
+                'الشعبة',
+                'النظام الدراسي',
+                'رقم الهاتف',
+                'حالة الطالب',
+                'حالة الملف',
+                'البريد الإلكتروني',
+                'الجنسية',
+                'تاريخ الميلاد',
+                'الهاتف الأساسي',
+                'هاتف ولي الأمر'
+            ];
+
             const detailsHTML = Object.entries(student.details)
-                .filter(([key, value]) => value && key !== 'id')
+                .filter(([key, value]) => allowedFields.includes(key) && value)
                 .map(([key, value]) => `
-                        <div style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e2e8f0;">
-                            <span style="font-weight: 600; color: #4a5568;">${key}:</span>
-                            <span style="color: #2d3748;">${value}</span>
-                        </div>
-                    `).join('');
+<div style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e2e8f0;">
+    <span style="font-weight: 600; color: #4a5568;">${key}:</span>
+    <span style="color: #2d3748;">${value}</span>
+</div>
+            `).join('');
 
             const modal = document.createElement('div');
             modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 3000;';
             modal.innerHTML = `
-                    <div style="background: white; border-radius: 15px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
-                        <div style="background: var(--primary); color: white; padding: 20px; border-radius: 15px 15px 0 0; display: flex; justify-content: space-between; align-items: center;">
-                            <h3 style="margin: 0;">تفاصيل الطالب: ${student.name}</h3>
-                            <button onclick="this.closest('div').parentElement.parentElement.remove()"
-                                style="background: rgba(255,255,255,0.2); border: none; color: white; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 20px;">×</button>
-                        </div>
-                        <div style="padding: 20px;">
-                            ${detailsHTML || '<p style="text-align: center; color: #718096;">لا توجد تفاصيل إضافية</p>'}
-                        </div>
-                    </div>
-                `;
+<div style="background: white; border-radius: 15px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+    <div style="background: var(--primary); color: white; padding: 20px; border-radius: 15px 15px 0 0; display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="margin: 0;">تفاصيل الطالب: ${student.name}</h3>
+        <button onclick="this.closest('div').parentElement.parentElement.remove()"
+                style="background: rgba(255,255,255,0.2); border: none; color: white; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 20px;">
+            ×
+        </button>
+    </div>
+    <div style="padding: 20px;">
+        ${detailsHTML || '<p style="text-align: center; color: #718096;">لا توجد تفاصيل إضافية</p>'}
+    </div>
+</div>
+        `;
             document.body.appendChild(modal);
             modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
         }
-
         async function toggleAbsence(studentId) {
             const date = document.getElementById('absenceDate').value;
             if (!date) {
@@ -640,12 +757,12 @@
 
         function renderAbsencesTable() {
             document.getElementById('absencesTableBody').innerHTML = absences.slice(0, 10).map(a => `
-                    <tr>
-                        <td>${a.studentName}</td>
-                        <td>${a.grade} - ${a.section}</td>
-                        <td>${a.date}</td>
-                        <td>${a.teacher}</td>
-                    </tr>
+<tr>
+    <td>${a.studentName}</td>
+    <td>${a.grade} - ${a.section}</td>
+    <td>${a.date}</td>
+    <td>${a.teacher}</td>
+</tr>
                 `).join('');
         }
 
