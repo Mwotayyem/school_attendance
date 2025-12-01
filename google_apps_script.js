@@ -238,7 +238,7 @@ function doPost(e) {
                         rowToDelete = i + 1;
                         break;
                     }
-                }                
+                }
 
                 if (rowToDelete > 0) {
                     absenceSheet.deleteRow(rowToDelete);
