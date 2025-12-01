@@ -193,16 +193,52 @@ function doPost(e) {
 
                             if (convertedDate === requestDate) {
                                 dateMatch = true;
+                                // الاحتمال 4: التاريخ المخزن بصيغة YYYY-MM-DD نصاً
+                                if (!dateMatch) {
+                                    // تنظيف أي مسافات إضافية
+                                    var cleanCellDate = cellDate.trim();
+                                    var cleanRequestDate = requestDate.trim();
+
+                                    if (cleanCellDate === cleanRequestDate) {
+                                        dateMatch = true;
+                                    }
+                                }
                             }
                         }
                     }
 
                     // إذا تطابق المعرف والتاريخ
+                    // الاحتمال 3: عكسي - التاريخ في الخلية بصيغة M/D/YYYY
+                    if (!dateMatch && cellDate.indexOf('/') > -1) {
+                        var dateParts = cellDate.split('/');
+                        if (dateParts.length === 3) {
+                            var m = ('0' + dateParts[0]).slice(-2);
+                            var d = ('0' + dateParts[1]).slice(-2);
+                            var y = dateParts[2];
+                            var convertedDate = y + '-' + m + '-' + d;
+
+                            if (convertedDate === requestDate) {
+                                dateMatch = true;
+                            }
+                        }
+                    }
+
+                    // الاحتمال 4: التاريخ المخزن بصيغة YYYY-MM-DD نصاً
+                    if (!dateMatch) {
+                        var cleanCellDate = String(cellDate).trim();
+                        var cleanRequestDate = String(requestDate).trim();
+
+                        if (cleanCellDate === cleanRequestDate) {
+                            dateMatch = true;
+                        }
+                    }
+
+                    // إذا تطابق المعرف والتاريخ
                     if (idMatch && dateMatch) {
-                        rowToDelete = i + 1; // +1 لأن الصفوف تبدأ من 1
+                        rowToDelete = i + 1;
                         break;
                     }
-                }
+                }                
 
                 if (rowToDelete > 0) {
                     absenceSheet.deleteRow(rowToDelete);
