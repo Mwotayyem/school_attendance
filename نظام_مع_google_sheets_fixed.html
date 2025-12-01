@@ -35,7 +35,6 @@
             padding: 20px;
         }
 
-        /* Login Styles */
         .login-container {
             min-height: 100vh;
             display: flex;
@@ -72,30 +71,30 @@
             text-align: right;
         }
 
-        .input-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: var(--text);
-            font-weight: 600;
-        }
+            .input-group label {
+                display: block;
+                margin-bottom: 8px;
+                color: var(--text);
+                font-weight: 600;
+            }
 
-        .input-group input,
-        .input-group select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: all 0.3s;
-            font-family: 'Cairo';
-        }
+            .input-group input,
+            .input-group select {
+                width: 100%;
+                padding: 12px;
+                border: 2px solid #e2e8f0;
+                border-radius: 10px;
+                font-size: 16px;
+                transition: all 0.3s;
+                font-family: 'Cairo';
+            }
 
-        .input-group input:focus,
-        .input-group select:focus {
-            border-color: var(--secondary);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
-        }
+                .input-group input:focus,
+                .input-group select:focus {
+                    border-color: var(--secondary);
+                    outline: none;
+                    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
+                }
 
         .btn-primary {
             width: 100%;
@@ -111,12 +110,11 @@
             font-family: 'Cairo';
         }
 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(44, 82, 130, 0.2);
-        }
+            .btn-primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(44, 82, 130, 0.2);
+            }
 
-        /* Dashboard Styles */
         .header {
             background: white;
             padding: 20px;
@@ -143,9 +141,9 @@
             transition: transform 0.3s;
         }
 
-        .stat-card:hover {
-            transform: translateY(-5px);
-        }
+            .stat-card:hover {
+                transform: translateY(-5px);
+            }
 
         .stat-value {
             font-size: 32px;
@@ -159,7 +157,6 @@
             font-size: 14px;
         }
 
-        /* Table Styles */
         .table-container {
             background: white;
             border-radius: 15px;
@@ -190,7 +187,6 @@
             background: #f7fafc;
         }
 
-        /* Filters */
         .filters {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -202,7 +198,6 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
-        /* Notifications */
         .notification {
             position: fixed;
             bottom: 20px;
@@ -217,19 +212,18 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
-        .notification.show {
-            transform: translateX(-50%) translateY(0);
-        }
+            .notification.show {
+                transform: translateX(-50%) translateY(0);
+            }
 
-        .notification.success {
-            background: var(--success);
-        }
+            .notification.success {
+                background: var(--success);
+            }
 
-        .notification.error {
-            background: var(--danger);
-        }
+            .notification.error {
+                background: var(--danger);
+            }
 
-        /* Loading Spinner */
         .loading {
             position: fixed;
             top: 0;
@@ -263,9 +257,9 @@
             display: none;
         }
 
-        .page.active {
-            display: block;
-        }
+            .page.active {
+                display: block;
+            }
 
         .btn-logout {
             background: #fed7d7;
@@ -277,40 +271,16 @@
             font-weight: 600;
             font-family: 'Cairo';
         }
-
-        .btn-edit {
-            background: #bee3f8;
-            color: #2b6cb0;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-left: 5px;
-            font-family: 'Cairo';
-        }
-
-        .btn-delete {
-            background: #fed7d7;
-            color: #c53030;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-family: 'Cairo';
-        }
     </style>
 </head>
 
 <body>
-    <!-- Loading Spinner -->
     <div id="loading" class="loading">
         <div class="spinner"></div>
     </div>
 
-    <!-- Notification -->
     <div id="notification" class="notification"></div>
 
-    <!-- Login Page -->
     <div id="loginPage" class="page active">
         <div class="login-container">
             <div class="login-card">
@@ -329,7 +299,6 @@
         </div>
     </div>
 
-    <!-- Teacher Page -->
     <div id="teacherPage" class="page">
         <div class="container">
             <div class="header">
@@ -337,9 +306,7 @@
                     <h2>مرحباً، <span id="teacherName">المعلم</span> 👋</h2>
                     <p style="color: #718096;">نظام تسجيل الحضور والغياب</p>
                 </div>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn-logout" onclick="logout()">تسجيل خروج</button>
-                </div>
+                <button class="btn-logout" onclick="logout()">تسجيل خروج</button>
             </div>
 
             <div class="filters">
@@ -365,13 +332,10 @@
                 </div>
             </div>
 
-            <div id="teacherStudentsList">
-                <!-- Students will be loaded here -->
-            </div>
+            <div id="teacherStudentsList"></div>
         </div>
     </div>
 
-    <!-- Admin Page -->
     <div id="adminPage" class="page">
         <div class="container">
             <div class="header">
@@ -379,29 +343,29 @@
                     <h2>لوحة تحكم المدير 👨‍💼</h2>
                     <p style="color: #718096;">سحاب الثانوية للبنات</p>
                 </div>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn-logout" onclick="logout()">تسجيل خروج</button>
-                </div>
+                <button class="btn-logout" onclick="logout()">تسجيل خروج</button>
             </div>
 
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="logo-placeholder"
-                        style="width: 50px; height: 50px; font-size: 20px; margin: 0 0 15px 0;">👥</div>
+                         style="width: 50px; height: 50px; font-size: 20px; margin: 0 0 15px 0;">👥</div>
                     <div class="stat-label">إجمالي الطلاب</div>
                     <div class="stat-value" id="totalStudents">0</div>
                 </div>
                 <div class="stat-card">
                     <div class="logo-placeholder"
-                        style="width: 50px; height: 50px; font-size: 20px; margin: 0 0 15px 0; background: var(--success);">
-                        ✅</div>
+                         style="width: 50px; height: 50px; font-size: 20px; margin: 0 0 15px 0; background: var(--success);">
+                        ✅
+                    </div>
                     <div class="stat-label">غيابات اليوم</div>
                     <div class="stat-value" id="todayAbsencesCount">0</div>
                 </div>
                 <div class="stat-card">
                     <div class="logo-placeholder"
-                        style="width: 50px; height: 50px; font-size: 20px; margin: 0 0 15px 0; background: var(--secondary);">
-                        👨‍🏫</div>
+                         style="width: 50px; height: 50px; font-size: 20px; margin: 0 0 15px 0; background: var(--secondary);">
+                        👨‍🏫
+                    </div>
                     <div class="stat-label">عدد المعلمين</div>
                     <div class="stat-value" id="totalTeachers">0</div>
                 </div>
@@ -425,7 +389,6 @@
     </div>
 
     <script>
-        // Version 1.5 - Complete Rebuild
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyv3PgfGVlHoRQ7KQ5M2kaLdRXQ3LHvLTRamqswGMrJX6VqRjchFxybYVEkxwTfb1Q/exec';
 
         let currentUser = null;
@@ -434,13 +397,10 @@
         let absences = [];
         let todayAbsences = [];
 
-        // Set default date to today
         document.addEventListener('DOMContentLoaded', function () {
             const today = new Date().toISOString().split('T')[0];
             const dateInput = document.getElementById('absenceDate');
-            if (dateInput) {
-                dateInput.value = today;
-            }
+            if (dateInput) dateInput.value = today;
         });
 
         async function apiCall(action, data = {}) {
@@ -449,9 +409,7 @@
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
                     redirect: 'follow',
-                    headers: {
-                        "Content-Type": "text/plain;charset=utf-8",
-                    },
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
                     body: JSON.stringify({ action, ...data })
                 });
                 const result = await response.json();
@@ -459,7 +417,7 @@
                 return result;
             } catch (error) {
                 console.error('API Error:', error);
-                alert('حدث خطأ في الاتصال: ' + error.message + '\nتأكد من أنك قمت بنشر السكريبت كـ Web App بصلاحية "Anyone"');
+                showNotification('خطأ في الاتصال بالخادم', 'error');
                 return { status: 'error', message: error.message };
             } finally {
                 hideLoading();
@@ -475,18 +433,14 @@
                 return;
             }
 
-            showLoading();
-
-            // التحقق من بيانات المدير عبر API
             const adminCheck = await apiCall('checkAdmin', { username, password });
             if (adminCheck.status === 'success') {
-                currentUser = { id: 1, name: 'المدير', username: username, role: 'admin' };
+                currentUser = { id: 1, name: 'المدير', username, role: 'admin' };
                 document.getElementById('loginPage').classList.remove('active');
                 document.getElementById('adminPage').classList.add('active');
                 await loadAdminData();
                 showNotification('تم تسجيل الدخول بنجاح', 'success');
             } else {
-                // إذا لم يكن مديراً، تحقق من المعلمين
                 const response = await apiCall('getTeachers');
                 if (response.status === 'success') {
                     const teacher = response.data.find(t => t.username === username && t.password == password);
@@ -500,11 +454,8 @@
                     } else {
                         showNotification('اسم المستخدم أو كلمة المرور غير صحيحة', 'error');
                     }
-                } else {
-                    showNotification('خطأ في الاتصال بالخادم', 'error');
                 }
             }
-            hideLoading();
         }
 
         function logout() {
@@ -517,10 +468,9 @@
 
         async function loadStudents() {
             const response = await apiCall('getStudents');
-
             if (response.status === 'success') {
-                students = response.data.map(s => ({
-                    id: s['id'],
+                students = response.data.map((s, idx) => ({
+                    id: s['id'] ? String(s['id']) : String(idx + 1),
                     name: s['الاسم الكامل'] || s['الاسم'] || 'بدون اسم',
                     school: s['المدرسة'] || '',
                     grade: s['الصف'] || '',
@@ -528,11 +478,7 @@
                     pathway: s['المرحلة / القسم / المسار'] || '',
                     details: s
                 }));
-            } else {
-                students = [];
-                showNotification('فشل تحميل الطلاب', 'error');
             }
-
             populateFilters();
             await checkDailyAbsences();
             renderTeacherStudentList();
@@ -542,11 +488,10 @@
             const grades = [...new Set(students.map(s => s.grade).filter(Boolean))];
             const sections = [...new Set(students.map(s => s.section).filter(Boolean))];
 
-            const gradeSelect = document.getElementById('filterGrade');
-            const sectionSelect = document.getElementById('filterSection');
-
-            gradeSelect.innerHTML = '<option value="">الكل</option>' + grades.map(g => `<option value="${g}">${g}</option>`).join('');
-            sectionSelect.innerHTML = '<option value="">الكل</option>' + sections.map(s => `<option value="${s}">${s}</option>`).join('');
+            document.getElementById('filterGrade').innerHTML = '<option value="">الكل</option>' +
+                grades.map(g => `<option value="${g}">${g}</option>`).join('');
+            document.getElementById('filterSection').innerHTML = '<option value="">الكل</option>' +
+                sections.map(s => `<option value="${s}">${s}</option>`).join('');
         }
 
         function filterStudents() {
@@ -557,7 +502,10 @@
             const date = document.getElementById('absenceDate').value;
             const response = await apiCall('getAbsences');
             if (response.status === 'success') {
-                todayAbsences = response.data.filter(a => a.date === date).map(a => a.studentId);
+                todayAbsences = response.data
+                    .filter(a => a.date === date)
+                    .map(a => String(a.studentId));
+                console.log('Today Absences:', todayAbsences);
             }
             renderTeacherStudentList();
         }
@@ -567,61 +515,89 @@
             const sectionFilter = document.getElementById('filterSection').value;
             const searchName = document.getElementById('searchName').value.toLowerCase();
 
-            const filteredStudents = students.filter(s => {
-                return (!gradeFilter || s.grade === gradeFilter) &&
-                    (!sectionFilter || s.section === sectionFilter) &&
-                    (!searchName || s.name.toLowerCase().includes(searchName));
-            });
+            const filteredStudents = students.filter(s =>
+                (!gradeFilter || s.grade === gradeFilter) &&
+                (!sectionFilter || s.section === sectionFilter) &&
+                (!searchName || s.name.toLowerCase().includes(searchName))
+            );
 
             const container = document.getElementById('teacherStudentsList');
-            if (!container) return;
-
             container.innerHTML = `<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;">
-                ${filteredStudents.map(s => {
+                    ${filteredStudents.map(s => {
                 const isAbsent = todayAbsences.includes(s.id);
                 return `
-                    <div style="background: ${isAbsent ? '#fff5f5' : '#f8fafc'}; padding: 15px; border-radius: 10px; border: 1px solid ${isAbsent ? '#fc8181' : '#e2e8f0'}; transition: all 0.3s;">
-                        <div style="font-weight: bold; margin-bottom: 5px;">${s.name}</div>
-                        <div style="font-size: 13px; color: #718096; margin-bottom: 10px;">
-                            ${s.grade} | ${s.section}${s.pathway ? ' | ' + s.pathway : ''}
+                            <div style="background: ${isAbsent ? '#fff5f5' : '#f8fafc'}; padding: 15px; border-radius: 10px; border: 1px solid ${isAbsent ? '#fc8181' : '#e2e8f0'};">
+                                <div style="font-weight: bold; margin-bottom: 5px;">${s.name}</div>
+                                <div style="font-size: 13px; color: #718096; margin-bottom: 10px;">
+                                    ${s.grade} | ${s.section}${s.pathway ? ' | ' + s.pathway : ''}
+                                </div>
+                                <div style="display: flex; gap: 10px;">
+                                    <button onclick="toggleAbsence('${s.id}')"
+                                        style="flex: 1; background: ${isAbsent ? '#e53e3e' : '#fff'}; color: ${isAbsent ? '#fff' : '#e53e3e'}; border: 1px solid #e53e3e; padding: 8px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Cairo';">
+                                        ${isAbsent ? '🟢 حاضر' : '🔴 غياب'}
+                                    </button>
+                                    <button onclick="showStudentDetails('${s.id}')"
+                                        style="background: #bee3f8; color: #2b6cb0; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Cairo';">
+                                        📋 التفاصيل
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+            }).join('')}
+                </div>`;
+        }
+
+        function showStudentDetails(studentId) {
+            const student = students.find(s => s.id === studentId);
+            if (!student) return;
+
+            const detailsHTML = Object.entries(student.details)
+                .filter(([key, value]) => value && key !== 'id')
+                .map(([key, value]) => `
+                        <div style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e2e8f0;">
+                            <span style="font-weight: 600; color: #4a5568;">${key}:</span>
+                            <span style="color: #2d3748;">${value}</span>
                         </div>
-                        <div style="display: flex; gap: 10px;">
-                            <button onclick="toggleAbsence('${s.id}', this)"
-                                style="flex: 1; background: ${isAbsent ? '#e53e3e' : '#fff'}; color: ${isAbsent ? '#fff' : '#e53e3e'}; border: 1px solid #e53e3e; padding: 8px; border-radius: 8px; cursor: pointer; font-weight: bold;">
-                                ${isAbsent ? '🟢 حاضر (تراجع)' : '🔴 غياب'}
-                            </button>
+                    `).join('');
+
+            const modal = document.createElement('div');
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 3000;';
+            modal.innerHTML = `
+                    <div style="background: white; border-radius: 15px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+                        <div style="background: var(--primary); color: white; padding: 20px; border-radius: 15px 15px 0 0; display: flex; justify-content: space-between; align-items: center;">
+                            <h3 style="margin: 0;">تفاصيل الطالب: ${student.name}</h3>
+                            <button onclick="this.closest('div').parentElement.parentElement.remove()"
+                                style="background: rgba(255,255,255,0.2); border: none; color: white; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 20px;">×</button>
+                        </div>
+                        <div style="padding: 20px;">
+                            ${detailsHTML || '<p style="text-align: center; color: #718096;">لا توجد تفاصيل إضافية</p>'}
                         </div>
                     </div>
                 `;
-            }).join('')}
-            </div>`;
+            document.body.appendChild(modal);
+            modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
         }
 
-        async function toggleAbsence(studentId, btn) {
+        async function toggleAbsence(studentId) {
             const date = document.getElementById('absenceDate').value;
             if (!date) {
                 showNotification('الرجاء اختيار التاريخ', 'error');
                 return;
             }
 
-            const isAbsent = todayAbsences.includes(Number(studentId)) || todayAbsences.includes(String(studentId));
-            const student = students.find(s => s.id == studentId);
-
-            btn.disabled = true;
-            btn.textContent = 'جاري المعالجة...';
+            const isAbsent = todayAbsences.includes(studentId);
+            const student = students.find(s => s.id === studentId);
 
             if (isAbsent) {
-                // إلغاء الغياب
                 const response = await apiCall('deleteAbsence', { studentId, date });
                 if (response.status === 'success') {
-                    todayAbsences = todayAbsences.filter(id => id != studentId);
-                    showNotification('تم إلغاء الغياب - الطالب حاضر', 'success');
+                    showNotification('تم إلغاء الغياب - الطالب حاضر ✅', 'success');
+                    await checkDailyAbsences();
                 } else {
-                    showNotification('فشل العملية', 'error');
+                    showNotification('فشل: ' + (response.message || 'خطأ غير معروف'), 'error');
                 }
             } else {
-                // تسجيل غياب
-                const absence = {
+                const response = await apiCall('submitAbsence', {
                     studentId,
                     studentName: student.name,
                     grade: student.grade,
@@ -629,32 +605,32 @@
                     date,
                     teacher: currentUser.name,
                     notes: ''
-                };
-                const response = await apiCall('submitAbsence', absence);
+                });
                 if (response.status === 'success') {
-                    todayAbsences.push(studentId);
-                    showNotification('تم تسجيل الغياب', 'success');
+                    showNotification('تم تسجيل الغياب ❌', 'success');
+                    await checkDailyAbsences();
                 } else {
-                    showNotification('فشل العملية', 'error');
+                    showNotification('فشل: ' + (response.message || 'خطأ غير معروف'), 'error');
                 }
             }
-
-            renderTeacherStudentList();
         }
 
         async function loadAdminData() {
-            const teachersRes = await apiCall('getTeachers');
+            const [teachersRes, studentsRes, absencesRes] = await Promise.all([
+                apiCall('getTeachers'),
+                apiCall('getStudents'),
+                apiCall('getAbsences')
+            ]);
+
             if (teachersRes.status === 'success') {
                 teachers = teachersRes.data;
                 document.getElementById('totalTeachers').textContent = teachers.length;
             }
 
-            const studentsRes = await apiCall('getStudents');
             if (studentsRes.status === 'success') {
                 document.getElementById('totalStudents').textContent = studentsRes.data.length;
             }
 
-            const absencesRes = await apiCall('getAbsences');
             if (absencesRes.status === 'success') {
                 absences = absencesRes.data;
                 renderAbsencesTable();
@@ -663,15 +639,14 @@
         }
 
         function renderAbsencesTable() {
-            const tbody = document.getElementById('absencesTableBody');
-            tbody.innerHTML = absences.slice(0, 10).map(a => `
-                <tr>
-                    <td>${a.studentName}</td>
-                    <td>${a.grade} - ${a.section}</td>
-                    <td>${a.date}</td>
-                    <td>${a.teacher}</td>
-                </tr>
-            `).join('');
+            document.getElementById('absencesTableBody').innerHTML = absences.slice(0, 10).map(a => `
+                    <tr>
+                        <td>${a.studentName}</td>
+                        <td>${a.grade} - ${a.section}</td>
+                        <td>${a.date}</td>
+                        <td>${a.teacher}</td>
+                    </tr>
+                `).join('');
         }
 
         function updateStats() {
@@ -692,9 +667,7 @@
             const notification = document.getElementById('notification');
             notification.textContent = message;
             notification.className = `notification ${type} show`;
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
+            setTimeout(() => notification.classList.remove('show'), 3000);
         }
     </script>
 </body>
