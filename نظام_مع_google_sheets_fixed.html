@@ -712,7 +712,7 @@
                     showNotification('تم إلغاء الغياب - الطالب حاضر ✅', 'success');
                     await checkDailyAbsences();
                 } else {
-                    showNotification('فشل: ' + (response.message || 'خطأ غير معروف'), 'error');
+                    showNotification(response.message || 'فشل في إلغاء الغياب', 'error');
                 }
             } else {
                 const response = await apiCall('submitAbsence', {
@@ -728,7 +728,7 @@
                     showNotification('تم تسجيل الغياب ❌', 'success');
                     await checkDailyAbsences();
                 } else {
-                    showNotification('فشل: ' + (response.message || 'خطأ غير معروف'), 'error');
+                    showNotification(response.message || 'فشل في تسجيل الغياب', 'error');
                 }
             }
         }

@@ -153,88 +153,33 @@ function doPost(e) {
                 // البحث من الأسفل للأعلى (أحدث سجل)
                 for (var i = allData.length - 1; i >= 1; i--) {
                     var cellStudentId = String(allData[i][0]); // العمود الأول (المعرف)
-                    var cellDate = String(allData[i][4]); // العمود الخامس (التاريخ)
+                    var cellDate = allData[i][4]; // العمود الخامس (التاريخ)
 
                     // تطابق المعرف
-                    var idMatch = (cellStudentId === requestStudentId);
-
-                    // تطابق التاريخ - نتحقق من عدة احتمالات
-                    var dateMatch = false;
-
-                    // الاحتمال 1: مطابقة مباشرة "2025-12-01"
-                    if (cellDate === requestDate) {
-                        dateMatch = true;
+                    if (cellStudentId !== requestStudentId) {
+                        continue;
                     }
 
-                    // الاحتمال 2: التاريخ مخزن بصيغة أخرى، نحول requestDate
-                    // من 2025-12-01 إلى 12/1/2025
-                    if (!dateMatch && requestDate.indexOf('-') > -1) {
-                        var parts = requestDate.split('-');
-                        var year = parts[0];
-                        var month = parseInt(parts[1], 10); // إزالة الصفر البادئ
-                        var day = parseInt(parts[2], 10);
+                    // تحويل التاريخ إلى صيغة موحدة للمقارنة
+                    var formattedCellDate = String(cellDate).trim();
 
-                        var alternateFormat1 = month + '/' + day + '/' + year;
-                        var alternateFormat2 = ('0' + month).slice(-2) + '/' + ('0' + day).slice(-2) + '/' + year;
-
-                        if (cellDate === alternateFormat1 || cellDate === alternateFormat2) {
-                            dateMatch = true;
-                        }
+                    // إذا كان التاريخ من نوع Date
+                    if (cellDate instanceof Date) {
+                        formattedCellDate = Utilities.formatDate(cellDate, Session.getScriptTimeZone(), 'yyyy-MM-dd');
                     }
-
-                    // الاحتمال 3: عكسي - التاريخ في الخلية بصيغة M/D/YYYY
-                    if (!dateMatch && cellDate.indexOf('/') > -1) {
-                        var dateParts = cellDate.split('/');
+                    // إذا كان بصيغة M/D/YYYY
+                    else if (formattedCellDate.indexOf('/') > -1) {
+                        var dateParts = formattedCellDate.split('/');
                         if (dateParts.length === 3) {
                             var m = ('0' + dateParts[0]).slice(-2);
                             var d = ('0' + dateParts[1]).slice(-2);
                             var y = dateParts[2];
-                            var convertedDate = y + '-' + m + '-' + d;
-
-                            if (convertedDate === requestDate) {
-                                dateMatch = true;
-                                // الاحتمال 4: التاريخ المخزن بصيغة YYYY-MM-DD نصاً
-                                if (!dateMatch) {
-                                    // تنظيف أي مسافات إضافية
-                                    var cleanCellDate = cellDate.trim();
-                                    var cleanRequestDate = requestDate.trim();
-
-                                    if (cleanCellDate === cleanRequestDate) {
-                                        dateMatch = true;
-                                    }
-                                }
-                            }
+                            formattedCellDate = y + '-' + m + '-' + d;
                         }
                     }
 
-                    // إذا تطابق المعرف والتاريخ
-                    // الاحتمال 3: عكسي - التاريخ في الخلية بصيغة M/D/YYYY
-                    if (!dateMatch && cellDate.indexOf('/') > -1) {
-                        var dateParts = cellDate.split('/');
-                        if (dateParts.length === 3) {
-                            var m = ('0' + dateParts[0]).slice(-2);
-                            var d = ('0' + dateParts[1]).slice(-2);
-                            var y = dateParts[2];
-                            var convertedDate = y + '-' + m + '-' + d;
-
-                            if (convertedDate === requestDate) {
-                                dateMatch = true;
-                            }
-                        }
-                    }
-
-                    // الاحتمال 4: التاريخ المخزن بصيغة YYYY-MM-DD نصاً
-                    if (!dateMatch) {
-                        var cleanCellDate = String(cellDate).trim();
-                        var cleanRequestDate = String(requestDate).trim();
-
-                        if (cleanCellDate === cleanRequestDate) {
-                            dateMatch = true;
-                        }
-                    }
-
-                    // إذا تطابق المعرف والتاريخ
-                    if (idMatch && dateMatch) {
+                    // المقارنة بعد التوحيد
+                    if (formattedCellDate === requestDate) {
                         rowToDelete = i + 1;
                         break;
                     }
@@ -244,22 +189,12 @@ function doPost(e) {
                     absenceSheet.deleteRow(rowToDelete);
                     return jsonResponse({
                         status: 'success',
-                        message: 'تم إلغاء الغياب - حذف الصف رقم ' + rowToDelete
+                        message: 'تم إلغاء الغياب بنجاح'
                     });
                 } else {
-                    // للتشخيص: نطبع جميع التواريخ الموجودة لهذا الطالب
-                    var studentDates = [];
-                    for (var j = 1; j < allData.length; j++) {
-                        if (String(allData[j][0]) === requestStudentId) {
-                            studentDates.push(String(allData[j][4]));
-                        }
-                    }
-
                     return jsonResponse({
                         status: 'error',
-                        message: 'لم يتم العثور - المعرف: ' + requestStudentId +
-                            ' | التاريخ المطلوب: ' + requestDate +
-                            ' | التواريخ الموجودة: [' + studentDates.join(', ') + ']'
+                        message: 'لم يتم العثور على سجل غياب لهذا الطالب في التاريخ المحدد'
                     });
                 }
 
