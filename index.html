@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html dir="rtl" lang="ar">
+<html lang="ar" dir="rtl">
 
 <head>
     <meta charset="UTF-8">
@@ -10,12 +10,10 @@
         :root {
             --primary: #2c5282;
             --secondary: #4299e1;
-            --accent: #90cdf4;
-            --background: #f7fafc;
-            --text: #2d3748;
             --success: #48bb78;
             --danger: #f56565;
-            --card-bg: #ffffff;
+            --background: #f7fafc;
+            --text: #2d3748;
         }
 
         * {
@@ -37,7 +35,6 @@
             padding: 20px;
         }
 
-        /* Login Styles */
         .login-container {
             min-height: 100vh;
             display: flex;
@@ -118,7 +115,6 @@
                 box-shadow: 0 4px 12px rgba(44, 82, 130, 0.2);
             }
 
-        /* Dashboard Styles */
         .header {
             background: white;
             padding: 20px;
@@ -161,7 +157,6 @@
             font-size: 14px;
         }
 
-        /* Table Styles */
         .table-container {
             background: white;
             border-radius: 15px;
@@ -192,7 +187,6 @@
             background: #f7fafc;
         }
 
-        /* Filters */
         .filters {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -204,23 +198,22 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
-        /* Notifications */
         .notification {
             position: fixed;
             bottom: 20px;
-            left: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
             padding: 15px 25px;
             border-radius: 10px;
             color: white;
             font-weight: 600;
-            transform: translateY(100px);
             transition: transform 0.3s;
             z-index: 1000;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
             .notification.show {
-                transform: translateY(0);
+                transform: translateX(-50%) translateY(0);
             }
 
             .notification.success {
@@ -231,7 +224,6 @@
                 background: var(--danger);
             }
 
-        /* Loading Spinner */
         .loading {
             position: fixed;
             top: 0;
@@ -279,33 +271,16 @@
             font-weight: 600;
             font-family: 'Cairo';
         }
-
-        .btn-edit {
-            background: #bee3f8;
-            color: #2b6cb0;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-left: 5px;
-            font-family: 'Cairo';
-        }
-
-        .btn-delete {
-            background: #fed7d7;
-            color: #c53030;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-family: 'Cairo';
-        }
     </style>
 </head>
 
 <body>
+    <div id="loading" class="loading">
+        <div class="spinner"></div>
+    </div>
 
-    <!-- Login Page -->
+    <div id="notification" class="notification"></div>
+
     <div id="loginPage" class="page active">
         <div class="login-container">
             <div class="login-card">
@@ -324,7 +299,6 @@
         </div>
     </div>
 
-    <!-- Teacher Page -->
     <div id="teacherPage" class="page">
         <div class="container">
             <div class="header">
@@ -332,14 +306,7 @@
                     <h2>مرحباً، <span id="teacherName">المعلم</span> 👋</h2>
                     <p style="color: #718096;">نظام تسجيل الحضور والغياب</p>
                 </div>
-                <div style="display: flex; gap: 10px;">
-                    <button onclick="openChangePasswordModal()"
-                            style="padding: 12px 20px; background: #ebf8ff; border: 2px solid #4299e1; border-radius: 10px; color: #2b6cb0; font-weight: 600; cursor: pointer; font-family: 'Cairo';">
-                        🔑
-                        تغيير كلمة المرور
-                    </button>
-                    <button class="btn-logout" onclick="logout()">تسجيل خروج</button>
-                </div>
+                <button class="btn-logout" onclick="logout()">تسجيل خروج</button>
             </div>
 
             <div class="filters">
@@ -360,24 +327,15 @@
                     </select>
                 </div>
                 <div class="input-group" style="margin-bottom: 0;">
-                    <label>المرحلة / القسم / المسار</label>
-                    <select id="filterPathway" onchange="filterStudents()">
-                        <option value="">الكل</option>
-                    </select>
-                </div>
-                <div class="input-group" style="margin-bottom: 0;">
                     <label>بحث بالاسم</label>
                     <input type="text" id="searchName" placeholder="اكتب اسم الطالب..." onkeyup="filterStudents()">
                 </div>
             </div>
 
-            <div id="teacherStudentsList">
-                <!-- Students will be loaded here -->
-            </div>
+            <div id="teacherStudentsList"></div>
         </div>
     </div>
 
-    <!-- Admin Page -->
     <div id="adminPage" class="page">
         <div class="container">
             <div class="header">
@@ -385,19 +343,7 @@
                     <h2>لوحة تحكم المدير 👨‍💼</h2>
                     <p style="color: #718096;">سحاب الثانوية للبنات</p>
                 </div>
-                <div style="display: flex; gap: 10px;">
-                    <button onclick="openEditAdminProfileModal()"
-                            style="padding: 12px 20px; background: #f0fdf4; border: 2px solid #22c55e; border-radius: 10px; color: #16a34a; font-weight: 600; cursor: pointer; font-family: 'Cairo';">
-                        👤
-                        تعديل الملف الشخصي
-                    </button>
-                    <button onclick="openChangeAdminPasswordModal()"
-                            style="padding: 12px 20px; background: #ebf8ff; border: 2px solid #4299e1; border-radius: 10px; color: #2b6cb0; font-weight: 600; cursor: pointer; font-family: 'Cairo';">
-                        🔑
-                        تغيير كلمة المرور
-                    </button>
-                    <button class="btn-logout" onclick="logout()">تسجيل خروج</button>
-                </div>
+                <button class="btn-logout" onclick="logout()">تسجيل خروج</button>
             </div>
 
             <div class="stats-grid">
@@ -422,546 +368,426 @@
                     </div>
                     <div class="stat-label">عدد المعلمين</div>
                     <div class="stat-value" id="totalTeachers">0</div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>الاسم</th>
-                                <th>اسم المستخدم</th>
-                                <th>كلمة المرور</th>
-                                <th>إجراءات</th>
-                            </tr>
-                        </thead>
-                        <tbody id="teachersTableBody"></tbody>
-                    </table>
                 </div>
             </div>
 
-            <!-- Recent Absences -->
-            <div>
-                style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background:
-                rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
-                <div class="modal-content"
-                     style="background: white; border-radius: 20px; padding: 40px; max-width: 400px; width: 90%;">
-                    <h3>إضافة معلم جديد</h3>
-                    <div class="input-group">
-                        <label>الاسم</label>
-                        <input type="text" id="newTeacherName">
-                    </div>
-                    <div class="input-group">
-                        <label>اسم المستخدم</label>
-                        <input type="text" id="newTeacherUsername">
-                    </div>
-                    <div class="input-group">
-                        <label>كلمة المرور</label>
-                        <input type="text" id="newTeacherPassword">
-                    </div>
-                    <div style="display: flex; gap: 10px;">
-                        <button class="btn-primary" onclick="saveNewTeacher()">حفظ</button>
-                        <button onclick="document.getElementById('addTeacherModal').style.display='none'"
-                                style="padding: 16px; border: 1px solid #e2e8f0; background: white; border-radius: 12px; cursor: pointer; font-family: 'Cairo';">
-                            إلغاء
-                        </button>
-                    </div>
+            <div class="table-container">
+                <div style="padding: 20px; display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="margin: 0;">الغيابات الأخيرة</h3>
+                    <button class="btn-primary" onclick="printAbsenceReport()"
+                            style="width: auto; padding: 10px 25px; background: var(--success);">
+                        🖨️ طباعة كشف الغياب
+                    </button>
                 </div>
-            </div>
-
-            <!-- Edit Teacher Modal (بدون كلمة المرور) -->
-            <div id="editTeacherModal" class="modal"
-                 style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
-                <div class="modal-content"
-                     style="background: white; border-radius: 20px; padding: 40px; max-width: 400px; width: 90%;">
-                    <h3>تعديل بيانات المعلم</h3>
-                    <input type="hidden" id="editTeacherId">
-                    <div class="input-group">
-                        <label>الاسم</label>
-                        <input type="text" id="editTeacherName">
-                    </div>
-                    <div class="input-group">
-                        <label>اسم المستخدم</label>
-                        <input type="text" id="editTeacherUsername">
-                    </div>
-                    <p style="color: #718096; font-size: 13px; margin-bottom: 15px;">
-                        ملاحظة: لا يمكن للمدير تغيير
-                        كلمة مرور
-                        المعلم. يمكن للمعلم تغييرها بنفسه.
-                    </p>
-                    <div style="display: flex; gap: 10px;">
-                        <button class="btn-primary" onclick="saveEditTeacher()">حفظ التغييرات</button>
-                        <button onclick="document.getElementById('editTeacherModal').style.display='none'"
-                                style="padding: 16px; border: 1px solid #e2e8f0; background: white; border-radius: 12px; cursor: pointer; font-family: 'Cairo';">
-                            إلغاء
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Change Teacher Password Modal -->
-            <div id="changePasswordModal" class="modal"
-                 style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
-                <div class="modal-content"
-                     style="background: white; border-radius: 20px; padding: 40px; max-width: 400px; width: 90%;">
-                    <h3>تغيير كلمة المرور</h3>
-                    <div class="input-group">
-                        <label>كلمة المرور الجديدة</label>
-                        <input type="password" id="newPasswordInput">
-                    </div>
-                    <div style="display: flex; gap: 10px;">
-                        <button class="btn-primary" onclick="submitNewPassword()">تغيير</button>
-                        <button onclick="document.getElementById('changePasswordModal').style.display='none'"
-                                style="padding: 16px; border: 1px solid #e2e8f0; background: white; border-radius: 12px; cursor: pointer; font-family: 'Cairo';">
-                            إلغاء
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Change Admin Password Modal -->
-            <div id="changeAdminPasswordModal" class="modal"
-                 style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
-                <div class="modal-content"
-                     style="background: white; border-radius: 20px; padding: 40px; max-width: 400px; width: 90%;">
-                    <h3>تغيير كلمة مرور المدير</h3>
-                    <div class="input-group">
-                        <label>كلمة المرور الجديدة</label>
-                        <input type="password" id="newAdminPasswordInput">
-                    </div>
-                    <div style="display: flex; gap: 10px;">
-                        <button class="btn-primary" onclick="submitNewAdminPassword()">تغيير</button>
-                        <button onclick="document.getElementById('changeAdminPasswordModal').style.display='none'"
-                                style="padding: 16px; border: 1px solid #e2e8f0; background: white; border-radius: 12px; cursor: pointer; font-family: 'Cairo';">
-                            إلغاء
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Edit Admin Profile Modal -->
-            <div id="editAdminProfileModal" class="modal"
-                 style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
-                <div class="modal-content"
-                     style="background: white; border-radius: 20px; padding: 40px; max-width: 400px; width: 90%;">
-                    <h3>تعديل الملف الشخصي</h3>
-                    <div class="input-group">
-                        <label>اسم المستخدم الجديد</label>
-                        <input type="text" id="newAdminUsernameInput">
-                    </div>
-                    <div style="display: flex; gap: 10px;">
-                        <button class="btn-primary" onclick="submitNewAdminUsername()">تحديث</button>
-                        <button onclick="document.getElementById('editAdminProfileModal').style.display='none'"
-                                style="padding: 16px; border: 1px solid #e2e8f0; background: white; border-radius: 12px; cursor: pointer; font-family: 'Cairo';">
-                            إلغاء
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Student Details Modal -->
-            <div id="studentDetailsModal" class="modal"
-                 style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
-                <div class="modal-content"
-                     style="background: white; border-radius: 20px; padding: 40px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto;">
-                    <div class="modal-header"
-                         style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-                        <h2>تفاصيل الطالب</h2>
-                        <button class="modal-close" onclick="closeStudentDetailsModal()"
-                                style="background: none; border: none; font-size: 30px; cursor: pointer; color: #718096;">
-                            ×
-                        </button>
-                    </div>
-                    <div id="studentDetailsContent"
-                         style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: right;">
-                        <!-- Details will be injected here -->
-                    </div>
-                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>اسم الطالب</th>
+                            <th>الصف والشعبة</th>
+                            <th>التاريخ</th>
+                            <th>المعلم</th>
+                        </tr>
+                    </thead>
+                    <tbody id="absencesTableBody"></tbody>
+                </table>
             </div>
         </div>
+    </div>
 
+    <script>
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyv3PgfGVlHoRQ7KQ5M2kaLdRXQ3LHvLTRamqswGMrJX6VqRjchFxybYVEkxwTfb1Q/exec';
+
+        let currentUser = null;
+        let students = [];
+        let teachers = [];
+        let absences = [];
+        let todayAbsences = [];
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const today = new Date().toISOString().split('T')[0];
+            const dateInput = document.getElementById('absenceDate');
+            if (dateInput) dateInput.value = today;
+        });
+
+        async function apiCall(action, data = {}) {
+            showLoading();
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    redirect: 'follow',
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({ action, ...data })
+                });
+                const result = await response.json();
+                console.log('API Response:', result);
+                return result;
+            } catch (error) {
+                console.error('API Error:', error);
+                showNotification('خطأ في الاتصال بالخادم', 'error');
+                return { status: 'error', message: error.message };
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function login() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+
+            if (!username || !password) {
+                showNotification('الرجاء إدخال اسم المستخدم وكلمة المرور', 'error');
+                return;
+            }
+
+            const adminCheck = await apiCall('checkAdmin', { username, password });
+            if (adminCheck.status === 'success') {
+                currentUser = { id: 1, name: 'المدير', username, role: 'admin' };
+                document.getElementById('loginPage').classList.remove('active');
+                document.getElementById('adminPage').classList.add('active');
+                await loadAdminData();
+                showNotification('تم تسجيل الدخول بنجاح', 'success');
+            } else {
+                const response = await apiCall('getTeachers');
+                if (response.status === 'success') {
+                    const teacher = response.data.find(t => t.username === username && t.password == password);
+                    if (teacher) {
+                        currentUser = { ...teacher, role: 'teacher' };
+                        document.getElementById('teacherName').textContent = currentUser.name;
+                        document.getElementById('loginPage').classList.remove('active');
+                        document.getElementById('teacherPage').classList.add('active');
+                        await loadStudents();
+                        showNotification('تم تسجيل الدخول بنجاح', 'success');
+                    } else {
+                        showNotification('اسم المستخدم أو كلمة المرور غير صحيحة', 'error');
+                    }
+                }
+            }
+        }
+
+        function printAbsenceReport() {
+            const printWindow = window.open('', '_blank');
+            const today = new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
+
+            const groupedAbsences = {};
+            absences.forEach(a => {
+                const key = `${a.grade} - ${a.section}`;
+                if (!groupedAbsences[key]) {
+                    groupedAbsences[key] = [];
+                }
+                groupedAbsences[key].push(a);
+            });
+
+            const reportHTML = `
+                <!DOCTYPE html>
+                <html lang="ar" dir="rtl">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>كشف الغياب - سحاب الثانوية للبنات</title>
+                    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+                    <style>
+                        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+                        body { padding: 40px; }
+                        .header { text-align: center; margin-bottom: 40px; border-bottom: 3px solid #2c5282; padding-bottom: 20px; }
+                        .header h1 { color: #2c5282; font-size: 28px; margin-bottom: 10px; }
+                        .header h2 { color: #4299e1; font-size: 20px; margin-bottom: 5px; }
+                        .header p { color: #718096; font-size: 16px; }
+                        .section { margin-bottom: 30px; page-break-inside: avoid; }
+                        .section h3 { background: #2c5282; color: white; padding: 12px; border-radius: 8px; margin-bottom: 15px; }
+                        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+                        th, td { padding: 12px; text-align: right; border: 1px solid #e2e8f0; }
+                        th { background: #f8fafc; color: #2d3748; font-weight: 600; }
+                        tr:nth-child(even) { background: #f7fafc; }
+                        .footer { margin-top: 40px; text-align: center; color: #718096; font-size: 14px; border-top: 2px solid #e2e8f0; padding-top: 20px; }
+                        @media print {
+                            body { padding: 20px; }
+                            .section { page-break-inside: avoid; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>مدرسة سحاب الثانوية للبنات</h1>
+                        <h2>كشف الغياب</h2>
+                        <p>تاريخ الطباعة: ${today}</p>
+                    </div>
+
+                    ${Object.entries(groupedAbsences).map(([className, classAbsences]) => `
+                        <div class="section">
+                            <h3>الصف: ${className} (عدد الغيابات: ${classAbsences.length})</h3>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>اسم الطالب</th>
+                                        <th>التاريخ</th>
+                                        <th>المعلم</th>
+                                        <th>ملاحظات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${classAbsences.map((a, idx) => `
+                                        <tr>
+                                            <td>${idx + 1}</td>
+                                            <td>${a.studentName}</td>
+                                            <td>${a.date}</td>
+                                            <td>${a.teacher}</td>
+                                            <td>${a.notes || '-'}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `).join('')}
+
+                    <div class="footer">
+                        <p>إجمالي الغيابات: ${absences.length}</p>
+                        <p>تم الإنشاء بواسطة نظام الحضور والغياب - سحاب الثانوية للبنات</p>
+                    </div>
+
+                    <script>
+                        window.onload = function() {
+                            window.print();
+                        }
+                    <\/script>
+                </body>
+                </html>
+                `;
+
+            printWindow.document.write(reportHTML);
+            printWindow.document.close();
+        }
+
+        function logout() {
+            currentUser = null;
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById('loginPage').classList.add('active');
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
         }
 
         async function loadStudents() {
-        const response = await apiCall('getStudents');
-
-        if (response.status === 'success') {
-        students = response.data.map(s => ({
-        id: s['id'],
-        name: s['الاسم الكامل'] || s['الاسم'] || 'بدون اسم',
-        school: s['المدرسة'] || '',
-        grade: s['الصف'] || '',
-        section: s['الشعبة'] || '',
-        pathway: s['المرحلة / القسم / المسار'] || '',
-        details: s
-        }));
-        } else {
-        students = [];
-        showNotification('فشل تحميل الطلاب', 'error');
-        }
-
-        populateFilters();
-        await checkDailyAbsences();
-        renderTeacherStudentList();
+            const response = await apiCall('getStudents');
+            if (response.status === 'success') {
+                students = response.data.map((s, idx) => ({
+                    id: s['id'] ? String(s['id']) : String(idx + 1),
+                    name: s['الاسم الكامل'] || s['الاسم'] || 'بدون اسم',
+                    school: s['المدرسة'] || '',
+                    grade: s['الصف'] || '',
+                    section: s['الشعبة'] || '',
+                    pathway: s['المرحلة / القسم / المسار'] || '',
+                    details: s
+                }));
+            }
+            populateFilters();
+            await checkDailyAbsences();
+            renderTeacherStudentList();
         }
 
         function populateFilters() {
-        const grades = [...new Set(students.map(s => s.grade).filter(Boolean))];
-        const sections = [...new Set(students.map(s => s.section).filter(Boolean))];
-        const pathways = [...new Set(students.map(s => s.pathway).filter(Boolean))];
+            const grades = [...new Set(students.map(s => s.grade).filter(Boolean))];
+            const sections = [...new Set(students.map(s => s.section).filter(Boolean))];
 
-        const gradeSelect = document.getElementById('filterGrade');
-        const sectionSelect = document.getElementById('filterSection');
-        const pathwaySelect = document.getElementById('filterPathway');
-
-        gradeSelect.innerHTML = '<option value="">الكل</option>' + grades.map(g => `<option value="${g}">
-            ${g}
-        </option>`).join('');
-        sectionSelect.innerHTML = '<option value="">الكل</option>' + sections.map(s => `<option value="${s}">
-            ${s}
-        </option>`).join('');
-        pathwaySelect.innerHTML = '<option value="">الكل</option>' + pathways.map(p => `<option value="${p}">
-            ${p}
-        </option>`).join('');
+            document.getElementById('filterGrade').innerHTML = '<option value="">الكل</option>' +
+                grades.map(g => `<option value="${g}">${g}</option>`).join('');
+            document.getElementById('filterSection').innerHTML = '<option value="">الكل</option>' +
+                sections.map(s => `<option value="${s}">${s}</option>`).join('');
         }
 
         function filterStudents() {
-        renderTeacherStudentList();
+            renderTeacherStudentList();
         }
 
         async function checkDailyAbsences() {
-        const date = document.getElementById('absenceDate').value;
-        const response = await apiCall('getAbsences');
-        if (response.status === 'success') {
-        todayAbsences = response.data.filter(a => a.date === date).map(a => a.studentId);
-        }
-        renderTeacherStudentList();
+            const date = document.getElementById('absenceDate').value;
+            const response = await apiCall('getAbsences');
+            if (response.status === 'success') {
+                todayAbsences = response.data
+                    .filter(a => a.date === date)
+                    .map(a => String(a.studentId));
+                console.log('Today Absences:', todayAbsences);
+            }
+            renderTeacherStudentList();
         }
 
         function renderTeacherStudentList() {
-        const gradeFilter = document.getElementById('filterGrade').value;
-        const sectionFilter = document.getElementById('filterSection').value;
-        const pathwayFilter = document.getElementById('filterPathway').value;
-        const searchName = document.getElementById('searchName').value.toLowerCase();
+            const gradeFilter = document.getElementById('filterGrade').value;
+            const sectionFilter = document.getElementById('filterSection').value;
+            const searchName = document.getElementById('searchName').value.toLowerCase();
 
-        const filteredStudents = students.filter(s => {
-        return (!gradeFilter || s.grade === gradeFilter) &&
-        (!sectionFilter || s.section === sectionFilter) &&
-        (!pathwayFilter || s.pathway === pathwayFilter) &&
-        (!searchName || s.name.toLowerCase().includes(searchName));
-        });
+            const filteredStudents = students.filter(s =>
+                (!gradeFilter || s.grade === gradeFilter) &&
+                (!sectionFilter || s.section === sectionFilter) &&
+                (!searchName || s.name.toLowerCase().includes(searchName))
+            );
 
-        const container = document.getElementById('teacherStudentsList');
-        if (!container) return;
-
-        container.innerHTML = `<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;">
-            ${filteredStudents.map(s => {
-            const isAbsent = todayAbsences.includes(s.id);
-            return `
-            <div style="background: ${isAbsent ? '#fff5f5' : '#f8fafc'}; padding: 15px; border-radius: 10px; border: 1px solid ${isAbsent ? '#fc8181' : '#e2e8f0'}; transition: all 0.3s;">
-                <div style="font-weight: bold; margin-bottom: 5px;">${s.name}</div>
-                <div style="font-size: 13px; color: #718096; margin-bottom: 10px;">
-                    ${s.grade} | ${s.section}${s.pathway ? ' | ' + s.pathway : ''}
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <button onclick="toggleAbsence('${s.id}', this)"
-                            style="flex: 1; background: ${isAbsent ? '#e53e3e' : '#fff'}; color: ${isAbsent ? '#fff' : '#e53e3e'}; border: 1px solid #e53e3e; padding: 8px; border-radius: 8px; cursor: pointer; font-weight: bold;">
-                        ${isAbsent ? '🟢 حاضر (تراجع)' : '🔴 غياب'}
-                    </button>
-                    <button onclick="showStudentDetails('${s.id}')"
-                            style="background: none; border: 1px solid #667eea; color: #667eea; padding: 8px; border-radius: 8px; cursor: pointer;">
-                        📄 التفاصيل
-                    </button>
-                </div>
-            </div>
-            `;
+            const container = document.getElementById('teacherStudentsList');
+            container.innerHTML = `<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;">
+                    ${filteredStudents.map(s => {
+                const isAbsent = todayAbsences.includes(s.id);
+                return `
+                        <div style="background: ${isAbsent ? '#fff5f5' : '#f8fafc'}; padding: 15px; border-radius: 10px; border: 1px solid ${isAbsent ? '#fc8181' : '#e2e8f0'};">
+                            <div style="font-weight: bold; margin-bottom: 5px;">${s.name}</div>
+                            <div style="font-size: 13px; color: #718096; margin-bottom: 10px;">
+                                ${s.grade} | ${s.section}${s.pathway ? ' | ' + s.pathway : ''}
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button onclick="toggleAbsence('${s.id}')"
+                                        style="flex: 1; background: ${isAbsent ? '#e53e3e' : '#fff'}; color: ${isAbsent ? '#fff' : '#e53e3e'}; border: 1px solid #e53e3e; padding: 8px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Cairo';">
+                                    ${isAbsent ? '🟢 حاضر' : '🔴 غياب'}
+                                </button>
+                                <button onclick="showStudentDetails('${s.id}')"
+                                        style="background: #bee3f8; color: #2b6cb0; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Cairo';">
+                                    📋 التفاصيل
+                                </button>
+                            </div>
+                        </div>
+                        `;
             }).join('')}
-        </div>`;
+                </div>`;
         }
 
-        async function toggleAbsence(studentId, btn) {
-        const date = document.getElementById('absenceDate').value;
-        if (!date) {
-        showNotification('الرجاء اختيار التاريخ', 'error');
-        return;
+        function showStudentDetails(studentId) {
+            const student = students.find(s => s.id === studentId);
+            if (!student) return;
+
+            const allowedFields = [
+                'الرقم الوطني / الشخصي',
+                'اسم المستخدم',
+                'الصف',
+                'المرحلة / القسم / المسار',
+                'الشعبة',
+                'النظام الدراسي',
+                'رقم الهاتف',
+                'حالة الطالب',
+                'حالة الملف',
+                'البريد الإلكتروني',
+                'الجنسية',
+                'تاريخ الميلاد',
+                'الهاتف الأساسي',
+                'هاتف ولي الأمر'
+            ];
+
+            const detailsHTML = Object.entries(student.details)
+                .filter(([key, value]) => allowedFields.includes(key) && value)
+                .map(([key, value]) => `
+                        <div style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e2e8f0;">
+                            <span style="font-weight: 600; color: #4a5568;">${key}:</span>
+                            <span style="color: #2d3748;">${value}</span>
+                        </div>
+                    `).join('');
+
+            const modal = document.createElement('div');
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 3000;';
+            modal.innerHTML = `
+                    <div style="background: white; border-radius: 15px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+                        <div style="background: var(--primary); color: white; padding: 20px; border-radius: 15px 15px 0 0; display: flex; justify-content: space-between; align-items: center;">
+                            <h3 style="margin: 0;">تفاصيل الطالب: ${student.name}</h3>
+                            <button onclick="this.closest('div').parentElement.parentElement.remove()"
+                                    style="background: rgba(255,255,255,0.2); border: none; color: white; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 20px;">
+                                ×
+                            </button>
+                        </div>
+                        <div style="padding: 20px;">
+                            ${detailsHTML || '<p style="text-align: center; color: #718096;">لا توجد تفاصيل إضافية</p>'}
+                        </div>
+                    </div>
+                `;
+            document.body.appendChild(modal);
+            modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
         }
 
-        const isAbsent = todayAbsences.includes(Number(studentId)) || todayAbsences.includes(String(studentId));
-        const student = students.find(s => s.id == studentId);
+        async function toggleAbsence(studentId) {
+            const date = document.getElementById('absenceDate').value;
+            if (!date) {
+                showNotification('الرجاء اختيار التاريخ', 'error');
+                return;
+            }
 
-        btn.disabled = true;
-        btn.textContent = 'جاري المعالجة...';
+            const isAbsent = todayAbsences.includes(studentId);
+            const student = students.find(s => s.id === studentId);
 
-        if (isAbsent) {
-        // إلغاء الغياب - إرجاع الطالب حاضر
-        const response = await apiCall('deleteAbsence', { studentId, date });
-        if (response.status === 'success') {
-        todayAbsences = todayAbsences.filter(id => id != studentId);
-        showNotification('تم إلغاء الغياب - الطالب حاضر', 'success');
-        } else {
-        showNotification('فشل العملية', 'error');
-        }
-        } else {
-        // تسجيل غياب
-        const absence = {
-        studentId,
-        studentName: student.name,
-        grade: student.grade,
-        section: student.section,
-        date,
-        teacher: currentUser.name,
-        notes: ''
-        };
-        const response = await apiCall('submitAbsence', absence);
-        if (response.status === 'success') {
-        todayAbsences.push(studentId);
-        showNotification('تم تسجيل الغياب', 'success');
-        } else {
-        showNotification('فشل العملية', 'error');
-        }
-        }
-
-        renderTeacherStudentList();
+            if (isAbsent) {
+                const response = await apiCall('deleteAbsence', { studentId, date });
+                if (response.status === 'success') {
+                    showNotification('تم إلغاء الغياب - الطالب حاضر ✅', 'success');
+                    await checkDailyAbsences();
+                } else {
+                    showNotification(response.message || 'فشل في إلغاء الغياب', 'error');
+                }
+            } else {
+                const response = await apiCall('submitAbsence', {
+                    studentId,
+                    studentName: student.name,
+                    grade: student.grade,
+                    section: student.section,
+                    date,
+                    teacher: currentUser.name,
+                    notes: ''
+                });
+                if (response.status === 'success') {
+                    showNotification('تم تسجيل الغياب ❌', 'success');
+                    await checkDailyAbsences();
+                } else {
+                    showNotification(response.message || 'فشل في تسجيل الغياب', 'error');
+                }
+            }
         }
 
         async function loadAdminData() {
-        const teachersRes = await apiCall('getTeachers');
-        if (teachersRes.status === 'success') {
-        teachers = teachersRes.data;
-        renderTeachersTable();
-        }
+            const [teachersRes, studentsRes, absencesRes] = await Promise.all([
+                apiCall('getTeachers'),
+                apiCall('getStudents'),
+                apiCall('getAbsences')
+            ]);
 
-        const studentsRes = await apiCall('getStudents');
-        if (studentsRes.status === 'success') {
-        document.getElementById('totalStudents').textContent = studentsRes.data.length;
-        }
+            if (teachersRes.status === 'success') {
+                teachers = teachersRes.data;
+                document.getElementById('totalTeachers').textContent = teachers.length;
+            }
 
-        const absencesRes = await apiCall('getAbsences');
-        if (absencesRes.status === 'success') {
-        absences = absencesRes.data;
-        renderAbsencesTable();
-        updateStats();
-        }
-        }
+            if (studentsRes.status === 'success') {
+                document.getElementById('totalStudents').textContent = studentsRes.data.length;
+            }
 
-        function renderTeachersTable() {
-        const tbody = document.getElementById('teachersTableBody');
-        tbody.innerHTML = teachers.map(t => `
-        <tr>
-            <td>${t.name}</td>
-            <td>${t.username}</td>
-            <td style="font-family: monospace; color: #a0aec0;">••••••</td>
-            <td>
-                <button class="btn-edit" onclick="showEditTeacherModal(${t.id})">تعديل</button>
-                <button class="btn-delete" onclick="deleteTeacher(${t.id})">حذف</button>
-            </td>
-        </tr>
-        `).join('');
-        document.getElementById('totalTeachers').textContent = teachers.length;
-        }
-
-        async function saveNewTeacher() {
-        const name = document.getElementById('newTeacherName').value;
-        const username = document.getElementById('newTeacherUsername').value;
-        const password = document.getElementById('newTeacherPassword').value;
-
-        if (!name || !username || !password) {
-        showNotification('الرجاء ملء جميع الحقول', 'error');
-        return;
-        }
-
-        const response = await apiCall('addTeacher', { name, username, password });
-        if (response.status === 'success') {
-        document.getElementById('addTeacherModal').style.display = 'none';
-        document.getElementById('newTeacherName').value = '';
-        document.getElementById('newTeacherUsername').value = '';
-        document.getElementById('newTeacherPassword').value = '';
-        showNotification('تم إضافة المعلم', 'success');
-        loadAdminData();
-        } else {
-        showNotification('فشل إضافة المعلم', 'error');
-        }
-        }
-
-        function showEditTeacherModal(id) {
-        const teacher = teachers.find(t => t.id == id);
-        if (!teacher) return;
-
-        document.getElementById('editTeacherId').value = teacher.id;
-        document.getElementById('editTeacherName').value = teacher.name;
-        document.getElementById('editTeacherUsername').value = teacher.username;
-        document.getElementById('editTeacherModal').style.display = 'flex';
-        }
-
-        async function saveEditTeacher() {
-        const id = document.getElementById('editTeacherId').value;
-        const name = document.getElementById('editTeacherName').value;
-        const username = document.getElementById('editTeacherUsername').value;
-
-        if (!name || !username) {
-        showNotification('الرجاء ملء الاسم واسم المستخدم', 'error');
-        return;
-        }
-
-        const data = { id, name, username };
-
-        const response = await apiCall('updateTeacher', data);
-        if (response.status === 'success') {
-        document.getElementById('editTeacherModal').style.display = 'none';
-        showNotification('تم تحديث بيانات المعلم', 'success');
-        loadAdminData();
-        } else {
-        showNotification('فشل التحديث', 'error');
-        }
-        }
-
-        async function deleteTeacher(id) {
-        if (!confirm('هل أنت متأكد من حذف هذا المعلم؟')) return;
-        const response = await apiCall('deleteTeacher', { id });
-        if (response.status === 'success') {
-        showNotification('تم حذف المعلم', 'success');
-        loadAdminData();
-        } else {
-        showNotification('فشل حذف المعلم', 'error');
-        }
-        }
-
-        function showAddTeacherModal() {
-        document.getElementById('addTeacherModal').style.display = 'flex';
-        }
-
-        function openChangePasswordModal() {
-        document.getElementById('changePasswordModal').style.display = 'flex';
-        }
-
-        async function submitNewPassword() {
-        const newPass = document.getElementById('newPasswordInput').value;
-        if (!newPass) {
-        showNotification('الرجاء إدخال كلمة المرور الجديدة', 'error');
-        return;
-        }
-
-        const response = await apiCall('changePassword', {
-        username: currentUser.username,
-        newPassword: newPass
-        });
-
-        if (response.status === 'success') {
-        showNotification('تم تغيير كلمة المرور', 'success');
-        document.getElementById('changePasswordModal').style.display = 'none';
-        document.getElementById('newPasswordInput').value = '';
-        } else {
-        showNotification('فشل التغيير', 'error');
-        }
-        }
-
-        function openChangeAdminPasswordModal() {
-        document.getElementById('changeAdminPasswordModal').style.display = 'flex';
-        }
-
-        async function submitNewAdminPassword() {
-        const newPass = document.getElementById('newAdminPasswordInput').value;
-        if (!newPass) {
-        showNotification('الرجاء إدخال كلمة المرور الجديدة', 'error');
-        return;
-        }
-
-        const response = await apiCall('changeAdminPassword', {
-        newPassword: newPass
-        });
-
-        if (response.status === 'success') {
-        showNotification('تم تغيير كلمة مرور المدير', 'success');
-        document.getElementById('changeAdminPasswordModal').style.display = 'none';
-        document.getElementById('newAdminPasswordInput').value = '';
-        } else {
-        showNotification('فشل التغيير', 'error');
-        }
-        }
-
-        function openEditAdminProfileModal() {
-        document.getElementById('newAdminUsernameInput').value = currentUser.username;
-        document.getElementById('editAdminProfileModal').style.display = 'flex';
-        }
-
-        async function submitNewAdminUsername() {
-        const newUsername = document.getElementById('newAdminUsernameInput').value.trim();
-        if (!newUsername) {
-        showNotification('الرجاء إدخال اسم المستخدم الجديد', 'error');
-        return;
-        }
-
-        const response = await apiCall('updateAdminUsername', {
-        oldUsername: currentUser.username,
-        newUsername: newUsername
-        });
-
-        if (response.status === 'success') {
-        currentUser.username = newUsername;
-        showNotification('تم تحديث اسم المستخدم', 'success');
-        document.getElementById('editAdminProfileModal').style.display = 'none';
-        } else {
-        showNotification('فشل التحديث', 'error');
-        }
-        }
-
-        function showStudentDetails(id) {
-        const student = students.find(s => s.id == id);
-        if (!student) return;
-
-        const detailsContent = document.getElementById('studentDetailsContent');
-        detailsContent.innerHTML = Object.entries(student.details).map(([key, value]) => `
-        <div style="background: #f7fafc; padding: 10px; border-radius: 8px;">
-            <div style="font-size: 12px; color: #718096; margin-bottom: 4px;">${key}</div>
-            <div style="font-weight: 600;">${value || '-'}</div>
-        </div>
-        `).join('');
-
-        document.getElementById('studentDetailsModal').style.display = 'flex';
-        }
-
-        function closeStudentDetailsModal() {
-        document.getElementById('studentDetailsModal').style.display = 'none';
+            if (absencesRes.status === 'success') {
+                absences = absencesRes.data;
+                renderAbsencesTable();
+                updateStats();
+            }
         }
 
         function renderAbsencesTable() {
-        const tbody = document.getElementById('absencesTableBody');
-        tbody.innerHTML = absences.map(a => `
-        <tr>
-            <td>${a.studentName}</td>
-            <td>${a.grade} - ${a.section}</td>
-            <td>${a.date}</td>
-            <td>${a.teacher}</td>
-        </tr>
-        `).join('');
+            document.getElementById('absencesTableBody').innerHTML = absences.slice(0, 10).map(a => `
+                    <tr>
+                        <td>${a.studentName}</td>
+                        <td>${a.grade} - ${a.section}</td>
+                        <td>${a.date}</td>
+                        <td>${a.teacher}</td>
+                    </tr>
+                `).join('');
         }
 
         function updateStats() {
-        const today = new Date().toISOString().split('T')[0];
-        const todayCount = absences.filter(a => a.date === today).length;
-        document.getElementById('todayAbsencesCount').textContent = todayCount;
+            const today = new Date().toISOString().split('T')[0];
+            const todayCount = absences.filter(a => a.date === today).length;
+            document.getElementById('todayAbsencesCount').textContent = todayCount;
         }
 
         function showLoading() {
-        document.getElementById('loading').style.display = 'flex';
+            document.getElementById('loading').style.display = 'flex';
         }
 
         function hideLoading() {
-        document.getElementById('loading').style.display = 'none';
+            document.getElementById('loading').style.display = 'none';
         }
 
         function showNotification(message, type) {
-        const notification = document.getElementById('notification');
-        notification.textContent = message;
-        notification.className = `notification ${type} show`;
-        setTimeout(() => {
-        notification.classList.remove('show');
-        }, 3000);
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type} show`;
+            setTimeout(() => notification.classList.remove('show'), 3000);
         }
-
-        // Close modals when clicking outside
-        window.onclick = function (event) {
-        if (event.target.classList.contains('modal')) {
-        event.target.style.display = 'none';
-        }
-        }
-        </script>
+    </script>
 </body>
 
 </html>
