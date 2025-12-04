@@ -91,39 +91,28 @@ function doPost(e) {
 
         // ========== تسجيل غياب ==========
         if (action === 'submitAbsence') {
-            // التحقق من عدم وجود غياب مسجل مسبقاً لنفس الطالب في نفس اليوم
-            var existingAbsences = absenceSheet.getDataRange().getValues();
-            var requestStudentId = String(requestData.studentId);
-            var requestDate = String(requestData.date); // مثل: 2025-12-01
+            var requestStudentId = String(requestData.studentId).trim();
+            var requestDate = String(requestData.date).trim();
 
-            for (var i = 1; i < existingAbsences.length; i++) {
-                var existingStudentId = String(existingAbsences[i][0]);
-                var existingDate = existingAbsences[i][4];
+            // التحقق من عدم وجود غياب مسجل مسبقاً
+            if (absenceSheet.getLastRow() >= 2) {
+                var existingAbsences = absenceSheet.getDataRange().getValues();
 
-                // تحويل التاريخ إلى صيغة موحدة
-                var formattedExistingDate = String(existingDate).trim();
+                for (var i = 1; i < existingAbsences.length; i++) {
+                    var existingStudentId = String(existingAbsences[i][0]).trim();
+                    var existingDate = existingAbsences[i][4];
 
-                if (existingDate instanceof Date) {
-                    formattedExistingDate = Utilities.formatDate(existingDate, Session.getScriptTimeZone(), 'yyyy-MM-dd');
-                }
-                // إذا كان بصيغة M/D/YYYY
-                else if (formattedExistingDate.indexOf('/') > -1) {
-                    var parts = formattedExistingDate.split('/');
-                    if (parts.length === 3) {
-                        var month = ('0' + parts[0]).slice(-2);
-                        var day = ('0' + parts[1]).slice(-2);
-                        var year = parts[2];
-                        formattedExistingDate = year + '-' + month + '-' + day;
+                    // تحويل التاريخ إلى صيغة موحدة
+                    var formattedExistingDate = formatDateToYYYYMMDD(existingDate);
+
+                    // المقارنة بعد التوحيد
+                    if (existingStudentId === requestStudentId && formattedExistingDate === requestDate) {
+                        return jsonResponse({ status: 'error', message: 'الغياب مسجل مسبقاً لهذا اليوم' });
                     }
-                }
-
-                // المقارنة بعد التوحيد
-                if (existingStudentId === requestStudentId &&
-                    formattedExistingDate === requestDate) {
-                    return jsonResponse({ status: 'error', message: 'الغياب مسجل مسبقاً لهذا اليوم' });
                 }
             }
 
+            // إضافة الغياب
             absenceSheet.appendRow([
                 requestStudentId,
                 requestData.studentName,
@@ -145,15 +134,15 @@ function doPost(e) {
                 }
 
                 var allData = absenceSheet.getDataRange().getValues();
-                var requestStudentId = String(requestData.studentId);
-                var requestDate = String(requestData.date); // مثل: 2025-12-01
+                var requestStudentId = String(requestData.studentId).trim();
+                var requestDate = String(requestData.date).trim();
 
                 var rowToDelete = -1;
 
                 // البحث من الأسفل للأعلى (أحدث سجل)
                 for (var i = allData.length - 1; i >= 1; i--) {
-                    var cellStudentId = String(allData[i][0]); // العمود الأول (المعرف)
-                    var cellDate = allData[i][4]; // العمود الخامس (التاريخ)
+                    var cellStudentId = String(allData[i][0]).trim();
+                    var cellDate = allData[i][4];
 
                     // تطابق المعرف
                     if (cellStudentId !== requestStudentId) {
@@ -161,22 +150,7 @@ function doPost(e) {
                     }
 
                     // تحويل التاريخ إلى صيغة موحدة للمقارنة
-                    var formattedCellDate = String(cellDate).trim();
-
-                    // إذا كان التاريخ من نوع Date
-                    if (cellDate instanceof Date) {
-                        formattedCellDate = Utilities.formatDate(cellDate, Session.getScriptTimeZone(), 'yyyy-MM-dd');
-                    }
-                    // إذا كان بصيغة M/D/YYYY
-                    else if (formattedCellDate.indexOf('/') > -1) {
-                        var dateParts = formattedCellDate.split('/');
-                        if (dateParts.length === 3) {
-                            var m = ('0' + dateParts[0]).slice(-2);
-                            var d = ('0' + dateParts[1]).slice(-2);
-                            var y = dateParts[2];
-                            formattedCellDate = y + '-' + m + '-' + d;
-                        }
-                    }
+                    var formattedCellDate = formatDateToYYYYMMDD(cellDate);
 
                     // المقارنة بعد التوحيد
                     if (formattedCellDate === requestDate) {
@@ -216,27 +190,7 @@ function doPost(e) {
 
             for (var i = 1; i < rows.length; i++) {
                 var dateStr = rows[i][4];
-
-                // تحويل التاريخ بجميع الصيغ
-                var formattedDate = String(dateStr).trim();
-
-                if (dateStr instanceof Date) {
-                    formattedDate = Utilities.formatDate(dateStr, Session.getScriptTimeZone(), 'yyyy-MM-dd');
-                }
-                // إذا كان نص يحتوي على وقت، استخرج التاريخ
-                else if (formattedDate.indexOf(' ') > -1) {
-                    formattedDate = formattedDate.split(' ')[0];
-                }
-                // إذا كان بصيغة M/D/YYYY
-                else if (formattedDate.indexOf('/') > -1) {
-                    var parts = formattedDate.split('/');
-                    if (parts.length === 3) {
-                        var month = parts[0].padStart(2, '0');
-                        var day = parts[1].padStart(2, '0');
-                        var year = parts[2];
-                        formattedDate = year + '-' + month + '-' + day;
-                    }
-                }
+                var formattedDate = formatDateToYYYYMMDD(dateStr);
 
                 absences.push({
                     studentId: String(rows[i][0]).trim(),
@@ -320,8 +274,50 @@ function doPost(e) {
     }
 }
 
+// دالة مساعدة لتوحيد صيغة التاريخ
+function formatDateToYYYYMMDD(dateValue) {
+    if (!dateValue) return '';
+
+    var formattedDate = String(dateValue).trim();
+
+    // إذا كان من نوع Date
+    if (dateValue instanceof Date) {
+        return Utilities.formatDate(dateValue, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+    }
+
+    // إذا كان نص يحتوي على وقت، استخرج التاريخ
+    if (formattedDate.indexOf(' ') > -1) {
+        formattedDate = formattedDate.split(' ')[0];
+    }
+
+    // إذا كان بصيغة M/D/YYYY أو MM/DD/YYYY
+    if (formattedDate.indexOf('/') > -1) {
+        var parts = formattedDate.split('/');
+        if (parts.length === 3) {
+            var month = ('0' + parts[0]).slice(-2);
+            var day = ('0' + parts[1]).slice(-2);
+            var year = parts[2];
+            return year + '-' + month + '-' + day;
+        }
+    }
+
+    // إذا كان بصيغة YYYY-MM-DD بالفعل
+    if (formattedDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        return formattedDate;
+    }
+
+    return formattedDate;
+}
+
 function jsonResponse(data) {
     return ContentService
         .createTextOutput(JSON.stringify(data))
         .setMimeType(ContentService.MimeType.JSON);
+}
+
+// دالة للاختبار
+function testFormatDate() {
+    Logger.log(formatDateToYYYYMMDD('12/4/2024')); // 2024-12-04
+    Logger.log(formatDateToYYYYMMDD('2024-12-04')); // 2024-12-04
+    Logger.log(formatDateToYYYYMMDD(new Date())); // تاريخ اليوم
 }

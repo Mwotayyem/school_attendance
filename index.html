@@ -71,30 +71,30 @@
             text-align: right;
         }
 
-            .input-group label {
-                display: block;
-                margin-bottom: 8px;
-                color: var(--text);
-                font-weight: 600;
-            }
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text);
+            font-weight: 600;
+        }
 
-            .input-group input,
-            .input-group select {
-                width: 100%;
-                padding: 12px;
-                border: 2px solid #e2e8f0;
-                border-radius: 10px;
-                font-size: 16px;
-                transition: all 0.3s;
-                font-family: 'Cairo';
-            }
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+            font-family: 'Cairo';
+        }
 
-                .input-group input:focus,
-                .input-group select:focus {
-                    border-color: var(--secondary);
-                    outline: none;
-                    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
-                }
+        .input-group input:focus,
+        .input-group select:focus {
+            border-color: var(--secondary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
+        }
 
         .btn-primary {
             width: 100%;
@@ -110,10 +110,10 @@
             font-family: 'Cairo';
         }
 
-            .btn-primary:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 4px 12px rgba(44, 82, 130, 0.2);
-            }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(44, 82, 130, 0.2);
+        }
 
         .header {
             background: white;
@@ -141,9 +141,9 @@
             transition: transform 0.3s;
         }
 
-            .stat-card:hover {
-                transform: translateY(-5px);
-            }
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
 
         .stat-value {
             font-size: 32px;
@@ -212,17 +212,17 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
-            .notification.show {
-                transform: translateX(-50%) translateY(0);
-            }
+        .notification.show {
+            transform: translateX(-50%) translateY(0);
+        }
 
-            .notification.success {
-                background: var(--success);
-            }
+        .notification.success {
+            background: var(--success);
+        }
 
-            .notification.error {
-                background: var(--danger);
-            }
+        .notification.error {
+            background: var(--danger);
+        }
 
         .loading {
             position: fixed;
@@ -257,9 +257,9 @@
             display: none;
         }
 
-            .page.active {
-                display: block;
-            }
+        .page.active {
+            display: block;
+        }
 
         .btn-logout {
             background: #fed7d7;
@@ -349,13 +349,13 @@
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="logo-placeholder"
-                         style="width: 50px; height: 50px; font-size: 20px; margin: 0 0 15px 0;">👥</div>
+                        style="width: 50px; height: 50px; font-size: 20px; margin: 0 0 15px 0;">👥</div>
                     <div class="stat-label">إجمالي الطلاب</div>
                     <div class="stat-value" id="totalStudents">0</div>
                 </div>
                 <div class="stat-card">
                     <div class="logo-placeholder"
-                         style="width: 50px; height: 50px; font-size: 20px; margin: 0 0 15px 0; background: var(--success);">
+                        style="width: 50px; height: 50px; font-size: 20px; margin: 0 0 15px 0; background: var(--success);">
                         ✅
                     </div>
                     <div class="stat-label">غيابات اليوم</div>
@@ -363,7 +363,7 @@
                 </div>
                 <div class="stat-card">
                     <div class="logo-placeholder"
-                         style="width: 50px; height: 50px; font-size: 20px; margin: 0 0 15px 0; background: var(--secondary);">
+                        style="width: 50px; height: 50px; font-size: 20px; margin: 0 0 15px 0; background: var(--secondary);">
                         👨‍🏫
                     </div>
                     <div class="stat-label">عدد المعلمين</div>
@@ -375,7 +375,7 @@
                 <div style="padding: 20px; display: flex; justify-content: space-between; align-items: center;">
                     <h3 style="margin: 0;">الغيابات الأخيرة</h3>
                     <button class="btn-primary" onclick="printAbsenceReport()"
-                            style="width: auto; padding: 10px 25px; background: var(--success);">
+                        style="width: auto; padding: 10px 25px; background: var(--success);">
                         🖨️ طباعة كشف الغياب
                     </button>
                 </div>
@@ -478,80 +478,80 @@
             });
 
             const reportHTML = `
-                <!DOCTYPE html>
-                <html lang="ar" dir="rtl">
-                <head>
-                    <meta charset="UTF-8">
-                    <title>كشف الغياب - سحاب الثانوية للبنات</title>
-                    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-                    <style>
-                        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
-                        body { padding: 40px; }
-                        .header { text-align: center; margin-bottom: 40px; border-bottom: 3px solid #2c5282; padding-bottom: 20px; }
-                        .header h1 { color: #2c5282; font-size: 28px; margin-bottom: 10px; }
-                        .header h2 { color: #4299e1; font-size: 20px; margin-bottom: 5px; }
-                        .header p { color: #718096; font-size: 16px; }
-                        .section { margin-bottom: 30px; page-break-inside: avoid; }
-                        .section h3 { background: #2c5282; color: white; padding: 12px; border-radius: 8px; margin-bottom: 15px; }
-                        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-                        th, td { padding: 12px; text-align: right; border: 1px solid #e2e8f0; }
-                        th { background: #f8fafc; color: #2d3748; font-weight: 600; }
-                        tr:nth-child(even) { background: #f7fafc; }
-                        .footer { margin-top: 40px; text-align: center; color: #718096; font-size: 14px; border-top: 2px solid #e2e8f0; padding-top: 20px; }
-                        @media print {
-                            body { padding: 20px; }
-                            .section { page-break-inside: avoid; }
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="header">
-                        <h1>مدرسة سحاب الثانوية للبنات</h1>
-                        <h2>كشف الغياب</h2>
-                        <p>تاريخ الطباعة: ${today}</p>
-                    </div>
+            <!DOCTYPE html>
+            <html lang="ar" dir="rtl">
+            <head>
+                <meta charset="UTF-8">
+                <title>كشف الغياب - سحاب الثانوية للبنات</title>
+                <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+                <style>
+                    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+                    body { padding: 40px; }
+                    .header { text-align: center; margin-bottom: 40px; border-bottom: 3px solid #2c5282; padding-bottom: 20px; }
+                    .header h1 { color: #2c5282; font-size: 28px; margin-bottom: 10px; }
+                    .header h2 { color: #4299e1; font-size: 20px; margin-bottom: 5px; }
+                    .header p { color: #718096; font-size: 16px; }
+                    .section { margin-bottom: 30px; page-break-inside: avoid; }
+                    .section h3 { background: #2c5282; color: white; padding: 12px; border-radius: 8px; margin-bottom: 15px; }
+                    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+                    th, td { padding: 12px; text-align: right; border: 1px solid #e2e8f0; }
+                    th { background: #f8fafc; color: #2d3748; font-weight: 600; }
+                    tr:nth-child(even) { background: #f7fafc; }
+                    .footer { margin-top: 40px; text-align: center; color: #718096; font-size: 14px; border-top: 2px solid #e2e8f0; padding-top: 20px; }
+                    @media print {
+                        body { padding: 20px; }
+                        .section { page-break-inside: avoid; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h1>مدرسة سحاب الثانوية للبنات</h1>
+                    <h2>كشف الغياب</h2>
+                    <p>تاريخ الطباعة: ${today}</p>
+                </div>
 
-                    ${Object.entries(groupedAbsences).map(([className, classAbsences]) => `
-                        <div class="section">
-                            <h3>الصف: ${className} (عدد الغيابات: ${classAbsences.length})</h3>
-                            <table>
-                                <thead>
+                ${Object.entries(groupedAbsences).map(([className, classAbsences]) => `
+                    <div class="section">
+                        <h3>الصف: ${className} (عدد الغيابات: ${classAbsences.length})</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>اسم الطالب</th>
+                                    <th>التاريخ</th>
+                                    <th>المعلم</th>
+                                    <th>ملاحظات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${classAbsences.map((a, idx) => `
                                     <tr>
-                                        <th>#</th>
-                                        <th>اسم الطالب</th>
-                                        <th>التاريخ</th>
-                                        <th>المعلم</th>
-                                        <th>ملاحظات</th>
+                                        <td>${idx + 1}</td>
+                                        <td>${a.studentName}</td>
+                                        <td>${a.date}</td>
+                                        <td>${a.teacher}</td>
+                                        <td>${a.notes || '-'}</td>
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    ${classAbsences.map((a, idx) => `
-                                        <tr>
-                                            <td>${idx + 1}</td>
-                                            <td>${a.studentName}</td>
-                                            <td>${a.date}</td>
-                                            <td>${a.teacher}</td>
-                                            <td>${a.notes || '-'}</td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                    `).join('')}
-
-                    <div class="footer">
-                        <p>إجمالي الغيابات: ${absences.length}</p>
-                        <p>تم الإنشاء بواسطة نظام الحضور والغياب - سحاب الثانوية للبنات</p>
+                                `).join('')}
+                            </tbody>
+                        </table>
                     </div>
+                `).join('')}
 
-                    <script>
-                        window.onload = function() {
-                            window.print();
-                        }
-                    <\/script>
-                </body>
-                </html>
-                `;
+                <div class="footer">
+                    <p>إجمالي الغيابات: ${absences.length}</p>
+                    <p>تم الإنشاء بواسطة نظام الحضور والغياب - سحاب الثانوية للبنات</p>
+                </div>
+
+                <script>
+                    window.onload = function() {
+                        window.print();
+                    }
+                <\/script>
+            </body>
+            </html>
+            `;
 
             printWindow.document.write(reportHTML);
             printWindow.document.close();
@@ -622,28 +622,31 @@
 
             const container = document.getElementById('teacherStudentsList');
             container.innerHTML = `<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;">
-                    ${filteredStudents.map(s => {
+                ${filteredStudents.map(s => {
                 const isAbsent = todayAbsences.includes(s.id);
                 return `
-                        <div style="background: ${isAbsent ? '#fff5f5' : '#f8fafc'}; padding: 15px; border-radius: 10px; border: 1px solid ${isAbsent ? '#fc8181' : '#e2e8f0'};">
-                            <div style="font-weight: bold; margin-bottom: 5px;">${s.name}</div>
-                            <div style="font-size: 13px; color: #718096; margin-bottom: 10px;">
-                                ${s.grade} | ${s.section}${s.pathway ? ' | ' + s.pathway : ''}
-                            </div>
-                            <div style="display: flex; gap: 10px;">
-                                <button onclick="toggleAbsence('${s.id}')"
-                                        style="flex: 1; background: ${isAbsent ? '#e53e3e' : '#fff'}; color: ${isAbsent ? '#fff' : '#e53e3e'}; border: 1px solid #e53e3e; padding: 8px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Cairo';">
-                                    ${isAbsent ? '🟢 حاضر' : '🔴 غياب'}
-                                </button>
-                                <button onclick="showStudentDetails('${s.id}')"
-                                        style="background: #bee3f8; color: #2b6cb0; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Cairo';">
-                                    📋 التفاصيل
-                                </button>
-                            </div>
+                    <div style="background: ${isAbsent ? '#fff5f5' : '#f0fff4'}; padding: 15px; border-radius: 10px; border: 2px solid ${isAbsent ? '#fc8181' : '#9ae6b4'}; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <div style="font-weight: bold; margin-bottom: 5px; font-size: 16px;">${s.name}</div>
+                        <div style="font-size: 13px; color: #718096; margin-bottom: 10px;">
+                            ${s.grade} | ${s.section}${s.pathway ? ' | ' + s.pathway : ''}
                         </div>
-                        `;
+                        <div style="display: flex; gap: 10px;">
+                            <button onclick="toggleAbsence('${s.id}')"
+                                    style="flex: 1; background: ${isAbsent ? '#e53e3e' : '#48bb78'}; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Cairo'; font-size: 14px; transition: all 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                                ${isAbsent ? '❌ إلغاء الغياب' : '✅ تسجيل غياب'}
+                            </button>
+                            <button onclick="showStudentDetails('${s.id}')"
+                                    style="background: #4299e1; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Cairo'; transition: all 0.3s;">
+                                📋
+                            </button>
+                        </div>
+                        <div style="margin-top: 8px; text-align: center; font-size: 12px; font-weight: 600; color: ${isAbsent ? '#c53030' : '#2f855a'};">
+                            ${isAbsent ? '🔴 غائب' : '🟢 حاضر'}
+                        </div>
+                    </div>
+                    `;
             }).join('')}
-                </div>`;
+            </div>`;
         }
 
         function showStudentDetails(studentId) {
@@ -670,28 +673,28 @@
             const detailsHTML = Object.entries(student.details)
                 .filter(([key, value]) => allowedFields.includes(key) && value)
                 .map(([key, value]) => `
-                        <div style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e2e8f0;">
-                            <span style="font-weight: 600; color: #4a5568;">${key}:</span>
-                            <span style="color: #2d3748;">${value}</span>
-                        </div>
-                    `).join('');
+                    <div style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e2e8f0;">
+                        <span style="font-weight: 600; color: #4a5568;">${key}:</span>
+                        <span style="color: #2d3748;">${value}</span>
+                    </div>
+                `).join('');
 
             const modal = document.createElement('div');
             modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 3000;';
             modal.innerHTML = `
-                    <div style="background: white; border-radius: 15px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
-                        <div style="background: var(--primary); color: white; padding: 20px; border-radius: 15px 15px 0 0; display: flex; justify-content: space-between; align-items: center;">
-                            <h3 style="margin: 0;">تفاصيل الطالب: ${student.name}</h3>
-                            <button onclick="this.closest('div').parentElement.parentElement.remove()"
-                                    style="background: rgba(255,255,255,0.2); border: none; color: white; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 20px;">
-                                ×
-                            </button>
-                        </div>
-                        <div style="padding: 20px;">
-                            ${detailsHTML || '<p style="text-align: center; color: #718096;">لا توجد تفاصيل إضافية</p>'}
-                        </div>
+                <div style="background: white; border-radius: 15px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+                    <div style="background: var(--primary); color: white; padding: 20px; border-radius: 15px 15px 0 0; display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="margin: 0;">تفاصيل الطالب: ${student.name}</h3>
+                        <button onclick="this.closest('div').parentElement.parentElement.remove()"
+                                style="background: rgba(255,255,255,0.2); border: none; color: white; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 20px;">
+                            ×
+                        </button>
                     </div>
-                `;
+                    <div style="padding: 20px;">
+                        ${detailsHTML || '<p style="text-align: center; color: #718096;">لا توجد تفاصيل إضافية</p>'}
+                    </div>
+                </div>
+            `;
             document.body.appendChild(modal);
             modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
         }
@@ -707,6 +710,7 @@
             const student = students.find(s => s.id === studentId);
 
             if (isAbsent) {
+                // الطالب غائب حالياً، نريد إلغاء الغياب
                 const response = await apiCall('deleteAbsence', { studentId, date });
                 if (response.status === 'success') {
                     showNotification('تم إلغاء الغياب - الطالب حاضر ✅', 'success');
@@ -715,6 +719,7 @@
                     showNotification(response.message || 'فشل في إلغاء الغياب', 'error');
                 }
             } else {
+                // الطالب حاضر حالياً، نريد تسجيل الغياب
                 const response = await apiCall('submitAbsence', {
                     studentId,
                     studentName: student.name,
@@ -758,13 +763,13 @@
 
         function renderAbsencesTable() {
             document.getElementById('absencesTableBody').innerHTML = absences.slice(0, 10).map(a => `
-                    <tr>
-                        <td>${a.studentName}</td>
-                        <td>${a.grade} - ${a.section}</td>
-                        <td>${a.date}</td>
-                        <td>${a.teacher}</td>
-                    </tr>
-                `).join('');
+                <tr>
+                    <td>${a.studentName}</td>
+                    <td>${a.grade} - ${a.section}</td>
+                    <td>${a.date}</td>
+                    <td>${a.teacher}</td>
+                </tr>
+            `).join('');
         }
 
         function updateStats() {
@@ -781,7 +786,7 @@
             document.getElementById('loading').style.display = 'none';
         }
 
-        function showNotification(message, type) { 
+        function showNotification(message, type) {
             const notification = document.getElementById('notification');
             notification.textContent = message;
             notification.className = `notification ${type} show`;

@@ -622,28 +622,28 @@
 
             const container = document.getElementById('teacherStudentsList');
             container.innerHTML = `<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;">
-                ${filteredStudents.map(s => {
+                    ${filteredStudents.map(s => {
                 const isAbsent = todayAbsences.includes(s.id);
                 return `
-                    <div style="background: ${isAbsent ? '#fff5f5' : '#f8fafc'}; padding: 15px; border-radius: 10px; border: 1px solid ${isAbsent ? '#fc8181' : '#e2e8f0'};">
-                        <div style="font-weight: bold; margin-bottom: 5px;">${s.name}</div>
-                        <div style="font-size: 13px; color: #718096; margin-bottom: 10px;">
-                            ${s.grade} | ${s.section}${s.pathway ? ' | ' + s.pathway : ''}
+                        <div style="background: ${isAbsent ? '#fff5f5' : '#f8fafc'}; padding: 15px; border-radius: 10px; border: 1px solid ${isAbsent ? '#fc8181' : '#e2e8f0'};">
+                            <div style="font-weight: bold; margin-bottom: 5px;">${s.name}</div>
+                            <div style="font-size: 13px; color: #718096; margin-bottom: 10px;">
+                                ${s.grade} | ${s.section}${s.pathway ? ' | ' + s.pathway : ''}
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button onclick="toggleAbsence('${s.id}')"
+                                        style="flex: 1; background: ${isAbsent ? '#48bb78' : '#e53e3e'}; color: #fff; border: none; padding: 8px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Cairo'; transition: all 0.3s;">
+                                    ${isAbsent ? '✅ إلغاء الغياب' : '❌ تسجيل غياب'}
+                                </button>
+                                <button onclick="showStudentDetails('${s.id}')"
+                                        style="background: #bee3f8; color: #2b6cb0; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Cairo';">
+                                    📋 التفاصيل
+                                </button>
+                            </div>
                         </div>
-                        <div style="display: flex; gap: 10px;">
-                            <button onclick="toggleAbsence('${s.id}')"
-                                    style="flex: 1; background: ${isAbsent ? '#e53e3e' : '#fff'}; color: ${isAbsent ? '#fff' : '#e53e3e'}; border: 1px solid #e53e3e; padding: 8px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Cairo';">
-                                ${isAbsent ? '🟢 حاضر' : '🔴 غياب'}
-                            </button>
-                            <button onclick="showStudentDetails('${s.id}')"
-                                    style="background: #bee3f8; color: #2b6cb0; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Cairo';">
-                                📋 التفاصيل
-                            </button>
-                        </div>
-                    </div>
-                    `;
+                        `;
             }).join('')}
-            </div>`;
+                </div>`;
         }
 
         function showStudentDetails(studentId) {
@@ -707,6 +707,7 @@
             const student = students.find(s => s.id === studentId);
 
             if (isAbsent) {
+                // الطالب غائب حالياً، نريد إلغاء الغياب
                 const response = await apiCall('deleteAbsence', { studentId, date });
                 if (response.status === 'success') {
                     showNotification('تم إلغاء الغياب - الطالب حاضر ✅', 'success');
@@ -715,6 +716,7 @@
                     showNotification(response.message || 'فشل في إلغاء الغياب', 'error');
                 }
             } else {
+                // الطالب حاضر حالياً، نريد تسجيل الغياب
                 const response = await apiCall('submitAbsence', {
                     studentId,
                     studentName: student.name,
