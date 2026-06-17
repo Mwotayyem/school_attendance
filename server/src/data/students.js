@@ -40,15 +40,15 @@ export async function countStudents({ grade, section, track } = {}) {
   return snap.data().count;
 }
 
-export async function createStudent({ name, grade, section, track = '' }) {
+export async function createStudent({ name, grade, section, track = '', nationalId = '', dob = '', phone = '', parentPhone = '', gender = '', nationality = '' }) {
   const now = new Date().toISOString();
-  const ref = await col().add({ name, grade, section, track, createdAt: now, updatedAt: now });
+  const ref = await col().add({ name, grade, section, track, nationalId, dob, phone, parentPhone, gender, nationality, createdAt: now, updatedAt: now });
   return docToObj(await ref.get());
 }
 
 export async function updateStudent(id, patch) {
   const clean = { updatedAt: new Date().toISOString() };
-  for (const k of ['name', 'grade', 'section', 'track']) if (patch[k] !== undefined) clean[k] = patch[k];
+  for (const k of ['name', 'grade', 'section', 'track', 'nationalId', 'dob', 'phone', 'parentPhone', 'gender', 'nationality']) if (patch[k] !== undefined) clean[k] = patch[k];
   const ref = col().doc(id);
   const before = await ref.get();
   if (!before.exists) return null;
@@ -80,10 +80,16 @@ export async function insertStudents(students) {
   for (const s of students) {
     const ref = col().doc();
     batch.set(ref, {
-      name: String(s.name).trim(),
+      name: String(s.name || '').trim(),
       grade: String(s.grade || '').trim(),
       section: String(s.section || '').trim(),
       track: String(s.track || '').trim(),
+      nationalId: String(s.nationalId || '').trim(),
+      dob: String(s.dob || '').trim(),
+      phone: String(s.phone || '').trim(),
+      parentPhone: String(s.parentPhone || '').trim(),
+      gender: String(s.gender || '').trim(),
+      nationality: String(s.nationality || '').trim(),
       createdAt: now, updatedAt: now,
     });
     count++;

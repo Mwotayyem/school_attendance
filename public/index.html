@@ -510,6 +510,30 @@
         </div>
     </div>
 
+    <!-- ============ نافذة تفاصيل الطالب ============ -->
+    <div id="studentDetailsModal" class="modal">
+        <div class="modal-box" style="max-width:500px;">
+            <div class="modal-head">
+                <h2>تفاصيل الطالب</h2>
+                <button class="modal-close" onclick="closeModal('studentDetailsModal')">×</button>
+            </div>
+            <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                <div style="margin-bottom: 12px;"><strong style="color: var(--primary);">الاسم الكامل:</strong> <span id="sdName"></span></div>
+                <div style="margin-bottom: 12px;"><strong>الرقم الوطني:</strong> <span id="sdNationalId"></span></div>
+                <div style="margin-bottom: 12px;"><strong>تاريخ الميلاد:</strong> <span id="sdDob"></span></div>
+                <div style="margin-bottom: 12px;"><strong>رقم الهاتف:</strong> <span id="sdPhone" style="direction: ltr; display: inline-block;"></span></div>
+                <div style="margin-bottom: 12px;"><strong>هاتف ولي الأمر:</strong> <span id="sdParentPhone" style="direction: ltr; display: inline-block;"></span></div>
+                <div style="margin-bottom: 12px;"><strong>الجنسية:</strong> <span id="sdNationality"></span></div>
+                <div style="margin-bottom: 12px;"><strong>الجنس:</strong> <span id="sdGender"></span></div>
+                <hr style="border: 0; border-top: 1px solid var(--border); margin: 16px 0;">
+                <div style="margin-bottom: 12px;"><strong>الصف:</strong> <span id="sdGrade"></span></div>
+                <div style="margin-bottom: 12px;"><strong>الشعبة:</strong> <span id="sdSection"></span></div>
+                <div style="margin-bottom: 12px;"><strong>المسار / التخصص:</strong> <span id="sdTrack"></span></div>
+            </div>
+            <button class="btn btn-primary" onclick="closeModal('studentDetailsModal')">إغلاق</button>
+        </div>
+    </div>
+
     <!-- ============ نافذة تغيير كلمة المرور ============ -->
     <div id="passwordModal" class="modal">
         <div class="modal-box" style="max-width:420px;">

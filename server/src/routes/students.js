@@ -18,18 +18,18 @@ router.get('/', requireAuth, async (req, res) => {
 
 // إضافة طالب (للمديرة)
 router.post('/', requireAuth, requireAdmin, async (req, res) => {
-  const { name, grade, section, track } = req.body || {};
+  const { name, grade, section, track, nationalId, dob, phone, parentPhone, gender, nationality } = req.body || {};
   if (!name || !grade || !section) {
     return res.status(400).json({ error: 'الرجاء إدخال الاسم والصف والشعبة' });
   }
-  const student = await Students.createStudent({ name, grade, section, track: track || '' });
+  const student = await Students.createStudent({ name, grade, section, track: track || '', nationalId, dob, phone, parentPhone, gender, nationality });
   res.status(201).json(student);
 });
 
 // تعديل بيانات طالب — مثل نقله إلى صف/شعبة أخرى (للمديرة)
 router.put('/:id', requireAuth, requireAdmin, async (req, res) => {
-  const { name, grade, section, track } = req.body || {};
-  const student = await Students.updateStudent(req.params.id, { name, grade, section, track });
+  const { name, grade, section, track, nationalId, dob, phone, parentPhone, gender, nationality } = req.body || {};
+  const student = await Students.updateStudent(req.params.id, { name, grade, section, track, nationalId, dob, phone, parentPhone, gender, nationality });
   if (!student) return res.status(404).json({ error: 'الطالب غير موجود' });
   res.json(student);
 });

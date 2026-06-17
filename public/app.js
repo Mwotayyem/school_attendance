@@ -178,12 +178,31 @@ function renderTeacherStudents() {
                 <div class="name">${esc(st.name)}</div>
                 <div class="meta">${esc(st.grade)} • شعبة ${esc(st.section)}${st.track ? ' • ' + esc(st.track) : ''}${absent ? ' • <span style="color:var(--danger);font-weight:700;">غائب اليوم</span>' : ''}</div>
             </div>
-            ${absent
-                ? `<button class="btn btn-ghost btn-sm" onclick="undoAbsence('${st.id}')">↩ تراجع عن الغياب</button>`
-                : `<button class="btn btn-danger btn-sm" onclick="markAbsent('${st.id}')">🔴 تسجيل غياب</button>`}
+            <div style="margin-top: 8px; display: flex; gap: 8px; justify-content: space-between; align-items: center; width: 100%;">
+                <button class="btn btn-info btn-sm" onclick="showStudentDetails('${st.id}')">ℹ️ تفاصيل</button>
+                ${absent
+                    ? `<button class="btn btn-ghost btn-sm" onclick="undoAbsence('${st.id}')">↩ تراجع عن الغياب</button>`
+                    : `<button class="btn btn-danger btn-sm" onclick="markAbsent('${st.id}')">🔴 تسجيل غياب</button>`}
+            </div>
         </div>`;
     }).join('');
 }
+
+window.showStudentDetails = (id) => {
+    const st = myStudents.find(s => s.id === id) || adminStudents.find(s => s.id === id);
+    if (!st) return;
+    document.getElementById('sdName').textContent = st.name || '-';
+    document.getElementById('sdNationalId').textContent = st.nationalId || '-';
+    document.getElementById('sdDob').textContent = st.dob || '-';
+    document.getElementById('sdPhone').textContent = st.phone || '-';
+    document.getElementById('sdParentPhone').textContent = st.parentPhone || '-';
+    document.getElementById('sdNationality').textContent = st.nationality || '-';
+    document.getElementById('sdGender').textContent = st.gender || '-';
+    document.getElementById('sdGrade').textContent = st.grade || '-';
+    document.getElementById('sdSection').textContent = st.section || '-';
+    document.getElementById('sdTrack').textContent = st.track || '-';
+    document.getElementById('studentDetailsModal').classList.add('show');
+};
 
 async function markAbsent(studentId) {
     const student = myStudents.find(s => s.id === studentId);
@@ -511,6 +530,7 @@ function renderStudentsManage() {
         <tr>
             <td>${esc(s.name)}</td><td>${esc(s.grade)}</td><td>${esc(s.section)}</td><td>${esc(s.track) || '-'}</td>
             <td>
+                <button class="btn btn-info btn-sm" onclick="showStudentDetails('${s.id}')">تفاصيل</button>
                 <button class="btn btn-edit btn-sm" onclick='startEditStudent(${JSON.stringify(s).replace(/'/g, "&#39;")})'>تعديل</button>
                 <button class="btn btn-danger btn-sm" onclick="deleteStudent('${s.id}')">حذف</button>
             </td>
