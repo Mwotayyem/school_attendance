@@ -63,7 +63,10 @@ async function login() {
 }
 
 async function enterApp() {
-    if (currentUser.role === 'admin') {
+    if (currentUser.role === 'superadmin') {
+        showPage('superadminPage');
+        await initSuperAdmin();
+    } else if (currentUser.role === 'admin') {
         showPage('adminPage');
         await initAdmin();
     } else {
@@ -727,6 +730,115 @@ async function deleteTeacher(id) {
     if (!confirm('حذف هذه المعلمة؟')) return;
     try { await api(`/teachers/${id}`, { method: 'DELETE' }); toast('تم الحذف'); await loadTeachersManage(); }
     catch (e) { toast(e.message, 'error'); }
+}
+
+// ============================================================
+//  لوحة مدير النظام (Super Admin) — إدارة المستخدمين
+// ============================================================
+let allUsers = [];        // كل المستخدمين (مديرات + معلمات)
+let editingUserId = null; // معرّف المستخدم قيد التعديل (أو null للإضافة)
+
+const ROLE_LABELS = { superadmin: 'مدير النظام', admin: 'مديرة', teacher: 'معلمة' };
+
+async function initSuperAdmin() {
+    await loadUsers();
+    resetUserForm();
+}
+
+async function loadUsers() {
+    try { allUsers = await api('/users'); } catch (e) { return toast(e.message, 'error'); }
+    const admins = allUsers.filter(u => u.role === 'admin').length;
+    const teachers = allUsers.filter(u => u.role === 'teacher').length;
+    document.getElementById('statUsers').textContent = allUsers.length;
+    document.getElementById('statAdmins').textContent = admins;
+    document.getElementById('statUserTeachers').textContent = teachers;
+    document.getElementById('usersCount').textContent = allUsers.length;
+    renderUsers();
+}
+
+function renderUsers() {
+    const term = (document.getElementById('uSearch').value || '').toLowerCase();
+    // لا نعرض حسابات مدير النظام الأخرى في الجدول (نُدير المديرات والمعلمات فقط)
+    const rows = allUsers
+        .filter(u => u.role !== 'superadmin')
+        .filter(u => !term || [u.name, u.username].some(v => (v || '').toLowerCase().includes(term)));
+
+    const body = document.getElementById('usersBody');
+    if (rows.length === 0) {
+        body.innerHTML = '<tr class="empty-row"><td colspan="5">لا يوجد مستخدم مطابق</td></tr>';
+        return;
+    }
+    body.innerHTML = rows.map((u, i) => {
+        const roleColor = u.role === 'admin' ? 'background:#fef0ff;color:#b83280;' : 'background:#eef0ff;color:var(--primary);';
+        return `<tr>
+            <td>${i + 1}</td>
+            <td><strong>${esc(u.name)}</strong></td>
+            <td>${esc(u.username)}</td>
+            <td><span class="chip" style="${roleColor}">${ROLE_LABELS[u.role] || u.role}</span></td>
+            <td>
+                <button class="btn btn-edit btn-sm" onclick='startEditUser(${JSON.stringify(u).replace(/'/g, "&#39;")})'>تعديل</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}','${esc(u.name)}')">حذف</button>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+function startEditUser(u) {
+    editingUserId = u.id;
+    document.getElementById('uName').value = u.name;
+    document.getElementById('uUsername').value = u.username;
+    document.getElementById('uPassword').value = '';
+    document.getElementById('uPassword').placeholder = 'اتركها فارغة للإبقاء عليها';
+    document.getElementById('uPassLabel').textContent = 'كلمة مرور جديدة (اختياري)';
+    document.getElementById('uRole').value = u.role;
+    document.getElementById('userFormTitle').textContent = '✏️ تعديل المستخدم';
+    document.getElementById('uBtnText').textContent = '💾 حفظ التعديل';
+    document.getElementById('uCancelBtn').style.display = 'inline-flex';
+    document.getElementById('uName').focus();
+    document.getElementById('uName').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function resetUserForm() {
+    editingUserId = null;
+    ['uName', 'uUsername', 'uPassword'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('uPassword').placeholder = 'كلمة المرور';
+    document.getElementById('uPassLabel').textContent = 'كلمة المرور';
+    document.getElementById('uRole').value = 'admin';
+    document.getElementById('userFormTitle').textContent = '➕ إضافة مستخدم جديد';
+    document.getElementById('uBtnText').textContent = '➕ إضافة مستخدم';
+    document.getElementById('uCancelBtn').style.display = 'none';
+}
+
+async function saveUser() {
+    const name = document.getElementById('uName').value.trim();
+    const username = document.getElementById('uUsername').value.trim();
+    const password = document.getElementById('uPassword').value;
+    const role = document.getElementById('uRole').value;
+
+    try {
+        if (editingUserId) {
+            if (!name || !username) return toast('الاسم واسم المستخدم مطلوبان', 'error');
+            const body = { name, username, role };
+            if (password) body.password = password; // فقط إذا أدخل كلمة مرور جديدة
+            await api(`/users/${editingUserId}`, { method: 'PUT', body });
+            toast('تم تعديل المستخدم');
+        } else {
+            if (!name || !username || !password) return toast('الاسم واسم المستخدم وكلمة المرور مطلوبة', 'error');
+            await api('/users', { method: 'POST', body: { name, username, password, role } });
+            toast('تم إضافة المستخدم');
+        }
+        resetUserForm();
+        await loadUsers();
+    } catch (e) { toast(e.message, 'error'); }
+}
+
+async function deleteUser(id, name) {
+    if (!confirm(`حذف المستخدم "${name}"؟ لن يتمكن من الدخول بعد ذلك.`)) return;
+    try {
+        await api(`/users/${id}`, { method: 'DELETE' });
+        toast('تم الحذف');
+        await loadUsers();
+    } catch (e) { toast(e.message, 'error'); }
 }
 
 // ============================================================

@@ -28,8 +28,16 @@ export function requireAuth(req, res, next) {
 
 // السماح للمدير فقط
 export function requireAdmin(req, res, next) {
-  if (req.user?.role !== 'admin') {
+  if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin') {
     return res.status(403).json({ error: 'هذه العملية للمدير فقط' });
+  }
+  next();
+}
+
+// السماح للسوبر أدمن فقط
+export function requireSuperAdmin(req, res, next) {
+  if (req.user?.role !== 'superadmin') {
+    return res.status(403).json({ error: 'هذه العملية لمدير النظام فقط' });
   }
   next();
 }

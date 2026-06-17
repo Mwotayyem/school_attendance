@@ -10,6 +10,7 @@ import studentRoutes from './routes/students.js';
 import teacherRoutes from './routes/teachers.js';
 import absenceRoutes from './routes/absences.js';
 import reportRoutes from './routes/reports.js';
+import userRoutes from './routes/users.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -26,6 +27,7 @@ app.use('/api/students', studentRoutes);
 app.use('/api/teachers', teacherRoutes);
 app.use('/api/absences', absenceRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/users', userRoutes);
 
 // تقديم الواجهة الثابتة (مجلد public في جذر المشروع)
 const publicDir = path.resolve(__dirname, '../../public');

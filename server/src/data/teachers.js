@@ -27,6 +27,12 @@ export async function listTeachers() {
   return snap.docs.map((d) => sanitize(docToObj(d))).sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ar'));
 }
 
+// كل المستخدمين بكل الأدوار (لمدير النظام) — بدون كلمة المرور
+export async function getAllTeachers() {
+  const snap = await col().get();
+  return snap.docs.map((d) => sanitize(docToObj(d))).sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ar'));
+}
+
 export async function countTeachers() {
   const snap = await col().where('role', '==', 'teacher').count().get();
   return snap.data().count;
@@ -43,10 +49,12 @@ export async function createTeacher({ name, username, password, role = 'teacher'
   return sanitize(docToObj(await ref.get()));
 }
 
-// تعديل معلمة (الاسم/التكليفات/كلمة المرور اختيارياً)
-export async function updateTeacher(id, { name, assignments, password }) {
+// تعديل معلمة/مديرة (الاسم/اسم المستخدم/الدور/التكليفات/كلمة المرور — كلها اختيارية)
+export async function updateTeacher(id, { name, username, role, assignments, password }) {
   const patch = { updatedAt: new Date().toISOString() };
   if (name !== undefined) patch.name = name;
+  if (username !== undefined) patch.username = String(username).trim();
+  if (role !== undefined) patch.role = role;
   if (assignments !== undefined) patch.assignments = assignments;
   if (password) patch.password = await bcrypt.hash(password, 10);
   await col().doc(id).update(patch);

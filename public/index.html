@@ -443,6 +443,77 @@
         </div>
     </div>
 
+    <!-- ============ لوحة مدير النظام (Super Admin) ============ -->
+    <div id="superadminPage" class="page">
+        <div class="shell">
+            <div class="topbar">
+                <div>
+                    <h2>لوحة مدير النظام</h2>
+                    <span class="role-badge" style="background:#fef0ff;color:#b83280;">مدير النظام</span>
+                    <span style="font-size:13px;color:var(--muted);margin-right:8px;">مدرسة سحاب الثانوية للبنات</span>
+                </div>
+                <div class="topbar-actions">
+                    <button class="btn btn-ghost btn-sm" onclick="openChangePassword()">🔒 كلمة المرور</button>
+                    <button class="btn btn-ghost btn-sm" onclick="logout()">↩ خروج</button>
+                </div>
+            </div>
+
+            <div class="stats">
+                <div class="stat">
+                    <div class="icon" style="background:linear-gradient(135deg,#667eea,#764ba2)">👤</div>
+                    <div><div class="label">إجمالي المستخدمين</div><div class="value" id="statUsers">0</div></div>
+                </div>
+                <div class="stat">
+                    <div class="icon" style="background:linear-gradient(135deg,#f093fb,#f5576c)">👩‍💼</div>
+                    <div><div class="label">المديرات</div><div class="value" id="statAdmins">0</div></div>
+                </div>
+                <div class="stat">
+                    <div class="icon" style="background:linear-gradient(135deg,#4facfe,#00f2fe)">👩‍🏫</div>
+                    <div><div class="label">المعلمات</div><div class="value" id="statUserTeachers">0</div></div>
+                </div>
+            </div>
+
+            <!-- نموذج إضافة/تعديل مستخدم -->
+            <div class="card">
+                <h3 id="userFormTitle">➕ إضافة مستخدم جديد</h3>
+                <p style="color:var(--muted);margin-bottom:18px;font-size:14px;">
+                    أضف مديرة أو معلمة وحدّد لها اسم مستخدم وكلمة مرور للدخول.
+                </p>
+                <div class="form-grid">
+                    <div class="input-group"><label>الاسم الكامل</label><input id="uName" placeholder="مثال: إيناس"></div>
+                    <div class="input-group"><label>اسم المستخدم</label><input id="uUsername" placeholder="username (بالإنجليزي)"></div>
+                    <div class="input-group"><label id="uPassLabel">كلمة المرور</label><input type="password" id="uPassword" placeholder="كلمة المرور"></div>
+                    <div class="input-group">
+                        <label>الدور</label>
+                        <select id="uRole">
+                            <option value="admin">مديرة (تدير الطلاب والغيابات والتقارير)</option>
+                            <option value="teacher">معلمة (تسجّل غياب صفوفها فقط)</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn btn-primary" style="width:auto;" onclick="saveUser()"><span id="uBtnText">➕ إضافة مستخدم</span></button>
+                <button class="btn btn-ghost btn-sm" id="uCancelBtn" style="display:none;margin-right:8px;" onclick="resetUserForm()">إلغاء التعديل</button>
+                <small class="hint">ملاحظة: إسناد الصفوف للمعلمات يتم من لوحة المديرة ← "إدارة النظام" ← المعلمات.</small>
+            </div>
+
+            <!-- قائمة المستخدمين -->
+            <div class="card">
+                <div class="section-title">
+                    <h3>المستخدمون (<span id="usersCount">0</span>)</h3>
+                </div>
+                <div class="input-group" style="margin-bottom:14px;max-width:380px;">
+                    <input type="text" id="uSearch" placeholder="🔍 ابحث بالاسم أو اسم المستخدم..." onkeyup="renderUsers()">
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>#</th><th>الاسم</th><th>اسم المستخدم</th><th>الدور</th><th>إجراءات</th></tr></thead>
+                        <tbody id="usersBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ============ نافذة الإدارة ============ -->
     <div id="managementModal" class="modal">
         <div class="modal-box">
