@@ -810,8 +810,9 @@ function printSheet(title, rows, withTeacher) {
             <div style="display:flex;align-items:center;gap:14px;">
                 <div style="width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;color:white;font-size:24px;">🏫</div>
                 <div>
-                    <div style="font-size:22px;font-weight:800;">نظام الحضور والغياب المدرسي</div>
-                    <div style="font-size:14px;color:#667eea;font-weight:700;">${esc(title)}</div>
+                    <div style="font-size:20px;font-weight:900;color:#1a202c;">مدرسة سحاب الثانوية للبنات</div>
+                    <div style="font-size:14px;font-weight:700;color:#444;">نظام الحضور والغياب المدرسي</div>
+                    <div style="font-size:13px;color:#667eea;font-weight:700;">${esc(title)}</div>
                 </div>
             </div>
             <div style="text-align:left;font-size:13px;color:#555;line-height:1.9;">
@@ -865,8 +866,9 @@ function printReport() {
             <div style="display:flex;align-items:center;gap:14px;">
                 <div style="width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;color:white;font-size:24px;">📊</div>
                 <div>
-                    <div style="font-size:22px;font-weight:800;">نظام الحضور والغياب المدرسي</div>
-                    <div style="font-size:14px;color:#667eea;font-weight:700;">التقرير الشامل — الفترة: ${esc(period)}</div>
+                    <div style="font-size:20px;font-weight:900;color:#1a202c;">مدرسة سحاب الثانوية للبنات</div>
+                    <div style="font-size:14px;font-weight:700;color:#444;">نظام الحضور والغياب المدرسي</div>
+                    <div style="font-size:13px;color:#667eea;font-weight:700;">التقرير الشامل — الفترة: ${esc(period)}</div>
                 </div>
             </div>
             <div style="text-align:left;font-size:13px;color:#555;line-height:1.9;"><div>📅 ${today}</div><div>🕐 ${time}</div></div>
