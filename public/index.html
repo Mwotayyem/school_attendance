@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام الحضور والغياب المدرسي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary: #5b6ef5;
+            --primary-dark: #4453d6;
+            --primary-grad: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --bg: #f4f6fb;
+            --card: #ffffff;
+            --text: #1a202c;
+            --muted: #718096;
+            --border: #e6e9f0;
+            --danger: #e53e3e;
+            --success: #38a169;
+            --radius: 16px;
+            --shadow: 0 4px 24px rgba(20, 30, 80, 0.07);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .page { display: none; animation: fadeIn 0.4s ease; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ===== تسجيل الدخول ===== */
+        #loginPage { display: none; min-height: 100vh; align-items: center; justify-content: center; padding: 20px; }
+        #loginPage.active { display: flex; }
+        .login-card {
+            background: var(--card); border-radius: 24px; box-shadow: var(--shadow);
+            max-width: 420px; width: 100%; text-align: center; padding: 44px 40px;
+        }
+        .logo-circle {
+            width: 84px; height: 84px; background: var(--primary-grad); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; margin: 0 auto 22px;
+            box-shadow: 0 10px 24px rgba(102, 126, 234, 0.35);
+        }
+        h1 { font-size: 28px; margin-bottom: 8px; font-weight: 800; }
+        .subtitle { color: var(--muted); font-size: 15px; margin-bottom: 30px; }
+
+        .input-group { margin-bottom: 18px; text-align: right; }
+        label { display: block; margin-bottom: 7px; font-weight: 600; font-size: 14px; }
+        input, select, textarea {
+            width: 100%; padding: 13px 16px; border: 2px solid var(--border); border-radius: 12px;
+            font-size: 15px; font-family: 'Cairo', sans-serif; transition: all 0.25s; background: #f8fafc;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none; border-color: var(--primary); background: white;
+            box-shadow: 0 0 0 3px rgba(91, 110, 245, 0.12);
+        }
+
+        .btn {
+            padding: 13px 22px; border: none; border-radius: 12px; font-size: 15px; font-weight: 700;
+            cursor: pointer; font-family: 'Cairo', sans-serif; transition: all 0.25s;
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-primary { background: var(--primary-grad); color: white; width: 100%; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(102, 126, 234, 0.4); }
+        .btn-sm { padding: 8px 14px; font-size: 13px; border-radius: 9px; }
+        .btn-ghost { background: white; border: 2px solid var(--border); color: var(--text); }
+        .btn-ghost:hover { border-color: var(--primary); color: var(--primary); }
+        .btn-danger { background: #fff5f5; border: 1px solid #fc8181; color: var(--danger); }
+        .btn-danger:hover { background: var(--danger); color: white; }
+        .btn-edit { background: #ebf8ff; border: 1px solid #90cdf4; color: #3182ce; }
+        .btn-edit:hover { background: #3182ce; color: white; }
+        .btn-success { background: linear-gradient(135deg, #48bb78, #38a169); color: white; }
+        .btn-warn { background: linear-gradient(135deg, #ed8936, #dd6b20); color: white; }
+        .btn-info { background: linear-gradient(135deg, #4299e1, #3182ce); color: white; }
+
+        /* ===== التخطيط العام ===== */
+        .shell { max-width: 1240px; margin: 0 auto; padding: 22px; }
+        .topbar {
+            background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+            padding: 18px 26px; margin-bottom: 24px; display: flex; justify-content: space-between;
+            align-items: center; flex-wrap: wrap; gap: 14px;
+        }
+        .topbar h2 { font-size: 22px; }
+        .topbar .role-badge {
+            display: inline-block; font-size: 12px; font-weight: 700; padding: 3px 12px;
+            border-radius: 20px; background: #eef0ff; color: var(--primary); margin-top: 4px;
+        }
+        .topbar-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+        .card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 26px; margin-bottom: 24px; }
+        .card h3 { font-size: 19px; margin-bottom: 18px; font-weight: 800; }
+        .section-title { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
+        .section-title h3 { margin: 0; }
+
+        /* الإحصاءات */
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; margin-bottom: 24px; }
+        .stat {
+            background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+            padding: 22px; display: flex; align-items: center; gap: 16px;
+        }
+        .stat .icon { width: 56px; height: 56px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; }
+        .stat .label { color: var(--muted); font-size: 13px; margin-bottom: 4px; }
+        .stat .value { font-size: 30px; font-weight: 900; }
+
+        /* الفلاتر */
+        .filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 18px; }
+        .filters .input-group { margin-bottom: 0; }
+        .filters label { font-size: 12px; }
+        .filters select, .filters input { padding: 10px 12px; font-size: 14px; }
+
+        /* الجداول */
+        .table-wrap { overflow-x: auto; border-radius: 12px; }
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: var(--primary-grad); }
+        th { padding: 14px; text-align: right; color: white; font-weight: 700; font-size: 13px; white-space: nowrap; }
+        td { padding: 13px 14px; text-align: right; border-bottom: 1px solid var(--border); font-size: 14px; }
+        tbody tr:hover { background: #f8fafc; }
+        .empty-row td { text-align: center; color: var(--muted); padding: 26px; }
+        .chip { display: inline-block; font-size: 12px; padding: 2px 10px; border-radius: 12px; background: #eef0ff; color: var(--primary); font-weight: 600; }
+
+        /* بطاقات الطلاب (واجهة المعلمة) */
+        /* بطاقات الصفوف (الخطوة الأولى للمعلمة) */
+        .class-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+        .class-card {
+            background: linear-gradient(135deg, #f8f9ff, #eef0ff); border: 1px solid var(--border);
+            border-radius: 16px; padding: 22px; cursor: pointer; transition: all 0.2s; text-align: center;
+        }
+        .class-card:hover { transform: translateY(-3px); border-color: var(--primary); box-shadow: 0 8px 20px rgba(91,110,245,0.18); }
+        .class-card .cls-icon { font-size: 30px; margin-bottom: 8px; }
+        .class-card .cls-name { font-weight: 800; font-size: 17px; }
+        .class-card .cls-count { font-size: 13px; color: var(--muted); margin-top: 5px; }
+        .class-card .cls-absent { display:inline-block; margin-top:8px; font-size:12px; font-weight:700; color:var(--danger); }
+
+        /* التقارير */
+        .report-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+        .report-cols .card { margin-bottom: 0; }
+        .bar-row { display: grid; grid-template-columns: 130px 1fr 44px; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .bar-row .bar-label { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .bar-track { background: #eef0f6; border-radius: 8px; height: 18px; overflow: hidden; }
+        .bar-fill { height: 100%; background: var(--primary-grad); border-radius: 8px; transition: width .4s; }
+        .bar-val { font-size: 13px; font-weight: 700; text-align: left; }
+        .report-empty { color: var(--muted); font-size: 13px; text-align: center; padding: 14px; }
+        .kpi-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+        /* رسم الاتجاه (أعمدة) */
+        .trend-chart { display: flex; align-items: flex-end; gap: 6px; height: 160px; overflow-x: auto; padding: 8px 4px 0; }
+        .trend-bar { display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 34px; }
+        .trend-bar .t-fill { width: 26px; background: var(--primary-grad); border-radius: 6px 6px 0 0; transition: height .4s; }
+        .trend-bar .t-count { font-size: 12px; font-weight: 700; color: var(--primary); }
+        .trend-bar .t-date { font-size: 10px; color: var(--muted); white-space: nowrap; transform: rotate(-45deg); transform-origin: center; margin-top: 6px; }
+
+        .students-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; max-height: 62vh; overflow-y: auto; padding: 4px; }
+        .student-card {
+            background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px;
+            display: flex; justify-content: space-between; align-items: center; transition: all 0.2s;
+        }
+        .student-card:hover { border-color: #cbd5e0; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .student-card.absent { background: #fffaf0; border-color: #f6ad55; }
+        .student-card .name { font-weight: 700; font-size: 15px; margin-bottom: 3px; }
+        .student-card .meta { font-size: 12px; color: var(--muted); }
+
+        /* علامات التبويب */
+        .tabs { display: flex; gap: 8px; margin-bottom: 22px; border-bottom: 2px solid var(--border); flex-wrap: wrap; }
+        .tab { padding: 11px 20px; background: none; border: none; font-family: 'Cairo', sans-serif; font-weight: 700; color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent; }
+        .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* النوافذ المنبثقة */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(15, 20, 50, 0.55); z-index: 2000; align-items: center; justify-content: center; padding: 16px; }
+        .modal.show { display: flex; }
+        .modal-box { background: white; border-radius: 18px; padding: 30px; max-width: 600px; width: 100%; max-height: 92vh; overflow-y: auto; }
+        .modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; }
+        .modal-head h2 { font-size: 21px; }
+        .modal-close { background: none; border: none; font-size: 28px; cursor: pointer; color: var(--muted); line-height: 1; }
+
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 16px; }
+
+        /* مربعات اختيار التكليفات */
+        .assign-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; max-height: 230px; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px; padding: 12px; background: #f8fafc; }
+        .assign-item { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 6px 8px; border-radius: 8px; background: white; border: 1px solid var(--border); cursor: pointer; }
+        .assign-item input { width: auto; }
+        .assign-item.checked { border-color: var(--primary); background: #eef0ff; }
+
+        /* الإشعارات */
+        .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-120px); background: white; padding: 16px 26px; border-radius: 12px; box-shadow: 0 12px 40px rgba(0,0,0,0.2); z-index: 3000; opacity: 0; transition: all 0.3s; max-width: 92%; font-weight: 600; }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .toast.success { border-right: 5px solid var(--success); }
+        .toast.error { border-right: 5px solid var(--danger); }
+
+        small.hint { color: var(--muted); display: block; margin-top: 6px; font-size: 12px; }
+
+        @media print {
+            body * { visibility: hidden; }
+            #printArea, #printArea * { visibility: visible; }
+            #printArea { position: absolute; inset: 0; width: 100%; }
+        }
+
+        @media (max-width: 640px) {
+            .topbar { flex-direction: column; align-items: stretch; text-align: center; }
+            .topbar-actions { justify-content: center; }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- ============ تسجيل الدخول ============ -->
+    <div id="loginPage" class="page active">
+        <div class="login-card">
+            <div class="logo-circle">
+                <svg width="46" height="46" viewBox="0 0 60 60" fill="none">
+                    <path d="M30 6L52 17v8L30 36 8 25v-8L30 6Z" fill="white"/>
+                    <path d="M16 28v9c0 4 6 7 14 7s14-3 14-7v-9" stroke="white" stroke-width="3" fill="none"/>
+                </svg>
+            </div>
+            <h1>نظام الحضور والغياب</h1>
+            <p class="subtitle">منصة المدرسة لإدارة غياب الطلاب</p>
+            <div class="input-group">
+                <label for="username">اسم المستخدم</label>
+                <input type="text" id="username" placeholder="أدخل اسم المستخدم" autocomplete="username">
+            </div>
+            <div class="input-group">
+                <label for="password">كلمة المرور</label>
+                <input type="password" id="password" placeholder="أدخل كلمة المرور" autocomplete="current-password">
+            </div>
+            <button class="btn btn-primary" onclick="login()">تسجيل الدخول</button>
+        </div>
+    </div>
+
+    <!-- ============ لوحة المعلمة ============ -->
+    <div id="teacherPage" class="page">
+        <div class="shell">
+            <div class="topbar">
+                <div>
+                    <h2>مرحباً، <span id="teacherName">المعلمة</span></h2>
+                    <span class="role-badge">معلمة</span>
+                </div>
+                <div class="topbar-actions">
+                    <button class="btn btn-ghost btn-sm" onclick="openChangePassword()">🔒 كلمة المرور</button>
+                    <button class="btn btn-ghost btn-sm" onclick="logout()">↩ خروج</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="section-title">
+                    <h3>تسجيل غياب اليوم — <span id="todayDate" style="color:var(--muted);font-size:15px;"></span></h3>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                        <button class="btn btn-warn btn-sm" onclick="printTeacherSheet()">🖨️ طباعة كشف غيابي</button>
+                    </div>
+                </div>
+
+                <!-- الخطوة 1: اختيار الصف -->
+                <div id="classPicker">
+                    <p style="color:var(--muted);margin-bottom:14px;">اختر الصف لعرض طلابه وتسجيل الغياب:</p>
+                    <div class="input-group" style="max-width:340px;margin-bottom:18px;">
+                        <input type="text" id="classSearch" placeholder="🔍 ابحث عن صف..." onkeyup="renderClassCards()">
+                    </div>
+                    <div class="class-grid" id="classCards"></div>
+                </div>
+
+                <!-- الخطوة 2: طلاب الصف المختار -->
+                <div id="classStudents" style="display:none;">
+                    <div class="section-title" style="margin-bottom:14px;">
+                        <button class="btn btn-ghost btn-sm" onclick="backToClasses()">→ رجوع للصفوف</button>
+                        <h3 style="margin:0;" id="selectedClassTitle"></h3>
+                    </div>
+                    <div class="input-group" style="max-width:360px;margin-bottom:16px;">
+                        <input type="text" id="tSearch" placeholder="🔍 ابحث عن طالب بالاسم..." onkeyup="renderTeacherStudents()">
+                    </div>
+                    <div class="students-grid" id="teacherStudents"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ لوحة المديرة ============ -->
+    <div id="adminPage" class="page">
+        <div class="shell">
+            <div class="topbar">
+                <div>
+                    <h2>لوحة تحكم المديرة</h2>
+                    <span class="role-badge">مديرة (أدمن)</span>
+                </div>
+                <div class="topbar-actions">
+                    <button class="btn btn-primary btn-sm" id="navRecords" style="width:auto;" onclick="showAdminView('records')">📋 سجل الغيابات</button>
+                    <button class="btn btn-ghost btn-sm" id="navReports" onclick="showAdminView('reports')">📊 التقارير</button>
+                    <button class="btn btn-info btn-sm" onclick="openManagement()">⚙️ إدارة النظام</button>
+                    <button class="btn btn-ghost btn-sm" onclick="openChangePassword()">🔒 كلمة المرور</button>
+                    <button class="btn btn-ghost btn-sm" onclick="logout()">↩ خروج</button>
+                </div>
+            </div>
+
+            <!-- ===== عرض: سجل الغيابات ===== -->
+            <div id="adminRecords">
+            <div class="stats">
+                <div class="stat">
+                    <div class="icon" style="background:linear-gradient(135deg,#f093fb,#f5576c)">📋</div>
+                    <div><div class="label">الغيابات (حسب الفلتر)</div><div class="value" id="statAbsences">0</div></div>
+                </div>
+                <div class="stat">
+                    <div class="icon" style="background:linear-gradient(135deg,#4facfe,#00f2fe)">👥</div>
+                    <div><div class="label">عدد الطلاب</div><div class="value" id="statStudents">0</div></div>
+                </div>
+                <div class="stat">
+                    <div class="icon" style="background:linear-gradient(135deg,#fa709a,#fee140)">👩‍🏫</div>
+                    <div><div class="label">عدد المعلمات</div><div class="value" id="statTeachers">0</div></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="section-title">
+                    <h3>سجل الغيابات</h3>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                        <button class="btn btn-warn btn-sm" onclick="printAdminSheet()">🖨️ طباعة كشف</button>
+                        <button class="btn btn-success btn-sm" onclick="exportCSV()">📥 تصدير CSV</button>
+                    </div>
+                </div>
+                <div class="filters">
+                    <div class="input-group">
+                        <label>المعلمة</label>
+                        <select id="fTeacher" onchange="loadAbsences()"></select>
+                    </div>
+                    <div class="input-group">
+                        <label>الصف</label>
+                        <select id="fGrade" onchange="loadAbsences()"></select>
+                    </div>
+                    <div class="input-group">
+                        <label>الشعبة</label>
+                        <select id="fSection" onchange="loadAbsences()"></select>
+                    </div>
+                    <div class="input-group">
+                        <label>التخصص</label>
+                        <select id="fTrack" onchange="loadAbsences()"></select>
+                    </div>
+                    <div class="input-group">
+                        <label>التاريخ</label>
+                        <input type="date" id="fDate" onchange="loadAbsences()">
+                    </div>
+                    <div class="input-group">
+                        <label>بحث بالاسم</label>
+                        <input type="text" id="fSearch" placeholder="🔍 اسم الطالب..." onkeyup="renderAbsences()">
+                    </div>
+                    <div class="input-group" style="display:flex;align-items:flex-end;">
+                        <button class="btn btn-ghost btn-sm" style="width:100%;" onclick="resetFilters()">إعادة تعيين</button>
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th><th>الطالب</th><th>الصف</th><th>الشعبة</th><th>التخصص</th>
+                                <th>التاريخ</th><th>المعلمة</th><th>ملاحظات</th><th>إجراء</th>
+                            </tr>
+                        </thead>
+                        <tbody id="absencesBody"></tbody>
+                    </table>
+                </div>
+            </div>
+            </div><!-- /adminRecords -->
+
+            <!-- ===== عرض: التقارير الذكية ===== -->
+            <div id="adminReports" style="display:none;">
+                <div class="card">
+                    <div class="section-title">
+                        <h3>📊 التقرير الشامل</h3>
+                        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                            <button class="btn btn-warn btn-sm" onclick="printReport()">🖨️ طباعة التقرير</button>
+                            <button class="btn btn-success btn-sm" onclick="exportReportCSV()">📥 تصدير CSV</button>
+                        </div>
+                    </div>
+
+                    <!-- أزرار الفترات السريعة -->
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;" id="quickRanges">
+                        <button class="btn btn-ghost btn-sm" onclick="setRange('today')">اليوم</button>
+                        <button class="btn btn-ghost btn-sm" onclick="setRange('week')">هذا الأسبوع</button>
+                        <button class="btn btn-ghost btn-sm" onclick="setRange('month')">هذا الشهر</button>
+                        <button class="btn btn-ghost btn-sm" onclick="setRange('all')">الكل</button>
+                    </div>
+
+                    <!-- الفلاتر -->
+                    <div class="filters">
+                        <div class="input-group"><label>من تاريخ</label><input type="date" id="rFrom" onchange="loadReport()"></div>
+                        <div class="input-group"><label>إلى تاريخ</label><input type="date" id="rTo" onchange="loadReport()"></div>
+                        <div class="input-group"><label>المعلمة</label><select id="rTeacher" onchange="loadReport()"></select></div>
+                        <div class="input-group"><label>الصف</label><select id="rGrade" onchange="loadReport()"></select></div>
+                        <div class="input-group"><label>الشعبة</label><select id="rSection" onchange="loadReport()"></select></div>
+                        <div class="input-group"><label>التخصص</label><select id="rTrack" onchange="loadReport()"></select></div>
+                        <div class="input-group" style="display:flex;align-items:flex-end;">
+                            <button class="btn btn-ghost btn-sm" style="width:100%;" onclick="resetReportFilters()">إعادة تعيين</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- المؤشرات الذكية -->
+                <div class="stats" id="reportKPIs"></div>
+
+                <!-- اتجاه الغياب عبر الأيام -->
+                <div class="card">
+                    <h3>📈 اتجاه الغياب عبر الأيام</h3>
+                    <div id="trendChart" class="trend-chart"></div>
+                </div>
+
+                <!-- أكثر الطلاب غياباً -->
+                <div class="card">
+                    <h3>🔝 أكثر الطلاب غياباً</h3>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>#</th><th>الطالب</th><th>الصف</th><th>الشعبة</th><th>التخصص</th><th>عدد الغيابات</th><th>آخر غياب</th></tr></thead>
+                            <tbody id="topStudentsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- التجميعات -->
+                <div class="report-cols">
+                    <div class="card">
+                        <h3>حسب الصف</h3>
+                        <div id="byGrade"></div>
+                    </div>
+                    <div class="card">
+                        <h3>حسب الصف والشعبة</h3>
+                        <div id="bySection"></div>
+                    </div>
+                    <div class="card">
+                        <h3>حسب التخصص</h3>
+                        <div id="byTrack"></div>
+                    </div>
+                    <div class="card">
+                        <h3>حسب المعلمة</h3>
+                        <div id="byTeacher"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ نافذة الإدارة ============ -->
+    <div id="managementModal" class="modal">
+        <div class="modal-box">
+            <div class="modal-head">
+                <h2>إدارة النظام</h2>
+                <button class="modal-close" onclick="closeModal('managementModal')">×</button>
+            </div>
+            <div class="tabs">
+                <button class="tab active" data-tab="students" onclick="switchTab('students')">الطلاب</button>
+                <button class="tab" data-tab="teachers" onclick="switchTab('teachers')">المعلمات</button>
+            </div>
+
+            <!-- تبويب الطلاب -->
+            <div id="studentsTab" class="tab-content active">
+                <div class="form-grid">
+                    <div class="input-group"><label>الاسم</label><input id="sName" placeholder="اسم الطالب"></div>
+                    <div class="input-group"><label>الصف</label><input id="sGrade" placeholder="مثال: العاشر"></div>
+                    <div class="input-group"><label>الشعبة</label><input id="sSection" placeholder="مثال: أ"></div>
+                    <div class="input-group"><label>التخصص</label><input id="sTrack" placeholder="مثال: علمي"></div>
+                </div>
+                <button class="btn btn-primary" style="width:auto;" onclick="saveStudent()"><span id="sBtnText">➕ إضافة طالب</span></button>
+                <button class="btn btn-ghost btn-sm" id="sCancelBtn" style="display:none;margin-right:8px;" onclick="resetStudentForm()">إلغاء التعديل</button>
+
+                <div class="input-group" style="margin-top:22px;">
+                    <label>استيراد طلاب من Excel (يستبدل القائمة الحالية)</label>
+                    <input type="file" id="studentsFile" accept=".xlsx,.xls,.csv" onchange="importStudents(event)">
+                    <small class="hint">الأعمدة المقبولة: الاسم، الصف، الشعبة، التخصص</small>
+                </div>
+
+                <h4 style="margin:22px 0 12px;">قائمة الطلاب (<span id="studentsCount">0</span>)</h4>
+                <div class="input-group" style="margin-bottom:12px;">
+                    <input type="text" id="sSearch" placeholder="🔍 ابحث بالاسم أو الصف أو الشعبة أو التخصص..." onkeyup="renderStudentsManage()">
+                </div>
+                <div class="table-wrap" style="max-height:300px;overflow-y:auto;">
+                    <table>
+                        <thead><tr><th>الاسم</th><th>الصف</th><th>الشعبة</th><th>التخصص</th><th>إجراءات</th></tr></thead>
+                        <tbody id="studentsManageBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- تبويب المعلمات -->
+            <div id="teachersTab" class="tab-content">
+                <div class="form-grid">
+                    <div class="input-group"><label>الاسم</label><input id="tName" placeholder="اسم المعلمة"></div>
+                    <div class="input-group"><label>اسم المستخدم</label><input id="tUsername" placeholder="username"></div>
+                    <div class="input-group"><label id="tPassLabel">كلمة المرور</label><input type="password" id="tPassword" placeholder="كلمة المرور"></div>
+                </div>
+                <label style="font-weight:600;font-size:14px;margin-bottom:7px;display:block;">الصفوف/الشعب المسندة</label>
+                <div class="assign-grid" id="assignGrid"></div>
+                <div style="margin-top:14px;">
+                    <button class="btn btn-primary" style="width:auto;" onclick="saveTeacher()"><span id="tBtnText">➕ إضافة معلمة</span></button>
+                    <button class="btn btn-ghost btn-sm" id="tCancelBtn" style="display:none;margin-right:8px;" onclick="resetTeacherForm()">إلغاء التعديل</button>
+                </div>
+
+                <h4 style="margin:22px 0 12px;">قائمة المعلمات (<span id="teachersCount">0</span>)</h4>
+                <div class="input-group" style="margin-bottom:12px;">
+                    <input type="text" id="tSearchManage" placeholder="🔍 ابحث بالاسم أو اسم المستخدم..." onkeyup="renderTeachersManage()">
+                </div>
+                <div class="table-wrap" style="max-height:280px;overflow-y:auto;">
+                    <table>
+                        <thead><tr><th>الاسم</th><th>المستخدم</th><th>الصفوف المسندة</th><th>إجراءات</th></tr></thead>
+                        <tbody id="teachersManageBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ نافذة تغيير كلمة المرور ============ -->
+    <div id="passwordModal" class="modal">
+        <div class="modal-box" style="max-width:420px;">
+            <div class="modal-head">
+                <h2>تغيير كلمة المرور</h2>
+                <button class="modal-close" onclick="closeModal('passwordModal')">×</button>
+            </div>
+            <div class="input-group"><label>كلمة المرور الحالية</label><input type="password" id="curPass" placeholder="الحالية"></div>
+            <div class="input-group"><label>كلمة المرور الجديدة</label><input type="password" id="newPass" placeholder="الجديدة"></div>
+            <div class="input-group"><label>تأكيد كلمة المرور</label><input type="password" id="confPass" placeholder="أعد الإدخال"></div>
+            <button class="btn btn-primary" onclick="changePassword()">تغيير</button>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+    <div id="printArea" style="display:none;"></div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
