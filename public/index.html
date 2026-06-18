@@ -81,7 +81,7 @@
         .btn-info { background: linear-gradient(135deg, #4299e1, #3182ce); color: white; }
 
         /* ===== التخطيط العام ===== */
-        .shell { max-width: 1240px; margin: 0 auto; padding: 22px; }
+        .shell { max-width: 1600px; margin: 0 auto; padding: 22px; }
         .topbar {
             background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
             padding: 18px 26px; margin-bottom: 24px; display: flex; justify-content: space-between;
@@ -178,7 +178,7 @@
         .modal.show { display: flex; }
         .modal-box { background: white; border-radius: 18px; padding: 30px; max-width: 600px; width: 100%; max-height: 92vh; overflow-y: auto; }
         /* نافذة إدارة النظام أكبر — لاستيعاب قوائم الطلاب (800+) والمعلمات */
-        .modal-box.modal-lg { max-width: 1100px; }
+        .modal-box.modal-lg { max-width: 1300px; }
         .modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; }
         .modal-head h2 { font-size: 21px; }
         .modal-close { background: none; border: none; font-size: 28px; cursor: pointer; color: var(--muted); line-height: 1; }
@@ -205,9 +205,65 @@
             #printArea { position: absolute; inset: 0; width: 100%; }
         }
 
+        /* ===== التجاوب مع الأجهزة اللوحية ===== */
+        @media (max-width: 900px) {
+            .shell { padding: 14px; }
+            .card { padding: 18px; }
+            .modal-box { padding: 22px; }
+            .modal-box.modal-lg { max-width: 100%; }
+            /* الجداول قابلة للتمرير أفقياً مع حد أدنى للعرض كي لا تنضغط */
+            .table-wrap table { min-width: 560px; }
+        }
+
+        /* ===== التجاوب مع الهاتف ===== */
         @media (max-width: 640px) {
-            .topbar { flex-direction: column; align-items: stretch; text-align: center; }
+            body { font-size: 15px; }
+            .shell { padding: 10px; }
+            .topbar { flex-direction: column; align-items: stretch; text-align: center; padding: 14px 16px; gap: 10px; }
+            .topbar h2 { font-size: 18px; }
             .topbar-actions { justify-content: center; }
+            /* أزرار الشريط العلوي تملأ العرض بالتساوي على الهاتف */
+            .topbar-actions .btn { flex: 1 1 auto; min-width: 120px; justify-content: center; }
+
+            .card { padding: 14px; border-radius: 12px; }
+            .card h3 { font-size: 17px; }
+            .section-title { flex-direction: column; align-items: stretch; }
+            .section-title > div { justify-content: center; }
+
+            /* الإحصاءات والفلاتر عمود واحد على الهاتف */
+            .stats { grid-template-columns: 1fr; gap: 12px; }
+            .stat { padding: 16px; }
+            .stat .value { font-size: 24px; }
+            .filters { grid-template-columns: 1fr 1fr; padding: 12px; gap: 10px; }
+            .form-grid { grid-template-columns: 1fr; }
+            .report-cols { grid-template-columns: 1fr; }
+
+            /* النوافذ المنبثقة تأخذ كامل الشاشة تقريباً */
+            .modal { padding: 8px; }
+            .modal-box { padding: 18px; border-radius: 14px; max-height: 95vh; }
+            .modal-head h2 { font-size: 18px; }
+            .tabs { gap: 4px; }
+            .tab { padding: 9px 12px; font-size: 13px; }
+
+            /* الجداول: تمرير أفقي مع إبراز الحافة */
+            .table-wrap { -webkit-overflow-scrolling: touch; border: 1px solid var(--border); }
+            th, td { padding: 10px 9px; font-size: 13px; }
+
+            /* بطاقات الصفوف والطلاب عمود واحد */
+            .class-grid { grid-template-columns: 1fr 1fr; }
+            .students-grid { grid-template-columns: 1fr; max-height: none; }
+            .assign-grid { grid-template-columns: 1fr 1fr; max-height: 260px; }
+
+            /* أزرار الإجراءات داخل الجداول تتكدّس عمودياً */
+            td .btn { margin-bottom: 4px; width: 100%; }
+
+            .login-card { padding: 32px 24px; }
+            h1 { font-size: 24px; }
+        }
+
+        @media (max-width: 380px) {
+            .filters { grid-template-columns: 1fr; }
+            .class-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -526,6 +582,7 @@
             <div class="tabs">
                 <button class="tab active" data-tab="students" onclick="switchTab('students')">الطلاب</button>
                 <button class="tab" data-tab="teachers" onclick="switchTab('teachers')">المعلمات</button>
+                <button class="tab" data-tab="accounts" onclick="switchTab('accounts')">🔑 كلمات السر</button>
             </div>
 
             <!-- تبويب الطلاب -->
@@ -607,6 +664,23 @@
                     <table>
                         <thead><tr><th>الاسم</th><th>المستخدم</th><th>الصفوف المسندة</th><th>إجراءات</th></tr></thead>
                         <tbody id="teachersManageBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- تبويب كلمات السر (كل المستخدمين) -->
+            <div id="accountsTab" class="tab-content">
+                <p style="color:var(--muted);margin-bottom:14px;font-size:14px;">
+                    قائمة بكل المستخدمين (المعلمات والمديرات ومدير النظام). يمكنك إعادة تعيين كلمة سر أي مستخدم
+                    مباشرةً دون الحاجة لكلمة السر القديمة — مفيد عند نسيان المعلمة لكلمة مرورها.
+                </p>
+                <div class="input-group" style="margin-bottom:12px;max-width:420px;">
+                    <input type="text" id="accSearch" placeholder="🔍 ابحث بالاسم أو اسم المستخدم أو الدور..." onkeyup="renderAccounts()">
+                </div>
+                <div class="table-wrap" style="max-height:60vh;overflow-y:auto;">
+                    <table>
+                        <thead><tr><th>الاسم</th><th>اسم المستخدم</th><th>الدور</th><th>إعادة تعيين كلمة السر</th></tr></thead>
+                        <tbody id="accountsBody"></tbody>
                     </table>
                 </div>
             </div>

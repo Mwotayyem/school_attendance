@@ -506,7 +506,51 @@ function switchTab(name) {
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     document.getElementById(name + 'Tab').classList.add('active');
     if (name === 'students') loadStudentsManage();
-    else loadTeachersManage();
+    else if (name === 'teachers') loadTeachersManage();
+    else if (name === 'accounts') loadAccounts();
+}
+
+// ===== إدارة كلمات السر (كل المستخدمين) — للمديرة =====
+let allAccounts = []; // كل المستخدمين (بدون كلمات السر)
+
+async function loadAccounts() {
+    try { allAccounts = await api('/teachers/all'); }
+    catch (e) { return toast(e.message, 'error'); }
+    renderAccounts();
+}
+
+function renderAccounts() {
+    const term = (document.getElementById('accSearch').value || '').toLowerCase();
+    const roleLabel = { superadmin: 'مدير النظام', admin: 'مديرة', teacher: 'معلمة' };
+    const rows = allAccounts.filter(u =>
+        !term || [u.name, u.username, roleLabel[u.role]].some(v => (v || '').toLowerCase().includes(term)));
+
+    const body = document.getElementById('accountsBody');
+    if (rows.length === 0) {
+        body.innerHTML = '<tr class="empty-row"><td colspan="4">لا يوجد مستخدم مطابق</td></tr>';
+        return;
+    }
+    body.innerHTML = rows.map(u => {
+        const color = u.role === 'superadmin' ? 'background:#fef0ff;color:#b83280;'
+            : u.role === 'admin' ? 'background:#fff0f6;color:#c2185b;'
+            : 'background:#eef0ff;color:var(--primary);';
+        return `<tr>
+            <td><strong>${esc(u.name)}</strong></td>
+            <td style="direction:ltr;text-align:right;">${esc(u.username)}</td>
+            <td><span class="chip" style="${color}">${roleLabel[u.role] || u.role}</span></td>
+            <td><button class="btn btn-warn btn-sm" onclick="resetUserPassword('${u.id}','${esc(u.name)}')">🔑 إعادة تعيين</button></td>
+        </tr>`;
+    }).join('');
+}
+
+async function resetUserPassword(id, name) {
+    const pw = prompt(`إعادة تعيين كلمة سر: ${name}\nأدخل كلمة المرور الجديدة (4 أحرف على الأقل):`);
+    if (pw === null) return; // ألغى
+    if (pw.length < 4) return toast('كلمة المرور 4 أحرف على الأقل', 'error');
+    try {
+        await api(`/teachers/${id}/reset-password`, { method: 'PUT', body: { password: pw } });
+        toast(`تم تعيين كلمة سر جديدة لـ ${name}`);
+    } catch (e) { toast(e.message, 'error'); }
 }
 
 // ===== إدارة الطلاب =====

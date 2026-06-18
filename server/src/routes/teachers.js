@@ -26,6 +26,24 @@ router.get('/', requireAuth, requireAdmin, async (_req, res) => {
   res.json(await Teachers.listTeachers());
 });
 
+// جلب كل المستخدمين (معلمات + مديرات + مدير النظام) — للمديرة، لإدارة كلمات السر
+router.get('/all', requireAuth, requireAdmin, async (_req, res) => {
+  const all = await Teachers.getAllTeachers(); // بدون كلمات السر
+  res.json(all);
+});
+
+// إعادة تعيين كلمة سر أي مستخدم (للمديرة) — لا تتطلب كلمة السر القديمة
+router.put('/:id/reset-password', requireAuth, requireAdmin, async (req, res) => {
+  const { password } = req.body || {};
+  if (!password || String(password).length < 4) {
+    return res.status(400).json({ error: 'كلمة المرور يجب أن تكون 4 أحرف على الأقل' });
+  }
+  const user = await Teachers.findById(req.params.id);
+  if (!user) return res.status(404).json({ error: 'المستخدم غير موجود' });
+  await Teachers.updateTeacher(req.params.id, { password });
+  res.json({ ok: true });
+});
+
 // إضافة معلمة مع تكليفاتها (للمديرة)
 router.post('/', requireAuth, requireAdmin, async (req, res) => {
   const { name, username, password, assignments } = req.body || {};
