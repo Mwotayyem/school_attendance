@@ -791,6 +791,24 @@
                 <div style="margin-top:22px;">
                     <button class="btn btn-primary" style="width:auto;" onclick="saveSettings()">💾 حفظ الإعدادات</button>
                 </div>
+
+                <hr style="border:0;border-top:1px solid var(--border);margin:28px 0;">
+
+                <h4 style="margin-bottom:8px;">💾 النسخ الاحتياطي والاستعادة</h4>
+                <p style="color:var(--muted);margin-bottom:12px;font-size:14px;">
+                    نزّلي نسخة احتياطية كاملة من بيانات النظام (الطالبات، المعلمات، الغيابات) واحتفظي بها في مكان آمن.
+                    يمكنك استعادتها لاحقاً عند الحاجة.
+                </p>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+                    <button class="btn btn-success" style="width:auto;" onclick="downloadBackup()">⬇️ تنزيل نسخة احتياطية</button>
+                    <label class="btn btn-warn" style="width:auto;cursor:pointer;">
+                        ⬆️ استعادة من ملف
+                        <input type="file" id="restoreFile" accept=".json" style="display:none;" onchange="restoreBackup(event)">
+                    </label>
+                </div>
+                <div class="warn" style="background:#fffaf0;border-right:4px solid #dd6b20;padding:10px 14px;border-radius:8px;margin-top:12px;font-size:13px;color:#7b341e;">
+                    ⚠️ <strong>تحذير:</strong> الاستعادة <strong>تستبدل كل البيانات الحالية</strong> بمحتوى الملف. تأكدي من اختيار الملف الصحيح.
+                </div>
             </div>
         </div>
     </div>

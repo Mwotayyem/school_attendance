@@ -18,7 +18,17 @@ router.post('/login', async (req, res) => {
 
   const safe = Teachers.sanitize(user);
   const token = signToken(safe);
-  res.json({ token, user: safe });
+  // نُبلّغ الواجهة إن كان يجب تغيير كلمة المرور عند أول دخول
+  res.json({ token, user: safe, mustChangePassword: !!user.mustChangePassword });
+});
+
+// الحالة الحيّة للمستخدم الحالي — تُستدعى عند بدء التطبيق (auto-login)
+// لقراءة الأعلام الحسّاسة من الخادم بدل الاعتماد على localStorage القديم.
+router.get('/me', requireAuth, async (req, res) => {
+  const user = await Teachers.findById(req.user.id);
+  if (!user) return res.status(404).json({ error: 'المستخدم غير موجود' });
+  const safe = Teachers.sanitize(user);
+  res.json({ user: safe, mustChangePassword: !!user.mustChangePassword });
 });
 
 // تغيير كلمة المرور للمستخدم الحالي
@@ -33,7 +43,8 @@ router.post('/change-password', requireAuth, async (req, res) => {
     return res.status(400).json({ error: 'كلمة المرور الحالية غير صحيحة' });
   }
 
-  await Teachers.updateTeacher(req.user.id, { password: newPassword });
+  // غيّر كلمة المرور وألغِ علم "يجب التغيير"
+  await Teachers.updateTeacher(req.user.id, { password: newPassword, mustChangePassword: false });
   res.json({ ok: true });
 });
 

@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>دليل استخدام نظام الحضور والغياب — مدرسة سحاب الثانوية للبنات</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Cairo', sans-serif; color: #1a202c; line-height: 1.9; background: #f4f6fb; padding: 24px; }
+  .page { max-width: 900px; margin: 0 auto; background: #fff; padding: 40px 48px; box-shadow: 0 4px 24px rgba(20,30,80,0.08); border-radius: 14px; }
+
+  .cover { text-align: center; padding: 30px 0 36px; border-bottom: 3px solid #5b6ef5; margin-bottom: 30px; }
+  .cover .logo { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg,#667eea,#764ba2); display: inline-flex; align-items: center; justify-content: center; font-size: 38px; color: #fff; margin-bottom: 16px; }
+  .cover h1 { font-size: 30px; font-weight: 900; margin-bottom: 8px; }
+  .cover h2 { font-size: 18px; font-weight: 700; color: #4453d6; }
+  .cover p { color: #718096; margin-top: 6px; font-size: 14px; }
+
+  h2.sec { font-size: 23px; font-weight: 800; color: #4453d6; margin: 34px 0 14px; padding-right: 12px; border-right: 5px solid #5b6ef5; }
+  h3 { font-size: 18px; font-weight: 800; margin: 20px 0 8px; color: #2d2f50; }
+  h4 { font-size: 15.5px; font-weight: 800; margin: 14px 0 6px; color: #4453d6; }
+  p, li { font-size: 15px; }
+  ul, ol { padding-right: 24px; margin: 8px 0; }
+  li { margin-bottom: 5px; }
+  strong { color: #2d2f50; }
+  .btn-name { background: #eef0ff; color: #4453d6; padding: 1px 9px; border-radius: 7px; font-weight: 700; font-size: 14px; white-space: nowrap; }
+  .note { background: #f0fff4; border-right: 4px solid #38a169; padding: 10px 14px; border-radius: 8px; margin: 10px 0; font-size: 14px; }
+  .warn { background: #fffaf0; border-right: 4px solid #dd6b20; padding: 10px 14px; border-radius: 8px; margin: 10px 0; font-size: 14px; }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+  th { background: #5b6ef5; color: #fff; padding: 11px 9px; font-weight: 700; }
+  td { padding: 9px; border: 1px solid #e0e4f0; text-align: center; }
+  tbody tr:nth-child(even) { background: #f5f7ff; }
+  td.r { text-align: right; }
+  .yes { color: #38a169; font-weight: 800; }
+  .no { color: #cbd5e0; font-weight: 800; }
+
+  .toc { background: #f8fafc; border: 1px solid #e6e9f0; border-radius: 12px; padding: 18px 24px; margin-bottom: 10px; }
+  .toc h3 { margin-top: 0; }
+  .toc ol { padding-right: 20px; }
+
+  .role-card { border: 1px solid #e6e9f0; border-radius: 12px; padding: 18px 22px; margin: 16px 0; }
+  .role-teacher { border-right: 5px solid #4299e1; }
+  .role-admin { border-right: 5px solid #b83280; }
+  .role-super { border-right: 5px solid #805ad5; }
+
+  .faq-q { font-weight: 800; color: #4453d6; margin-top: 14px; }
+  .footer { margin-top: 40px; padding-top: 18px; border-top: 1px solid #e0e4f0; text-align: center; color: #718096; font-size: 13px; }
+
+  .print-bar { max-width: 900px; margin: 0 auto 16px; text-align: left; }
+  .print-bar button { background: linear-gradient(135deg,#667eea,#764ba2); color: #fff; border: none; padding: 11px 22px; border-radius: 10px; font-family: 'Cairo',sans-serif; font-weight: 700; font-size: 14px; cursor: pointer; }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    .page { box-shadow: none; border-radius: 0; max-width: 100%; padding: 0; }
+    .print-bar { display: none; }
+    h2.sec { page-break-after: avoid; }
+    table, .role-card, .note, .warn { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="print-bar">
+  <button onclick="window.print()">🖨️ طباعة / حفظ PDF</button>
+</div>
+
+<div class="page">
+
+  <div class="cover">
+    <div class="logo">🏫</div>
+    <h1>دليل استخدام نظام الحضور والغياب</h1>
+    <h2>مدرسة سحاب الثانوية للبنات</h2>
+    <p>وزارة التربية والتعليم — لواء سحاب</p>
+  </div>
+
+  <div class="toc">
+    <h3>📑 المحتويات</h3>
+    <ol>
+      <li>مقدمة سريعة</li>
+      <li>تسجيل الدخول (للجميع)</li>
+      <li>الأدوار الثلاثة وصلاحياتها</li>
+      <li>دليل المعلمة 👩‍🏫</li>
+      <li>دليل المديرة 👩‍💼</li>
+      <li>دليل مدير النظام 🛠️</li>
+      <li>تغيير كلمة المرور 🔒</li>
+      <li>أسئلة شائعة ❓</li>
+    </ol>
+  </div>
+
+  <h2 class="sec">1. مقدمة سريعة</h2>
+  <p>نظام إلكتروني لتسجيل غياب الطالبات ومتابعته. يعمل من أي جهاز (حاسوب أو <strong>هاتف</strong>) عبر فتح رابط الموقع في المتصفح.</p>
+  <ul>
+    <li><strong>المعلمة</strong>: تسجّل غياب طالبات صفوفها يومياً.</li>
+    <li><strong>المديرة</strong>: تتابع كل الغيابات، تُخرج التقارير، وتدير الطالبات والمعلمات.</li>
+    <li><strong>مدير النظام</strong>: ينشئ حسابات المستخدمين ويحدد صلاحياتهم.</li>
+  </ul>
+
+  <h2 class="sec">2. تسجيل الدخول (للجميع)</h2>
+  <ol>
+    <li>افتحي رابط الموقع في المتصفح (Chrome مثلاً).</li>
+    <li>أدخلي <strong>اسم المستخدم</strong> و <strong>كلمة المرور</strong>.</li>
+    <li>اضغطي زر <span class="btn-name">تسجيل الدخول</span>.</li>
+  </ol>
+  <div class="note">
+    ✅ <strong>اسم المستخدم</strong> لا يفرّق بين الأحرف الكبيرة والصغيرة (MOH = moh).<br>
+    ✅ <strong>كلمة المرور</strong> تفرّق بينها — أدخليها تماماً كما هي.<br>
+    ✅ النظام <strong>يتذكّر دخولك</strong> ويوجّهك للوحة المناسبة لدورك تلقائياً.
+  </div>
+
+  <h2 class="sec">3. الأدوار الثلاثة وصلاحياتها</h2>
+  <table>
+    <thead><tr><th class="r">الصلاحية</th><th>مدير النظام</th><th>المديرة</th><th>المعلمة</th></tr></thead>
+    <tbody>
+      <tr><td class="r">إنشاء/تعديل/حذف المستخدمين</td><td class="yes">✓</td><td class="no">✕</td><td class="no">✕</td></tr>
+      <tr><td class="r">إدارة الطالبات (إضافة/تعديل/حذف/استيراد)</td><td class="no">✕</td><td class="yes">✓</td><td class="no">✕</td></tr>
+      <tr><td class="r">إدارة المعلمات وإسناد الصفوف</td><td class="no">✕</td><td class="yes">✓</td><td class="no">✕</td></tr>
+      <tr><td class="r">إعادة تعيين كلمات سر المستخدمين</td><td class="no">✕</td><td class="yes">✓</td><td class="no">✕</td></tr>
+      <tr><td class="r">تسجيل الغياب اليومي</td><td class="no">✕</td><td class="no">✕</td><td class="yes">✓ (صفوفها)</td></tr>
+      <tr><td class="r">عرض سجل الغيابات والتقارير</td><td class="no">✕</td><td class="yes">✓</td><td class="no">✕</td></tr>
+      <tr><td class="r">ضبط الفصول الدراسية وسقف الغياب</td><td class="no">✕</td><td class="yes">✓</td><td class="no">✕</td></tr>
+      <tr><td class="r">تغيير كلمة مروره الشخصية</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+    </tbody>
+  </table>
+
+  <h2 class="sec">4. 👩‍🏫 دليل المعلمة</h2>
+  <div class="role-card role-teacher">
+    <h3>أ) أول ما ترينه</h3>
+    <p>رسالة ترحيب وتاريخ اليوم، وشبكة بطاقات كل واحدة = <strong>صف مسنَد إليك</strong> (تعرض اسم الصف، عدد الطالبات، وعدد الغائبات اليوم).</p>
+    <div class="warn">💡 إن ظهرت رسالة <strong>«لا توجد صفوف مسندة إليك»</strong> — تواصلي مع المديرة لتُسنِد لك صفوفك.</div>
+
+    <h3>ب) تسجيل غياب طالبة</h3>
+    <ol>
+      <li>اضغطي بطاقة الصف (يمكنك البحث عن صف).</li>
+      <li>بجانب الطالبة الغائبة اضغطي <span class="btn-name">🔴 تسجيل غياب</span>.</li>
+      <li>يسألك عن النوع: <strong>«موافق»</strong> = بعذر · <strong>«إلغاء»</strong> = بدون عذر.</li>
+      <li>اكتبي ملاحظة (اختيارية) ثم <strong>«موافق»</strong>.</li>
+    </ol>
+
+    <h3>ج) التراجع عن غياب</h3>
+    <p>اضغطي <span class="btn-name">↩ تراجع عن الغياب</span> بجانب الطالبة. (تستطيعين التراجع حتى عن غياب سجّلته المديرة لطالبة من صفّك).</p>
+
+    <h3>د) تفاصيل طالبة وطباعة الكشف</h3>
+    <ul>
+      <li><span class="btn-name">ℹ️ تفاصيل</span>: لرؤية بيانات الطالبة (عرض فقط).</li>
+      <li><span class="btn-name">🖨️ طباعة كشف غيابي</span>: كشف رسمي بكل غيابات اليوم.</li>
+      <li><span class="btn-name">↩ خروج</span>: للخروج.</li>
+    </ul>
+
+    <h3>🚫 ما لا تستطيع المعلمة فعله</h3>
+    <ul>
+      <li>إضافة/تعديل/حذف طالبات.</li>
+      <li>رؤية أو إدارة معلمات أخريات.</li>
+      <li>تسجيل غياب لطالبة خارج صفوفها المسندة.</li>
+      <li>رؤية التقارير العامة أو الإعدادات.</li>
+    </ul>
+  </div>
+
+  <h2 class="sec">5. 👩‍💼 دليل المديرة</h2>
+  <div class="role-card role-admin">
+    <p>الشريط العلوي:
+      <span class="btn-name">📋 سجل الغيابات</span>
+      <span class="btn-name">🧑‍🎓 تقرير الطالبات</span>
+      <span class="btn-name">📊 التقارير</span>
+      <span class="btn-name">⚙️ إدارة النظام</span>
+      <span class="btn-name">🔒 كلمة المرور</span>
+      <span class="btn-name">↩ خروج</span>
+    </p>
+
+    <h3>أ) 📋 سجل الغيابات</h3>
+    <ul>
+      <li><strong>الفلاتر</strong>: المعلمة · الصف · الشعبة · التخصص · التاريخ · بحث بالاسم (وزر «إعادة تعيين»).</li>
+      <li><strong>تبديل النوع</strong>: <span class="btn-name">↑ بعذر</span> / <span class="btn-name">↓ بدون عذر</span> — مثلاً عند وصول تقرير طبي.</li>
+      <li><span class="btn-name">حذف</span> · <span class="btn-name">🖨️ طباعة كشف</span> · <span class="btn-name">📥 تصدير CSV</span>.</li>
+    </ul>
+
+    <h3>ب) 🧑‍🎓 تقرير الطالبات</h3>
+    <ul>
+      <li><strong>اختيار طالبات محددات</strong>: اكتبي جزءاً من اسم أي طالبة واختاريها (واحدة أو أكثر). تركها فارغة = كل من لها غياب.</li>
+      <li><strong>أزرار الفصول</strong> + فلاتر التاريخ/الصف/الشعبة/التخصص + خيار <strong>«المتجاوزات فقط»</strong>.</li>
+      <li><strong>الأعمدة</strong>: إجمالي الغياب · بعذر · بدون عذر · نسبة الحضور · الحالة (🚨 تجاوزت السقف بالأحمر).</li>
+      <li>أزرار <span class="btn-name">🖨️ طباعة</span> و <span class="btn-name">📥 تصدير CSV</span>.</li>
+    </ul>
+
+    <h3>ج) 📊 التقارير الإحصائية</h3>
+    <ul>
+      <li>فترات سريعة (اليوم/الأسبوع/الشهر/الكل)، مؤشرات، رسم بياني للاتجاه.</li>
+      <li>جدول أكثر الطالبات غياباً + تجميعات حسب الصف/الشعبة/التخصص/المعلمة.</li>
+      <li>أزرار الطباعة والتصدير.</li>
+    </ul>
+
+    <h3>د) ⚙️ إدارة النظام (4 تبويبات)</h3>
+    <h4>1) الطلاب</h4>
+    <ul>
+      <li><strong>إضافة</strong>: املئي الحقول ثم <span class="btn-name">➕ إضافة طالب</span>. الصف والشعبة قوائم منسدلة (ولإضافة جديدة اختاري «➕ إضافة جديد…»).</li>
+      <li><strong>نقل لشعبة / تعديل</strong>: ابحثي عنها ← <span class="btn-name">تعديل</span> ← غيّري الشعبة ← <span class="btn-name">💾 حفظ التعديل</span>.</li>
+      <li><span class="btn-name">حذف</span> · <span class="btn-name">تفاصيل</span> · استيراد من Excel.</li>
+    </ul>
+    <div class="warn">⚠️ استيراد Excel <strong>يستبدل قائمة الطالبات الحالية بالكامل</strong> — استخدميه بحذر.</div>
+
+    <h4>2) المعلمات (إسناد الصفوف)</h4>
+    <ul>
+      <li>أضيفي معلمة (اسم + اسم مستخدم + كلمة مرور).</li>
+      <li><strong>إسناد الصفوف</strong>: اختاري صفوف المعلمة (مع بحث وأزرار «تحديد الكل» / «إلغاء الكل»). بدون إسناد لن ترى المعلمة أي طالبة.</li>
+    </ul>
+
+    <h4>3) 🔑 كلمات السر</h4>
+    <p>قائمة بكل المستخدمين، وبجانب كل واحد زر <span class="btn-name">🔑 إعادة تعيين</span> لوضع كلمة سر جديدة دون الحاجة للقديمة (مفيد عند نسيان المعلمة كلمتها).</p>
+
+    <h4>4) ⚙️ الإعدادات</h4>
+    <ul>
+      <li><strong>سقف الغياب بدون عذر</strong>: العدد الذي تجاوزه يُظهر مؤشّر تحذير (مثلاً 20).</li>
+      <li><strong>الفصول الدراسية</strong>: اسم وتاريخ بداية/نهاية كل فصل ثم <span class="btn-name">💾 حفظ الإعدادات</span>.</li>
+    </ul>
+  </div>
+
+  <h2 class="sec">⭐ خطوة أولى مهمة جداً: إسناد الصفوف للمعلمات</h2>
+  <div class="role-card role-admin" style="border-right-color:#dd6b20;background:#fffaf5;">
+    <div class="warn">
+      ⚠️ <strong>قبل أن يعمل النظام للمعلمات، يجب على المديرة إسناد الصفوف لكل معلمة.</strong>
+      المعلمة بلا صفوف مسندة ترى رسالة «لا توجد صفوف مسندة إليك» ولا تستطيع تسجيل أي غياب.
+    </div>
+
+    <h3>كيف تُسنِد المديرة الصفوف لمعلمة (خطوة بخطوة):</h3>
+    <ol>
+      <li>ادخلي كمديرة، ثم اضغطي <span class="btn-name">⚙️ إدارة النظام</span>.</li>
+      <li>اضغطي تبويب <span class="btn-name">المعلمات</span>.</li>
+      <li>في قائمة المعلمات بالأسفل، استخدمي خانة <span class="btn-name">🔍 البحث</span> لإيجاد المعلمة، ثم اضغطي <span class="btn-name">تعديل</span> بجانبها.</li>
+      <li>في قسم <strong>«الصفوف/الشعب المسندة»</strong>:
+        <ul>
+          <li>استخدمي خانة <span class="btn-name">🔍 ابحث عن صف أو شعبة</span> للوصول السريع.</li>
+          <li>اضغطي على الصفوف التي تُدرّسها المعلمة (تظهر بعلامة ✓).</li>
+          <li>أو استخدمي <span class="btn-name">تحديد الكل</span> إن كانت تُدرّس كل الصفوف الظاهرة.</li>
+        </ul>
+      </li>
+      <li>اضغطي <span class="btn-name">💾 حفظ التعديل</span>.</li>
+    </ol>
+
+    <div class="note">
+      💡 <strong>نصيحة لتسريع العمل مع 66 معلمة:</strong> جهّزي ورقة فيها اسم كل معلمة والصفوف التي تُدرّسها،
+      ثم أسنديها معلمة تلو الأخرى. كل معلمة تستغرق أقل من دقيقة.
+    </div>
+
+    <div class="note">
+      ✅ بمجرد إسناد الصفوف لمعلمة، تستطيع الدخول فوراً ورؤية طالباتها وتسجيل غيابهنّ.
+    </div>
+  </div>
+
+  <h2 class="sec">⭐ ملاحظة أمنية: أول دخول لكل مستخدم</h2>
+  <div class="role-card" style="border-right:5px solid #38a169;background:#f6fffa;">
+    <p>عند <strong>أول دخول</strong> لأي مستخدم (مديرة أو معلمة)، سيطلب منه النظام <strong>تغيير كلمة المرور</strong>
+    قبل المتابعة — لا يمكنه استخدام النظام حتى يختار كلمة مرور خاصة به.</p>
+    <ul>
+      <li>كلمة المرور المؤقتة لكل المستخدمين حالياً: <strong>1234</strong></li>
+      <li>عند الدخول، تظهر نافذة «🔒 يجب تغيير كلمة المرور» — أدخلي الحالية (1234) والجديدة مرتين.</li>
+      <li>هذا يحمي بيانات الطالبات ويضمن أن لكل مستخدم كلمة سر خاصة وسرّية.</li>
+    </ul>
+    <div class="warn">
+      📌 إذا نسيت معلمة كلمة مرورها لاحقاً: المديرة ← ⚙️ إدارة النظام ← 🔑 كلمات السر ← «إعادة تعيين».
+      (سيُطلب من المعلمة تغييرها مجدداً عند الدخول التالي).
+    </div>
+  </div>
+
+  <h2 class="sec">💾 النسخ الاحتياطي (للمديرة)</h2>
+  <div class="role-card role-admin">
+    <p>للحفاظ على بياناتكم، نزّلي نسخة احتياطية بشكل دوري (أسبوعياً مثلاً):</p>
+    <ol>
+      <li>⚙️ إدارة النظام ← تبويب <span class="btn-name">⚙️ الإعدادات</span>.</li>
+      <li>في قسم «النسخ الاحتياطي»، اضغطي <span class="btn-name">⬇️ تنزيل نسخة احتياطية</span>.</li>
+      <li>احفظي الملف في مكان آمن (حاسوب المدرسة / Google Drive).</li>
+    </ol>
+    <p>للاستعادة عند الحاجة: <span class="btn-name">⬆️ استعادة من ملف</span> واختاري ملف النسخة.</p>
+    <div class="warn">⚠️ الاستعادة <strong>تستبدل كل البيانات الحالية</strong> — استخدميها فقط عند الضرورة.</div>
+  </div>
+
+  <h2 class="sec">6. 🛠️ دليل مدير النظام</h2>
+  <div class="role-card role-super">
+    <p>مسؤول عن <strong>حسابات المستخدمين</strong> (يرى إحصاءاتهم).</p>
+    <h3>إضافة مستخدم</h3>
+    <ol>
+      <li>املأ: الاسم · اسم المستخدم (إنجليزي) · كلمة المرور.</li>
+      <li>اختر الدور: مديرة أو معلمة.</li>
+      <li>اضغط <span class="btn-name">➕ إضافة مستخدم</span>.</li>
+    </ol>
+    <h3>تعديل / حذف</h3>
+    <ul>
+      <li><span class="btn-name">تعديل</span>: لتغيير الاسم/الدور/كلمة المرور (اتركها فارغة للإبقاء عليها).</li>
+      <li><span class="btn-name">حذف</span>: لحذف المستخدم (مع تأكيد).</li>
+    </ul>
+  </div>
+
+  <h2 class="sec">7. 🔒 تغيير كلمة المرور (للجميع)</h2>
+  <ol>
+    <li>اضغطي <span class="btn-name">🔒 كلمة المرور</span> أعلى الصفحة.</li>
+    <li>أدخلي: الحالية · الجديدة · تأكيد الجديدة.</li>
+    <li>اضغطي <span class="btn-name">تغيير</span>.</li>
+  </ol>
+  <div class="note">الشروط: الجديدة <strong>4 أحرف على الأقل</strong> ويجب أن تطابق التأكيد.</div>
+
+  <h2 class="sec">8. ❓ أسئلة شائعة</h2>
+  <p class="faq-q">المعلمة دخلت لكن لا ترى أي صف؟</p>
+  <p>لم تُسنَد لها صفوف. المديرة ← ⚙️ إدارة النظام ← المعلمات ← تعديل ← اختيار الصفوف ← حفظ.</p>
+  <p class="faq-q">المعلمة نسيت كلمة مرورها؟</p>
+  <p>المديرة ← ⚙️ إدارة النظام ← 🔑 كلمات السر ← «إعادة تعيين» بجانب المعلمة.</p>
+  <p class="faq-q">كيف أنقل طالبة لشعبة أخرى؟</p>
+  <p>المديرة ← ⚙️ إدارة النظام ← الطلاب ← ابحثي عنها ← تعديل ← غيّري الشعبة ← حفظ التعديل.</p>
+  <p class="faq-q">ما الفرق بين «بعذر» و «بدون عذر»؟</p>
+  <p>«بعذر» (تقرير طبي) لا يُحتسب ضمن سقف الإنذار. «بدون عذر» يُحتسب، وعند تجاوز السقف يظهر مؤشر 🚨.</p>
+  <p class="faq-q">وصل تقرير طبي بعد تسجيل الغياب بدون عذر؟</p>
+  <p>المديرة ← سجل الغيابات ← بجانب الغياب اضغطي «↑ بعذر» لتحويله.</p>
+  <p class="faq-q">هل يعمل النظام على الهاتف؟</p>
+  <p>نعم، النظام مصمّم للهاتف والحاسوب — افتحي الرابط في المتصفح.</p>
+
+  <div class="footer">
+    📌 للدعم الفني تواصلوا مع مسؤول النظام لديكم.<br>
+    مدرسة سحاب الثانوية للبنات — نظام الحضور والغياب المدرسي
+  </div>
+
+</div>
+</body>
+</html>

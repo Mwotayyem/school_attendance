@@ -45,24 +45,25 @@ export async function countTeachers() {
 }
 
 // إنشاء معلمة/مديرة (تشفّر كلمة المرور) — تُرجع بدون كلمة المرور
-export async function createTeacher({ name, username, password, role = 'teacher', assignments = [] }) {
+export async function createTeacher({ name, username, password, role = 'teacher', assignments = [], mustChangePassword = false }) {
   const hash = await bcrypt.hash(password, 10);
   const now = new Date().toISOString();
   const ref = await col().add({
     name, username: normUsername(username), password: hash, role,
-    assignments, createdAt: now, updatedAt: now,
+    assignments, mustChangePassword: !!mustChangePassword, createdAt: now, updatedAt: now,
   });
   return sanitize(docToObj(await ref.get()));
 }
 
 // تعديل معلمة/مديرة (الاسم/اسم المستخدم/الدور/التكليفات/كلمة المرور — كلها اختيارية)
-export async function updateTeacher(id, { name, username, role, assignments, password }) {
+export async function updateTeacher(id, { name, username, role, assignments, password, mustChangePassword }) {
   const patch = { updatedAt: new Date().toISOString() };
   if (name !== undefined) patch.name = name;
   if (username !== undefined) patch.username = normUsername(username);
   if (role !== undefined) patch.role = role;
   if (assignments !== undefined) patch.assignments = assignments;
   if (password) patch.password = await bcrypt.hash(password, 10);
+  if (mustChangePassword !== undefined) patch.mustChangePassword = !!mustChangePassword;
   await col().doc(id).update(patch);
   return sanitize(docToObj(await col().doc(id).get()));
 }

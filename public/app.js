@@ -42,7 +42,15 @@ function showPage(id) {
     document.getElementById(id).classList.add('active');
 }
 function openModal(id) { document.getElementById(id).classList.add('show'); }
-function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+function closeModal(id) {
+    const el = document.getElementById(id);
+    // لا تُغلق نافذة تغيير كلمة المرور إن كانت إجبارية
+    if (id === 'passwordModal' && el.dataset.forced === '1') {
+        toast('يجب تغيير كلمة المرور أولاً', 'error');
+        return;
+    }
+    el.classList.remove('show');
+}
 
 // ---------- تسجيل الدخول ----------
 async function login() {
@@ -51,15 +59,41 @@ async function login() {
     if (!username || !password) return toast('الرجاء إدخال اسم المستخدم وكلمة المرور', 'error');
 
     try {
-        const { token, user } = await api('/auth/login', { method: 'POST', body: { username, password } });
+        const { token, user, mustChangePassword } = await api('/auth/login', { method: 'POST', body: { username, password } });
         authToken = token; currentUser = user;
         localStorage.setItem('authToken', token);
         localStorage.setItem('currentUser', JSON.stringify(user));
         document.getElementById('username').value = '';
         document.getElementById('password').value = '';
         await enterApp();
-        toast('تم تسجيل الدخول بنجاح');
+        if (mustChangePassword) {
+            forceChangePassword();
+        } else {
+            toast('تم تسجيل الدخول بنجاح');
+        }
     } catch (e) { toast(e.message, 'error'); }
+}
+
+// إجبار المستخدم على تغيير كلمة المرور (عند أول دخول أو بعد إعادة تعيين)
+function forceChangePassword() {
+    openModal('passwordModal');
+    // أخفِ زر الإغلاق ووضّح أنه إجباري
+    const modal = document.getElementById('passwordModal');
+    modal.dataset.forced = '1';
+    const closeBtn = modal.querySelector('.modal-close');
+    if (closeBtn) closeBtn.style.display = 'none';
+    const curField = document.getElementById('curPass');
+    // عبئي كلمة المرور الحالية تلقائياً ليست مطلوبة هنا؟ لا — نطلبها للتأكيد
+    const head = modal.querySelector('.modal-head h2');
+    if (head) head.textContent = '🔒 يجب تغيير كلمة المرور';
+    let hint = document.getElementById('forcePwHint');
+    if (!hint) {
+        hint = document.createElement('p');
+        hint.id = 'forcePwHint';
+        hint.style.cssText = 'color:var(--danger);font-size:13px;margin-bottom:14px;font-weight:600;';
+        modal.querySelector('.modal-head').after(hint);
+    }
+    hint.textContent = 'لأمان حسابك، يجب اختيار كلمة مرور جديدة قبل المتابعة.';
 }
 
 async function enterApp() {
@@ -610,6 +644,49 @@ async function saveSettings() {
     } catch (e) { toast(e.message, 'error'); }
 }
 
+// ===== النسخ الاحتياطي والاستعادة =====
+async function downloadBackup() {
+    toast('جارٍ تجهيز النسخة الاحتياطية...');
+    try {
+        const data = await api('/backup/export');
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        const stamp = new Date().toISOString().split('T')[0];
+        link.download = `نسخة_احتياطية_${stamp}.json`;
+        link.click();
+        const counts = Object.entries(data.collections).map(([k, v]) => `${v.length}`).join(' / ');
+        toast(`تم تنزيل النسخة الاحتياطية (${counts})`);
+    } catch (e) { toast(e.message, 'error'); }
+}
+
+function restoreBackup(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    if (!confirm('⚠️ الاستعادة ستستبدل كل البيانات الحالية (الطالبات والمعلمات والغيابات) بمحتوى الملف.\n\nهل أنتِ متأكدة؟')) {
+        event.target.value = '';
+        return;
+    }
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        try {
+            const backup = JSON.parse(e.target.result);
+            if (!backup.collections) throw new Error('الملف ليس نسخة احتياطية صالحة');
+            toast('جارٍ الاستعادة... قد تستغرق لحظات');
+            const res = await api('/backup/restore', { method: 'POST', body: backup });
+            const summary = Object.entries(res.restored || {}).map(([k, v]) => `${v}`).join(' / ');
+            toast(`✅ تمت الاستعادة بنجاح (${summary})`);
+            // أعد تحميل البيانات الظاهرة
+            await loadStudentsManage();
+        } catch (err) {
+            toast(err.message || 'فشلت الاستعادة', 'error');
+        } finally {
+            event.target.value = '';
+        }
+    };
+    reader.readAsText(file);
+}
+
 // ===== إدارة كلمات السر (كل المستخدمين) — للمديرة =====
 let allAccounts = []; // كل المستخدمين (بدون كلمات السر)
 
@@ -1133,8 +1210,17 @@ async function changePassword() {
     try {
         await api('/auth/change-password', { method: 'POST', body: { currentPassword: cur, newPassword: nw } });
         ['curPass', 'newPass', 'confPass'].forEach(id => document.getElementById(id).value = '');
-        closeModal('passwordModal');
-        toast('تم تغيير كلمة المرور');
+        // أعد النافذة لوضعها الطبيعي (في حال كانت إجبارية)
+        const modal = document.getElementById('passwordModal');
+        delete modal.dataset.forced;
+        const closeBtn = modal.querySelector('.modal-close');
+        if (closeBtn) closeBtn.style.display = '';
+        const head = modal.querySelector('.modal-head h2');
+        if (head) head.textContent = 'تغيير كلمة المرور';
+        const hint = document.getElementById('forcePwHint');
+        if (hint) hint.remove();
+        modal.classList.remove('show');
+        toast('تم تغيير كلمة المرور بنجاح');
     } catch (e) { toast(e.message, 'error'); }
 }
 
@@ -1580,7 +1666,14 @@ window.addEventListener('load', async () => {
     const u = localStorage.getItem('currentUser');
     if (t && u) {
         authToken = t; currentUser = JSON.parse(u);
-        try { await enterApp(); } catch { logout(); }
+        try {
+            // نتحقق من الحالة الحيّة من الخادم (لا نعتمد على localStorage للأعلام الحسّاسة)
+            const me = await api('/auth/me');
+            currentUser = me.user;
+            localStorage.setItem('currentUser', JSON.stringify(me.user));
+            await enterApp();
+            if (me.mustChangePassword) forceChangePassword();
+        } catch { logout(); }
     } else {
         showPage('loginPage');
     }

@@ -40,7 +40,8 @@ router.put('/:id/reset-password', requireAuth, requireAdmin, async (req, res) =>
   }
   const user = await Teachers.findById(req.params.id);
   if (!user) return res.status(404).json({ error: 'المستخدم غير موجود' });
-  await Teachers.updateTeacher(req.params.id, { password });
+  // بعد إعادة التعيين، يُطلب من المستخدم تغييرها عند أول دخول
+  await Teachers.updateTeacher(req.params.id, { password, mustChangePassword: true });
   res.json({ ok: true });
 });
 

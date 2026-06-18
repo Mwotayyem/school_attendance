@@ -12,12 +12,13 @@ import absenceRoutes from './routes/absences.js';
 import reportRoutes from './routes/reports.js';
 import userRoutes from './routes/users.js';
 import settingsRoutes from './routes/settings.js';
+import backupRoutes from './routes/backup.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const app = express();
 app.use(cors());
-app.use(express.json({ limit: '5mb' }));
+app.use(express.json({ limit: '25mb' })); // 25mb لاستيعاب استعادة النسخ الاحتياطية الكبيرة
 
 // فحص صحة الخادم (يستخدمه Cloud Run)
 app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
@@ -30,6 +31,7 @@ app.use('/api/absences', absenceRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/backup', backupRoutes);
 
 // تقديم الواجهة الثابتة (مجلد public في جذر المشروع)
 const publicDir = path.resolve(__dirname, '../../public');
