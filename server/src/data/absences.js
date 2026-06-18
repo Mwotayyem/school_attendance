@@ -56,6 +56,18 @@ export async function createAbsence(data) {
   return docToObj(await ref.get());
 }
 
+// تعديل سجل غياب (نوع العذر و/أو الملاحظات) — مثلاً عند وصول تقرير طبي لاحقاً
+export async function updateAbsence(id, patch) {
+  const ref = col().doc(id);
+  const before = await ref.get();
+  if (!before.exists) return null;
+  const clean = {};
+  if (patch.excused !== undefined) clean.excused = !!patch.excused;
+  if (patch.notes !== undefined) clean.notes = String(patch.notes);
+  if (Object.keys(clean).length) await ref.update(clean);
+  return docToObj(await ref.get());
+}
+
 export async function deleteAbsence(id) {
   await col().doc(id).delete();
 }

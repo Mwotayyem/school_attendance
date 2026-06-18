@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import * as Absences from '../data/absences.js';
 import * as Students from '../data/students.js';
+import * as Settings from '../data/settings.js';
 import { requireAuth, requireAdmin } from '../middleware/auth.js';
 
 const router = Router();
@@ -73,6 +74,64 @@ router.get('/summary', requireAuth, requireAdmin, async (req, res) => {
     byTrack: groupCount(absences, (a) => a.track || 'غير محدد'),
     byTeacher: groupCount(absences, (a) => a.teacher),
     byDate,
+  });
+});
+
+// تقرير غياب الطالبات: صفّ لكل طالبة لها غياب ضمن الفلتر.
+//   الفلاتر: ?from= &to= &grade= &section= &track= &name= (بحث بالاسم) &onlyOver= (المتجاوزات فقط)
+// لكل طالبة: إجمالي الغياب، بعذر، بدون عذر، نسبة الحضور (إن وُجدت أيام دوام)، وهل تجاوزت السقف.
+router.get('/students', requireAuth, requireAdmin, async (req, res) => {
+  const { from, to, grade, section, track, name, onlyOver } = req.query;
+  const settings = await Settings.getSettings();
+  const limit = settings.absenceLimit || 20;
+
+  const absences = await Absences.listAbsences({ grade, section, track, from, to });
+
+  // عدد أيام الدوام التقريبي = عدد الأيام التي سُجّل فيها أي غياب (ضمن نفس الفلتر)
+  const schoolDays = new Set(absences.map((a) => a.date)).size;
+
+  const term = (q) => q || ''; // أداة مساعدة
+  const byStudent = new Map();
+  for (const a of absences) {
+    const k = String(a.studentId);
+    if (!byStudent.has(k)) {
+      byStudent.set(k, {
+        studentId: k, studentName: a.studentName, grade: a.grade, section: a.section,
+        track: a.track || '', total: 0, excused: 0, unexcused: 0, lastDate: a.date,
+      });
+    }
+    const e = byStudent.get(k);
+    e.total++;
+    if (a.excused) e.excused++; else e.unexcused++;
+    if (a.date > e.lastDate) e.lastDate = a.date;
+  }
+
+  let rows = [...byStudent.values()].map((e) => {
+    // نسبة الحضور = (أيام الدوام − غيابات الطالبة) ÷ أيام الدوام
+    const attendanceRate = schoolDays ? Math.max(0, +(((schoolDays - e.total) / schoolDays) * 100).toFixed(1)) : null;
+    return { ...e, attendanceRate, over: e.unexcused >= limit };
+  });
+
+  // بحث بالاسم (يصل لأي طالبة لها غياب ضمن الفلتر، بلا حاجة لإظهارها مسبقاً)
+  const q = (name || '').trim().toLowerCase();
+  if (q) rows = rows.filter((r) => r.studentName.toLowerCase().includes(q));
+  if (onlyOver === 'true' || onlyOver === '1') rows = rows.filter((r) => r.over);
+
+  // الأكثر غياباً (بدون عذر) أولاً
+  rows.sort((x, y) => (y.unexcused - x.unexcused) || (y.total - x.total) || x.studentName.localeCompare(y.studentName, 'ar'));
+
+  res.json({
+    limit,
+    schoolDays,
+    terms: settings.terms || [],
+    totals: {
+      students: rows.length,
+      over: rows.filter((r) => r.over).length,
+      totalAbsences: rows.reduce((s, r) => s + r.total, 0),
+      excused: rows.reduce((s, r) => s + r.excused, 0),
+      unexcused: rows.reduce((s, r) => s + r.unexcused, 0),
+    },
+    rows,
   });
 });
 

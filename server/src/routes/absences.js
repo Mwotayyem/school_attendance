@@ -32,7 +32,7 @@ router.get('/mine', requireAuth, async (req, res) => {
 
 // تسجيل غياب (المعلمة لطلاب صفوفها، أو المديرة لأي طالب)
 router.post('/', requireAuth, async (req, res) => {
-  const { studentId, notes } = req.body || {};
+  const { studentId, notes, excused } = req.body || {};
   if (!studentId) return res.status(400).json({ error: 'لم يُحدّد الطالب' });
 
   const student = await Students.findById(studentId);
@@ -59,6 +59,7 @@ router.post('/', requireAuth, async (req, res) => {
       teacherId: req.user.id,
       teacher: req.user.name,
       teacherUsername: req.user.username,
+      excused: excused === true || excused === 'true', // غياب بعذر؟ (افتراضياً: بدون عذر)
       notes: notes || '',
     });
     res.status(201).json(absence);
@@ -68,6 +69,14 @@ router.post('/', requireAuth, async (req, res) => {
     }
     throw err;
   }
+});
+
+// تعديل نوع الغياب (بعذر/بدون عذر) أو الملاحظات — للمديرة، عند وصول تقرير طبي مثلاً
+router.patch('/:id', requireAuth, requireAdmin, async (req, res) => {
+  const { excused, notes } = req.body || {};
+  const updated = await Absences.updateAbsence(req.params.id, { excused, notes });
+  if (!updated) return res.status(404).json({ error: 'السجل غير موجود' });
+  res.json(updated);
 });
 
 // التراجع/حذف سجل غياب:

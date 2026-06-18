@@ -210,10 +210,13 @@ window.showStudentDetails = (id) => {
 async function markAbsent(studentId) {
     const student = myStudents.find(s => s.id === studentId);
     if (!student) return;
-    const notes = prompt(`تسجيل غياب: ${student.name}\nملاحظة (اختياري):`);
-    if (notes === null) return; // ألغى
+    // اسأل عن نوع الغياب: موافق = بعذر، إلغاء = بدون عذر (مع إمكانية الإلغاء الكامل)
+    const choice = confirm(`تسجيل غياب: ${student.name}\n\nاضغط "موافق" إذا كان الغياب بعذر (تقرير طبي مثلاً).\nاضغط "إلغاء" إذا كان بدون عذر.`);
+    const excused = choice;
+    const notes = prompt(`${excused ? 'غياب بعذر' : 'غياب بدون عذر'} — ${student.name}\nملاحظة (اختياري):`, excused ? 'بعذر' : '');
+    if (notes === null) return; // ألغى نهائياً
     try {
-        const a = await api('/absences', { method: 'POST', body: { studentId, notes } });
+        const a = await api('/absences', { method: 'POST', body: { studentId, notes, excused } });
         myTodayAbsentIds.add(String(studentId));
         myAbsenceByStudent.set(String(studentId), a);
         renderTeacherStudents();
@@ -265,16 +268,24 @@ async function initAdmin() {
     await loadAbsences();
 }
 
-// التبديل بين عرض السجل وعرض التقارير
+// التبديل بين عروض المديرة: سجل الغيابات / تقرير الطالبات / التقارير الذكية
 function showAdminView(view) {
-    const isReports = view === 'reports';
-    document.getElementById('adminRecords').style.display = isReports ? 'none' : 'block';
-    document.getElementById('adminReports').style.display = isReports ? 'block' : 'none';
-    document.getElementById('navRecords').className = 'btn btn-sm ' + (isReports ? 'btn-ghost' : 'btn-primary');
-    document.getElementById('navReports').className = 'btn btn-sm ' + (isReports ? 'btn-primary' : 'btn-ghost');
-    document.getElementById('navRecords').style.width = isReports ? '' : 'auto';
-    document.getElementById('navReports').style.width = isReports ? 'auto' : '';
-    if (isReports && !reportData) setRange('month'); // تحميل أولي
+    const views = {
+        records: 'adminRecords',
+        studentRep: 'adminStudentRep',
+        reports: 'adminReports',
+    };
+    const navs = { records: 'navRecords', studentRep: 'navStudentRep', reports: 'navReports' };
+    for (const [key, elId] of Object.entries(views)) {
+        document.getElementById(elId).style.display = key === view ? 'block' : 'none';
+    }
+    for (const [key, navId] of Object.entries(navs)) {
+        const active = key === view;
+        document.getElementById(navId).className = 'btn btn-sm ' + (active ? 'btn-primary' : 'btn-ghost');
+        document.getElementById(navId).style.width = active ? 'auto' : '';
+    }
+    if (view === 'reports' && !reportData) setRange('month');
+    if (view === 'studentRep' && !studentRepData) initStudentReport();
 }
 
 function populateAdminFilters() {
@@ -283,13 +294,13 @@ function populateAdminFilters() {
     const tracks = [...new Set(adminStudents.map(s => s.track).filter(Boolean))].sort();
 
     document.getElementById('fTeacher').innerHTML =
-        '<option value="">كل المعلمات</option>' + adminTeachers.map(t => `<option value="${t.id}">${esc(t.name)}</option>`).join('');
+        '<option value="">كل المعلمات</option>' + adminTeachers.map(t => `<option value="${esc(t.id)}">${esc(t.name)}</option>`).join('');
     document.getElementById('fGrade').innerHTML =
-        '<option value="">كل الصفوف</option>' + grades.map(g => `<option>${g}</option>`).join('');
+        '<option value="">كل الصفوف</option>' + grades.map(g => `<option>${esc(g)}</option>`).join('');
     document.getElementById('fSection').innerHTML =
-        '<option value="">كل الشعب</option>' + sections.map(s => `<option>${s}</option>`).join('');
+        '<option value="">كل الشعب</option>' + sections.map(s => `<option>${esc(s)}</option>`).join('');
     document.getElementById('fTrack').innerHTML =
-        '<option value="">كل التخصصات</option>' + tracks.map(t => `<option>${t}</option>`).join('');
+        '<option value="">كل التخصصات</option>' + tracks.map(t => `<option>${esc(t)}</option>`).join('');
 }
 
 // تجلب الغيابات من الخادم حسب فلاتر القوائم المنسدلة، ثم تعرضها
@@ -320,7 +331,7 @@ function renderAbsences() {
     document.getElementById('statAbsences').textContent = rows.length;
     const body = document.getElementById('absencesBody');
     if (rows.length === 0) {
-        body.innerHTML = '<tr class="empty-row"><td colspan="9">لا توجد غيابات مطابقة</td></tr>';
+        body.innerHTML = '<tr class="empty-row"><td colspan="10">لا توجد غيابات مطابقة</td></tr>';
         return;
     }
     body.innerHTML = rows.map((a, i) => `
@@ -331,10 +342,30 @@ function renderAbsences() {
             <td>${esc(a.section)}</td>
             <td>${a.track ? `<span class="chip">${esc(a.track)}</span>` : '-'}</td>
             <td>${a.date}</td>
+            <td>${excusedBadge(a.excused)}</td>
             <td>${esc(a.teacher)}</td>
             <td>${esc(a.notes) || '-'}</td>
-            <td><button class="btn btn-danger btn-sm" onclick="adminDeleteAbsence('${a.id}')">حذف</button></td>
+            <td>
+                <button class="btn btn-edit btn-sm" onclick="toggleExcused('${a.id}', ${a.excused ? 'true' : 'false'})" title="تبديل بعذر/بدون عذر">${a.excused ? '↓ بدون عذر' : '↑ بعذر'}</button>
+                <button class="btn btn-danger btn-sm" onclick="adminDeleteAbsence('${a.id}')">حذف</button>
+            </td>
         </tr>`).join('');
+}
+
+// شارة ملوّنة لنوع الغياب
+function excusedBadge(excused) {
+    return excused
+        ? '<span class="chip" style="background:#e6fffa;color:#2c7a7b;">بعذر</span>'
+        : '<span class="chip" style="background:#fff5f5;color:#c53030;">بدون عذر</span>';
+}
+
+// تبديل نوع الغياب (بعذر ↔ بدون عذر) للمديرة
+async function toggleExcused(id, currentlyExcused) {
+    try {
+        await api(`/absences/${id}`, { method: 'PATCH', body: { excused: !currentlyExcused } });
+        toast(currentlyExcused ? 'حُوّل إلى: بدون عذر' : 'حُوّل إلى: بعذر');
+        await loadAbsences();
+    } catch (e) { toast(e.message, 'error'); }
 }
 
 function resetFilters() {
@@ -361,13 +392,13 @@ function populateReportFilters() {
     const sections = [...new Set(adminStudents.map(s => s.section))].sort();
     const tracks = [...new Set(adminStudents.map(s => s.track).filter(Boolean))].sort();
     document.getElementById('rTeacher').innerHTML =
-        '<option value="">كل المعلمات</option>' + adminTeachers.map(t => `<option value="${t.id}">${esc(t.name)}</option>`).join('');
+        '<option value="">كل المعلمات</option>' + adminTeachers.map(t => `<option value="${esc(t.id)}">${esc(t.name)}</option>`).join('');
     document.getElementById('rGrade').innerHTML =
-        '<option value="">كل الصفوف</option>' + grades.map(g => `<option>${g}</option>`).join('');
+        '<option value="">كل الصفوف</option>' + grades.map(g => `<option>${esc(g)}</option>`).join('');
     document.getElementById('rSection').innerHTML =
-        '<option value="">كل الشعب</option>' + sections.map(s => `<option>${s}</option>`).join('');
+        '<option value="">كل الشعب</option>' + sections.map(s => `<option>${esc(s)}</option>`).join('');
     document.getElementById('rTrack').innerHTML =
-        '<option value="">كل التخصصات</option>' + tracks.map(t => `<option>${t}</option>`).join('');
+        '<option value="">كل التخصصات</option>' + tracks.map(t => `<option>${esc(t)}</option>`).join('');
 }
 
 // ضبط الفترة الزمنية عبر الأزرار السريعة
@@ -517,6 +548,66 @@ function switchTab(name) {
     if (name === 'students') loadStudentsManage();
     else if (name === 'teachers') loadTeachersManage();
     else if (name === 'accounts') loadAccounts();
+    else if (name === 'settings') loadSettingsTab();
+}
+
+// ===== الإعدادات: الفصول الدراسية + سقف الغياب =====
+let appSettings = null;
+
+async function loadSettingsTab() {
+    try { appSettings = await api('/settings'); }
+    catch (e) { return toast(e.message, 'error'); }
+    document.getElementById('setAbsenceLimit').value = appSettings.absenceLimit ?? 20;
+    renderTermsEditor(appSettings.terms || []);
+}
+
+function renderTermsEditor(terms) {
+    const box = document.getElementById('termsEditor');
+    box.innerHTML = terms.map((t, i) => termRowHtml(t, i)).join('');
+}
+
+function termRowHtml(t, i) {
+    return `<div class="form-grid" data-term-row="${i}" style="align-items:end;margin-bottom:6px;">
+        <div class="input-group"><label>اسم الفصل</label><input class="term-name" value="${esc(t.name || '')}" placeholder="مثال: الفصل الأول"></div>
+        <div class="input-group"><label>من تاريخ</label><input type="date" class="term-from" value="${esc(t.from || '')}"></div>
+        <div class="input-group"><label>إلى تاريخ</label><input type="date" class="term-to" value="${esc(t.to || '')}"></div>
+        <div class="input-group" style="display:flex;align-items:flex-end;">
+            <button class="btn btn-danger btn-sm" style="width:100%;" onclick="removeTermRow(${i})">حذف</button>
+        </div>
+    </div>`;
+}
+
+function collectTerms() {
+    return [...document.querySelectorAll('#termsEditor [data-term-row]')].map(row => ({
+        name: row.querySelector('.term-name').value.trim(),
+        from: row.querySelector('.term-from').value,
+        to: row.querySelector('.term-to').value,
+    })).filter(t => t.name);
+}
+
+function addTermRow() {
+    const terms = collectTerms();
+    terms.push({ name: '', from: '', to: '' });
+    renderTermsEditor(terms);
+}
+
+function removeTermRow(i) {
+    const terms = collectTerms().filter((_, idx) => idx !== i);
+    renderTermsEditor(terms);
+}
+
+async function saveSettings() {
+    const absenceLimit = Number(document.getElementById('setAbsenceLimit').value);
+    if (!Number.isFinite(absenceLimit) || absenceLimit < 1) return toast('أدخلي سقف غياب صحيحاً', 'error');
+    const terms = collectTerms();
+    // تحقق بسيط: تواريخ منطقية
+    for (const t of terms) {
+        if (t.from && t.to && t.from > t.to) return toast(`الفصل "${t.name}": تاريخ البداية بعد النهاية`, 'error');
+    }
+    try {
+        appSettings = await api('/settings', { method: 'PUT', body: { absenceLimit, terms } });
+        toast('تم حفظ الإعدادات');
+    } catch (e) { toast(e.message, 'error'); }
 }
 
 // ===== إدارة كلمات السر (كل المستخدمين) — للمديرة =====
@@ -1132,12 +1223,14 @@ function printFooter() {
 
 function printSheet(title, rows, withTeacher) {
     // ترويسات الأعمدة
-    const cols = ['#', 'اسم الطالبة', 'الصف', 'الشعبة', 'التخصص', 'التاريخ', ...(withTeacher ? ['المعلمة'] : []), 'ملاحظات'];
+    const cols = ['#', 'اسم الطالبة', 'الصف', 'الشعبة', 'التخصص', 'التاريخ', 'النوع', ...(withTeacher ? ['المعلمة'] : []), 'ملاحظات'];
     const head = `<tr>${cols.map(c =>
         `<th style="padding:11px 9px;border:1px solid #4453d6;background:#5b6ef5;color:#fff;font-weight:700;font-size:12.5px;">${c}</th>`).join('')}</tr>`;
 
     const trs = rows.map((a, i) => {
         const bg = i % 2 ? '#f5f7ff' : '#ffffff'; // صفوف متناوبة
+        const typeTxt = a.excused ? 'بعذر' : 'بدون عذر';
+        const typeColor = a.excused ? '#2c7a7b' : '#c53030';
         return `<tr style="background:${bg};">
         <td style="padding:8px 9px;border:1px solid #d8ddf0;text-align:center;color:#666;">${i + 1}</td>
         <td style="padding:8px 9px;border:1px solid #d8ddf0;font-weight:700;">${esc(a.studentName)}</td>
@@ -1145,6 +1238,7 @@ function printSheet(title, rows, withTeacher) {
         <td style="padding:8px 9px;border:1px solid #d8ddf0;text-align:center;">${esc(a.section)}</td>
         <td style="padding:8px 9px;border:1px solid #d8ddf0;text-align:center;">${esc(a.track) || '—'}</td>
         <td style="padding:8px 9px;border:1px solid #d8ddf0;text-align:center;white-space:nowrap;">${a.date}</td>
+        <td style="padding:8px 9px;border:1px solid #d8ddf0;text-align:center;color:${typeColor};font-weight:700;">${typeTxt}</td>
         ${withTeacher ? `<td style="padding:8px 9px;border:1px solid #d8ddf0;text-align:center;">${esc(a.teacher)}</td>` : ''}
         <td style="padding:8px 9px;border:1px solid #d8ddf0;color:#555;">${esc(a.notes) || '—'}</td></tr>`;
     }).join('');
@@ -1225,6 +1319,175 @@ function printReport() {
             <div>${groupTable('حسب الصف والشعبة', d.bySection)}${groupTable('حسب المعلمة', d.byTeacher)}</div>
         </div>
 
+        ${printFooter()}
+    </div>`;
+    area.style.display = 'block';
+    window.print();
+    area.style.display = 'none';
+}
+
+// ============================================================
+//  تقرير غياب الطالبات (حسب الفصل + بحث بالاسم)
+// ============================================================
+let studentRepData = null;
+
+function initStudentReport() {
+    // املأ فلاتر الصف/الشعبة/التخصص من بيانات الطلاب المحمّلة
+    const grades = [...new Set(adminStudents.map(s => s.grade))].sort();
+    const sections = [...new Set(adminStudents.map(s => s.section))].sort();
+    const tracks = [...new Set(adminStudents.map(s => s.track).filter(Boolean))].sort();
+    document.getElementById('srGrade').innerHTML = '<option value="">كل الصفوف</option>' + grades.map(g => `<option>${esc(g)}</option>`).join('');
+    document.getElementById('srSection').innerHTML = '<option value="">كل الشعب</option>' + sections.map(s => `<option>${esc(s)}</option>`).join('');
+    document.getElementById('srTrack').innerHTML = '<option value="">كل التخصصات</option>' + tracks.map(t => `<option>${esc(t)}</option>`).join('');
+    loadStudentReport();
+}
+
+// أزرار الفصول الدراسية (تُبنى من الإعدادات)
+async function buildTermButtons() {
+    let settings;
+    try { settings = await api('/settings'); } catch { settings = { terms: [] }; }
+    const box = document.getElementById('srTermButtons');
+    const terms = settings.terms || [];
+    window.__terms = terms;
+    box.innerHTML = '<span style="font-size:13px;color:var(--muted);font-weight:600;">الفصل:</span>' +
+        terms.filter(t => t.from || t.to).map((t, i) =>
+            `<button class="btn btn-ghost btn-sm" onclick="srSetTerm(${i})">${esc(t.name)}</button>`).join('') +
+        '<button class="btn btn-ghost btn-sm" onclick="srSetTerm(\'all\')">كل الفترات</button>';
+}
+
+function srSetTerm(idx) {
+    if (idx === 'all') {
+        document.getElementById('srFrom').value = '';
+        document.getElementById('srTo').value = '';
+    } else {
+        const t = (window.__terms || [])[idx];
+        if (t) {
+            document.getElementById('srFrom').value = t.from || '';
+            document.getElementById('srTo').value = t.to || '';
+        }
+    }
+    loadStudentReport();
+}
+
+function studentRepParams() {
+    const p = new URLSearchParams();
+    const map = { from: 'srFrom', to: 'srTo', grade: 'srGrade', section: 'srSection', track: 'srTrack' };
+    for (const [k, id] of Object.entries(map)) {
+        const v = document.getElementById(id).value;
+        if (v) p.set(k, v);
+    }
+    return p;
+}
+
+async function loadStudentReport() {
+    if (!window.__terms) await buildTermButtons();
+    try {
+        studentRepData = await api('/reports/students?' + studentRepParams().toString());
+    } catch (e) { return toast(e.message, 'error'); }
+    renderStudentReport();
+}
+
+// تطبيق البحث بالاسم + فلتر "المتجاوزات" محلياً على البيانات المحمّلة
+function visibleStudentRepRows() {
+    if (!studentRepData) return [];
+    const name = (document.getElementById('srName').value || '').trim().toLowerCase();
+    const onlyOver = document.getElementById('srOnlyOver').checked;
+    return studentRepData.rows.filter(r =>
+        (!name || r.studentName.toLowerCase().includes(name)) &&
+        (!onlyOver || r.over));
+}
+
+function renderStudentReport() {
+    if (!studentRepData) return;
+    const rows = visibleStudentRepRows();
+    const d = studentRepData;
+
+    // مؤشرات
+    const overCount = rows.filter(r => r.over).length;
+    document.getElementById('srKPIs').innerHTML = `
+        ${kpiCard('#4facfe,#00f2fe', '🧑‍🎓', 'عدد الطالبات', rows.length, 'لهنّ غياب ضمن الفلتر')}
+        ${kpiCard('#f093fb,#f5576c', '📋', 'إجمالي الغياب', rows.reduce((s, r) => s + r.total, 0), '')}
+        ${kpiCard('#43e97b,#38f9d7', '✅', 'بعذر', rows.reduce((s, r) => s + r.excused, 0), '')}
+        ${kpiCard('#fa709a,#fee140', '⚠️', 'بدون عذر', rows.reduce((s, r) => s + r.unexcused, 0), '')}
+        ${kpiCard('#ee5253,#ff6b6b', '🚨', 'تجاوزن السقف', overCount, `الحد: ${d.limit} غياب`)}
+    `;
+
+    const body = document.getElementById('studentRepBody');
+    if (rows.length === 0) {
+        body.innerHTML = '<tr class="empty-row"><td colspan="10">لا توجد طالبات مطابقات (لا غياب ضمن الفلتر)</td></tr>';
+        return;
+    }
+    body.innerHTML = rows.map((r, i) => {
+        const rate = r.attendanceRate === null ? '-' : `${r.attendanceRate}%`;
+        const status = r.over
+            ? '<span class="chip" style="background:#fff5f5;color:#c53030;font-weight:700;">🚨 تجاوزت السقف</span>'
+            : '<span class="chip" style="background:#f0fff4;color:#2f855a;">ضمن الحد</span>';
+        return `<tr ${r.over ? 'style="background:#fffafa;"' : ''}>
+            <td>${i + 1}</td>
+            <td><strong>${esc(r.studentName)}</strong></td>
+            <td>${esc(r.grade)}</td>
+            <td>${esc(r.section)}</td>
+            <td>${r.track ? `<span class="chip">${esc(r.track)}</span>` : '-'}</td>
+            <td><strong>${r.total}</strong></td>
+            <td style="color:#2c7a7b;">${r.excused}</td>
+            <td style="color:#c53030;font-weight:700;">${r.unexcused}</td>
+            <td>${rate}</td>
+            <td>${status}</td>
+        </tr>`;
+    }).join('');
+}
+
+function exportStudentReportCSV() {
+    const rows = visibleStudentRepRows();
+    if (rows.length === 0) return toast('لا توجد بيانات للتصدير', 'error');
+    let csv = '﻿اسم الطالبة,الصف,الشعبة,التخصص,إجمالي الغياب,بعذر,بدون عذر,نسبة الحضور,الحالة\n';
+    rows.forEach(r => {
+        const rate = r.attendanceRate === null ? '' : r.attendanceRate + '%';
+        csv += `"${r.studentName}","${r.grade}","${r.section}","${r.track || ''}",${r.total},${r.excused},${r.unexcused},"${rate}","${r.over ? 'تجاوزت السقف' : 'ضمن الحد'}"\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `تقرير_الطالبات_${todayStr()}.csv`;
+    link.click();
+    toast('تم التصدير');
+}
+
+function printStudentReport() {
+    const rows = visibleStudentRepRows();
+    if (rows.length === 0) return toast('لا توجد بيانات للطباعة', 'error');
+    const from = document.getElementById('srFrom').value;
+    const to = document.getElementById('srTo').value;
+    const period = (from || to) ? `${from || '...'} ← ${to || '...'}` : 'كل الفترات';
+    const limit = studentRepData?.limit || 20;
+
+    const cols = ['#', 'اسم الطالبة', 'الصف', 'الشعبة', 'التخصص', 'إجمالي', 'بعذر', 'بدون عذر', 'نسبة الحضور', 'الحالة'];
+    const head = `<tr>${cols.map(c => `<th style="padding:9px;border:1px solid #4453d6;background:#5b6ef5;color:#fff;font-size:12px;">${c}</th>`).join('')}</tr>`;
+    const trs = rows.map((r, i) => {
+        const rate = r.attendanceRate === null ? '-' : `${r.attendanceRate}%`;
+        const bg = r.over ? '#fff0f0' : (i % 2 ? '#f5f7ff' : '#fff');
+        return `<tr style="background:${bg};">
+            <td style="padding:7px;border:1px solid #d8ddf0;text-align:center;color:#666;">${i + 1}</td>
+            <td style="padding:7px;border:1px solid #d8ddf0;font-weight:700;">${esc(r.studentName)}</td>
+            <td style="padding:7px;border:1px solid #d8ddf0;text-align:center;">${esc(r.grade)}</td>
+            <td style="padding:7px;border:1px solid #d8ddf0;text-align:center;">${esc(r.section)}</td>
+            <td style="padding:7px;border:1px solid #d8ddf0;text-align:center;">${esc(r.track) || '—'}</td>
+            <td style="padding:7px;border:1px solid #d8ddf0;text-align:center;font-weight:700;">${r.total}</td>
+            <td style="padding:7px;border:1px solid #d8ddf0;text-align:center;color:#2c7a7b;">${r.excused}</td>
+            <td style="padding:7px;border:1px solid #d8ddf0;text-align:center;color:#c53030;font-weight:700;">${r.unexcused}</td>
+            <td style="padding:7px;border:1px solid #d8ddf0;text-align:center;">${rate}</td>
+            <td style="padding:7px;border:1px solid #d8ddf0;text-align:center;">${r.over ? '🚨 تجاوزت' : 'ضمن الحد'}</td>
+        </tr>`;
+    }).join('');
+
+    const area = document.getElementById('printArea');
+    area.innerHTML = `<div style="padding:30px 34px;font-family:'Cairo',sans-serif;color:#1a202c;" dir="rtl">
+        ${printHeader('🧑‍🎓', 'تقرير غياب الطالبات', `الفترة: ${esc(period)} — سقف الغياب بدون عذر: ${limit}`)}
+        <div style="font-size:13px;color:#555;margin-bottom:12px;">عدد الطالبات: <strong>${rows.length}</strong> — المتجاوزات للسقف: <strong style="color:#c53030;">${rows.filter(r => r.over).length}</strong></div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+            <thead style="display:table-header-group;">${head}</thead>
+            <tbody>${trs}</tbody>
+        </table>
         ${printFooter()}
     </div>`;
     area.style.display = 'block';

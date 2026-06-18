@@ -356,6 +356,7 @@
                 </div>
                 <div class="topbar-actions">
                     <button class="btn btn-primary btn-sm" id="navRecords" style="width:auto;" onclick="showAdminView('records')">📋 سجل الغيابات</button>
+                    <button class="btn btn-ghost btn-sm" id="navStudentRep" onclick="showAdminView('studentRep')">🧑‍🎓 تقرير الطالبات</button>
                     <button class="btn btn-ghost btn-sm" id="navReports" onclick="showAdminView('reports')">📊 التقارير</button>
                     <button class="btn btn-info btn-sm" onclick="openManagement()">⚙️ إدارة النظام</button>
                     <button class="btn btn-ghost btn-sm" onclick="openChangePassword()">🔒 كلمة المرور</button>
@@ -422,7 +423,7 @@
                         <thead>
                             <tr>
                                 <th>#</th><th>الطالب</th><th>الصف</th><th>الشعبة</th><th>التخصص</th>
-                                <th>التاريخ</th><th>المعلمة</th><th>ملاحظات</th><th>إجراء</th>
+                                <th>التاريخ</th><th>النوع</th><th>المعلمة</th><th>ملاحظات</th><th>إجراء</th>
                             </tr>
                         </thead>
                         <tbody id="absencesBody"></tbody>
@@ -430,6 +431,55 @@
                 </div>
             </div>
             </div><!-- /adminRecords -->
+
+            <!-- ===== عرض: تقرير الطالبات (غياب لكل طالبة حسب الفصل) ===== -->
+            <div id="adminStudentRep" style="display:none;">
+                <div class="card">
+                    <div class="section-title">
+                        <h3>🧑‍🎓 تقرير غياب الطالبات</h3>
+                        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                            <button class="btn btn-warn btn-sm" onclick="printStudentReport()">🖨️ طباعة</button>
+                            <button class="btn btn-success btn-sm" onclick="exportStudentReportCSV()">📥 تصدير CSV</button>
+                        </div>
+                    </div>
+
+                    <!-- اختيار الفصل الدراسي السريع -->
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center;" id="srTermButtons">
+                        <span style="font-size:13px;color:var(--muted);font-weight:600;">الفصل:</span>
+                        <!-- تُملأ أزرار الفصول ديناميكياً -->
+                        <button class="btn btn-ghost btn-sm" onclick="srSetTerm('all')">كل الفترات</button>
+                    </div>
+
+                    <div class="filters">
+                        <div class="input-group"><label>🔍 بحث باسم الطالبة</label><input type="text" id="srName" placeholder="اكتبي اسم أي طالبة..." onkeyup="renderStudentReport()"></div>
+                        <div class="input-group"><label>من تاريخ</label><input type="date" id="srFrom" onchange="loadStudentReport()"></div>
+                        <div class="input-group"><label>إلى تاريخ</label><input type="date" id="srTo" onchange="loadStudentReport()"></div>
+                        <div class="input-group"><label>الصف</label><select id="srGrade" onchange="loadStudentReport()"></select></div>
+                        <div class="input-group"><label>الشعبة</label><select id="srSection" onchange="loadStudentReport()"></select></div>
+                        <div class="input-group"><label>التخصص</label><select id="srTrack" onchange="loadStudentReport()"></select></div>
+                        <div class="input-group" style="display:flex;align-items:flex-end;gap:6px;">
+                            <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;white-space:nowrap;">
+                                <input type="checkbox" id="srOnlyOver" style="width:auto;" onchange="renderStudentReport()"> المتجاوزات فقط
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- مؤشرات سريعة -->
+                <div class="stats" id="srKPIs"></div>
+
+                <div class="card">
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr>
+                                <th>#</th><th>اسم الطالبة</th><th>الصف</th><th>الشعبة</th><th>التخصص</th>
+                                <th>إجمالي الغياب</th><th>بعذر</th><th>بدون عذر</th><th>نسبة الحضور</th><th>الحالة</th>
+                            </tr></thead>
+                            <tbody id="studentRepBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div><!-- /adminStudentRep -->
 
             <!-- ===== عرض: التقارير الذكية ===== -->
             <div id="adminReports" style="display:none;">
@@ -589,6 +639,7 @@
                 <button class="tab active" data-tab="students" onclick="switchTab('students')">الطلاب</button>
                 <button class="tab" data-tab="teachers" onclick="switchTab('teachers')">المعلمات</button>
                 <button class="tab" data-tab="accounts" onclick="switchTab('accounts')">🔑 كلمات السر</button>
+                <button class="tab" data-tab="settings" onclick="switchTab('settings')">⚙️ الإعدادات</button>
             </div>
 
             <!-- تبويب الطلاب -->
@@ -688,6 +739,30 @@
                         <thead><tr><th>الاسم</th><th>اسم المستخدم</th><th>الدور</th><th>إعادة تعيين كلمة السر</th></tr></thead>
                         <tbody id="accountsBody"></tbody>
                     </table>
+                </div>
+            </div>
+
+            <!-- تبويب الإعدادات: الفصول الدراسية + سقف الغياب -->
+            <div id="settingsTab" class="tab-content">
+                <h4 style="margin-bottom:8px;">سقف الغياب بدون عذر</h4>
+                <p style="color:var(--muted);margin-bottom:10px;font-size:14px;">
+                    عند تجاوز الطالبة هذا العدد من الغيابات (بدون عذر) في الفصل الواحد، يظهر مؤشر تحذير في التقرير.
+                </p>
+                <div class="input-group" style="max-width:240px;margin-bottom:24px;">
+                    <label>الحد الأقصى للغياب بدون عذر / فصل</label>
+                    <input type="number" id="setAbsenceLimit" min="1" placeholder="مثال: 20">
+                </div>
+
+                <h4 style="margin-bottom:8px;">الفصول الدراسية</h4>
+                <p style="color:var(--muted);margin-bottom:12px;font-size:14px;">
+                    حدّدي تاريخ بداية ونهاية كل فصل. أي غياب يقع ضمن الفترة يُحتسب تلقائياً على ذلك الفصل
+                    (يشمل الغيابات المسجّلة سابقاً).
+                </p>
+                <div id="termsEditor"></div>
+                <button class="btn btn-ghost btn-sm" style="margin-top:6px;" onclick="addTermRow()">➕ إضافة فصل</button>
+
+                <div style="margin-top:22px;">
+                    <button class="btn btn-primary" style="width:auto;" onclick="saveSettings()">💾 حفظ الإعدادات</button>
                 </div>
             </div>
         </div>
