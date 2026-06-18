@@ -28,3 +28,14 @@ dist-ssr
 *.xlsx
 *.xls
 ~$*
+
+# أسرار وبيانات اعتماد — لا تُرفع أبداً
+.env
+.env.*
+!.env.example
+serviceAccountKey.json
+*serviceAccount*.json
+*-firebase-adminsdk-*.json
+gcp-credentials.json
+credentials.json
+FIREBASE_SERVICE_ACCOUNT_VALUE.txt

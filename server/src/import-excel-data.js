@@ -122,12 +122,15 @@ async function runImport() {
   let teacherCount = 0;
   const defaultPasswordHash = await bcrypt.hash('1234', 10);
 
-  // تخطي أول 3 صفوف فارغة/عناوين
-  for (let i = 3; i < teachersData.length; i++) {
+  // تخطي الصفوف الفارغة + صفّ العنوان ("الرقم"، "اسم المعلم") في الصف رقم 3.
+  // المعلمات الحقيقيات يبدأن من الصف رقم 4.
+  for (let i = 4; i < teachersData.length; i++) {
     const row = teachersData[i];
     if (!row || row.length < 2) continue;
     const tName = row[1];
     if (!tName || typeof tName !== 'string' || tName.trim() === '') continue;
+    // حماية إضافية: تخطّي أي صفّ عنوان متبقٍّ
+    if (tName.trim() === 'اسم المعلم') continue;
 
     const username = transliterate(tName);
     
