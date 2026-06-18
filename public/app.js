@@ -1327,9 +1327,10 @@ function printReport() {
 }
 
 // ============================================================
-//  تقرير غياب الطالبات (حسب الفصل + بحث بالاسم)
+//  تقرير غياب الطالبات (حسب الفصل + اختيار طالبات محددات)
 // ============================================================
 let studentRepData = null;
+let srSelectedStudents = []; // [{id, name, grade, section}] الطالبات المختارات
 
 function initStudentReport() {
     // املأ فلاتر الصف/الشعبة/التخصص من بيانات الطلاب المحمّلة
@@ -1339,8 +1340,66 @@ function initStudentReport() {
     document.getElementById('srGrade').innerHTML = '<option value="">كل الصفوف</option>' + grades.map(g => `<option>${esc(g)}</option>`).join('');
     document.getElementById('srSection').innerHTML = '<option value="">كل الشعب</option>' + sections.map(s => `<option>${esc(s)}</option>`).join('');
     document.getElementById('srTrack').innerHTML = '<option value="">كل التخصصات</option>' + tracks.map(t => `<option>${esc(t)}</option>`).join('');
+    srSelectedStudents = [];
+    renderSrChips();
     loadStudentReport();
 }
+
+// ---- مكوّن اختيار الطالبات المتعدد بالبحث ----
+function openStudentDropdown() { filterStudentDropdown(); }
+
+function filterStudentDropdown() {
+    const term = (document.getElementById('srStudentSearch').value || '').trim().toLowerCase();
+    const dd = document.getElementById('srStudentDropdown');
+    const selectedIds = new Set(srSelectedStudents.map(s => s.id));
+
+    // إن لم يُكتب شيء، أظهر أول 30 (لتفادي عرض 807 دفعة واحدة)
+    let matches = adminStudents.filter(s => !selectedIds.has(s.id));
+    if (term) matches = matches.filter(s => (s.name || '').toLowerCase().includes(term));
+    matches = matches.slice(0, 30);
+
+    if (matches.length === 0) {
+        dd.innerHTML = '<div class="mp-empty">' + (term ? 'لا توجد طالبة مطابقة' : 'كل الطالبات مختارات') + '</div>';
+    } else {
+        dd.innerHTML = matches.map(s =>
+            `<div class="mp-option" onclick="addSrStudent('${esc(s.id)}')">
+                ${esc(s.name)}<span class="mp-meta">${esc(s.grade)} - ${esc(s.section)}</span>
+            </div>`).join('');
+    }
+    dd.style.display = 'block';
+}
+
+function addSrStudent(id) {
+    const s = adminStudents.find(x => x.id === id);
+    if (s && !srSelectedStudents.some(x => x.id === id)) {
+        srSelectedStudents.push({ id: s.id, name: s.name, grade: s.grade, section: s.section });
+        renderSrChips();
+    }
+    document.getElementById('srStudentSearch').value = '';
+    filterStudentDropdown();
+    document.getElementById('srStudentSearch').focus();
+    loadStudentReport();
+}
+
+function removeSrStudent(id) {
+    srSelectedStudents = srSelectedStudents.filter(s => s.id !== id);
+    renderSrChips();
+    loadStudentReport();
+}
+
+function renderSrChips() {
+    document.getElementById('srChips').innerHTML = srSelectedStudents.map(s =>
+        `<span class="mp-chip">${esc(s.name)} <button onclick="removeSrStudent('${esc(s.id)}')" title="إزالة">×</button></span>`).join('');
+}
+
+// إغلاق القائمة عند الضغط خارجها
+document.addEventListener('click', (e) => {
+    const picker = document.getElementById('srStudentPicker');
+    if (picker && !picker.contains(e.target)) {
+        const dd = document.getElementById('srStudentDropdown');
+        if (dd) dd.style.display = 'none';
+    }
+});
 
 // أزرار الفصول الدراسية (تُبنى من الإعدادات)
 async function buildTermButtons() {
@@ -1387,14 +1446,29 @@ async function loadStudentReport() {
     renderStudentReport();
 }
 
-// تطبيق البحث بالاسم + فلتر "المتجاوزات" محلياً على البيانات المحمّلة
+// تطبيق اختيار الطالبات المحددات + فلتر "المتجاوزات" على البيانات المحمّلة.
+// إن اختيرت طالبات بعينهنّ، نعرضهنّ فقط — حتى من لا غياب لها (بصفّ أصفار).
 function visibleStudentRepRows() {
     if (!studentRepData) return [];
-    const name = (document.getElementById('srName').value || '').trim().toLowerCase();
     const onlyOver = document.getElementById('srOnlyOver').checked;
-    return studentRepData.rows.filter(r =>
-        (!name || r.studentName.toLowerCase().includes(name)) &&
-        (!onlyOver || r.over));
+
+    if (srSelectedStudents.length > 0) {
+        const byId = new Map(studentRepData.rows.map(r => [String(r.studentId), r]));
+        let rows = srSelectedStudents.map(sel => {
+            const found = byId.get(String(sel.id));
+            if (found) return found;
+            // طالبة مختارة بلا غياب ضمن الفترة → صفّ أصفار
+            return {
+                studentId: sel.id, studentName: sel.name, grade: sel.grade, section: sel.section,
+                track: '', total: 0, excused: 0, unexcused: 0,
+                attendanceRate: studentRepData.schoolDays ? 100 : null, over: false,
+            };
+        });
+        if (onlyOver) rows = rows.filter(r => r.over);
+        return rows;
+    }
+
+    return studentRepData.rows.filter(r => !onlyOver || r.over);
 }
 
 function renderStudentReport() {
@@ -1405,7 +1479,7 @@ function renderStudentReport() {
     // مؤشرات
     const overCount = rows.filter(r => r.over).length;
     document.getElementById('srKPIs').innerHTML = `
-        ${kpiCard('#4facfe,#00f2fe', '🧑‍🎓', 'عدد الطالبات', rows.length, 'لهنّ غياب ضمن الفلتر')}
+        ${kpiCard('#4facfe,#00f2fe', '🧑‍🎓', 'عدد الطالبات', rows.length, srSelectedStudents.length ? 'المختارات' : 'لهنّ غياب ضمن الفلتر')}
         ${kpiCard('#f093fb,#f5576c', '📋', 'إجمالي الغياب', rows.reduce((s, r) => s + r.total, 0), '')}
         ${kpiCard('#43e97b,#38f9d7', '✅', 'بعذر', rows.reduce((s, r) => s + r.excused, 0), '')}
         ${kpiCard('#fa709a,#fee140', '⚠️', 'بدون عذر', rows.reduce((s, r) => s + r.unexcused, 0), '')}

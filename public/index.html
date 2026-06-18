@@ -199,6 +199,22 @@
 
         small.hint { color: var(--muted); display: block; margin-top: 6px; font-size: 12px; }
 
+        /* مكوّن الاختيار المتعدد بالبحث */
+        .multi-picker { position: relative; border: 2px solid var(--border); border-radius: 12px; background: #f8fafc; padding: 6px; }
+        .multi-picker:focus-within { border-color: var(--primary); background: white; box-shadow: 0 0 0 3px rgba(91,110,245,0.12); }
+        .mp-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+        .mp-chips:empty { display: none; }
+        .mp-chip { display: inline-flex; align-items: center; gap: 6px; background: #eef0ff; color: var(--primary); border-radius: 8px; padding: 4px 10px; font-size: 13px; font-weight: 600; }
+        .mp-chip button { background: none; border: none; color: var(--primary); cursor: pointer; font-size: 15px; line-height: 1; padding: 0; }
+        .mp-chip button:hover { color: var(--danger); }
+        .mp-input { width: 100%; border: none; background: transparent; padding: 8px 10px; font-family: 'Cairo', sans-serif; font-size: 14px; outline: none; }
+        .mp-dropdown { position: absolute; top: 100%; right: 0; left: 0; margin-top: 4px; background: white; border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 8px 24px rgba(20,30,80,0.15); max-height: 260px; overflow-y: auto; z-index: 100; }
+        .mp-option { padding: 9px 12px; font-size: 14px; cursor: pointer; border-bottom: 1px solid #f0f2f8; }
+        .mp-option:last-child { border-bottom: none; }
+        .mp-option:hover { background: #eef0ff; }
+        .mp-option .mp-meta { font-size: 12px; color: var(--muted); margin-right: 6px; }
+        .mp-empty { padding: 12px; text-align: center; color: var(--muted); font-size: 13px; }
+
         @media print {
             @page { size: A4; margin: 12mm 10mm; }
             body * { visibility: hidden; }
@@ -450,8 +466,19 @@
                         <button class="btn btn-ghost btn-sm" onclick="srSetTerm('all')">كل الفترات</button>
                     </div>
 
+                    <!-- اختيار طالبات محددات (بحث متعدد) -->
+                    <div class="input-group" style="margin-bottom:14px;">
+                        <label>👧 اختيار طالبات محددات (اتركيه فارغاً لعرض الكل)</label>
+                        <div id="srStudentPicker" class="multi-picker">
+                            <div id="srChips" class="mp-chips"></div>
+                            <input type="text" id="srStudentSearch" class="mp-input" placeholder="اكتبي اسم الطالبة لاختيارها..." autocomplete="off"
+                                   onfocus="openStudentDropdown()" onkeyup="filterStudentDropdown()">
+                            <div id="srStudentDropdown" class="mp-dropdown" style="display:none;"></div>
+                        </div>
+                        <small class="hint">يمكنك اختيار طالبة واحدة أو أكثر. تظهر كل المختارات حتى لو غيابهنّ صفر.</small>
+                    </div>
+
                     <div class="filters">
-                        <div class="input-group"><label>🔍 بحث باسم الطالبة</label><input type="text" id="srName" placeholder="اكتبي اسم أي طالبة..." onkeyup="renderStudentReport()"></div>
                         <div class="input-group"><label>من تاريخ</label><input type="date" id="srFrom" onchange="loadStudentReport()"></div>
                         <div class="input-group"><label>إلى تاريخ</label><input type="date" id="srTo" onchange="loadStudentReport()"></div>
                         <div class="input-group"><label>الصف</label><select id="srGrade" onchange="loadStudentReport()"></select></div>
