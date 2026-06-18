@@ -13,15 +13,22 @@ router.get('/', requireAuth, requireAdmin, async (req, res) => {
   res.json(await Absences.listAbsences({ teacherId, grade, section, track, date, from, to }));
 });
 
-// غيابات المعلمة الحالية (التي سجّلتها هي) — اختياري ?date=
-router.get('/mine', requireAuth, async (req, res) => {
-  res.json(await Absences.listAbsences({ teacherId: req.user.id, date: req.query.date }));
-});
-
 // التحقق من أن المعلمة مكلّفة بصف/شعبة الطالب
 function isAssigned(teacher, grade, section) {
   return (teacher.assignments || []).some((a) => a.grade === grade && a.section === section);
 }
+
+// غيابات طلاب المعلمة (كل صفوفها المسندة، أياً كان من سجّلها) — اختياري ?date=
+// هكذا ترى المعلمة الغياب الذي سجّلته المديرة أو معلمة أخرى لطلاب صفّها، وتستطيع التراجع عنه.
+router.get('/mine', requireAuth, async (req, res) => {
+  const teacher = await Teachers.findById(req.user.id);
+  const assignments = teacher?.assignments || [];
+  if (assignments.length === 0) return res.json([]);
+
+  const all = await Absences.listAbsences({ date: req.query.date });
+  const mine = all.filter((a) => isAssigned(teacher, a.grade, a.section));
+  res.json(mine);
+});
 
 // تسجيل غياب (المعلمة لطلاب صفوفها، أو المديرة لأي طالب)
 router.post('/', requireAuth, async (req, res) => {
@@ -70,8 +77,12 @@ router.delete('/:id', requireAuth, async (req, res) => {
   const absence = await Absences.findById(req.params.id);
   if (!absence) return res.status(404).json({ error: 'السجل غير موجود' });
 
-  if (req.user.role !== 'admin' && String(absence.teacherId) !== String(req.user.id)) {
-    return res.status(403).json({ error: 'لا يمكنك حذف غياب سجّلته معلمة أخرى' });
+  // المديرة: تحذف أي سجل. المعلمة: تحذف سجلات طلاب صفوفها المسندة (سجّلتها هي أو غيرها).
+  if (req.user.role !== 'admin' && req.user.role !== 'superadmin') {
+    const teacher = await Teachers.findById(req.user.id);
+    if (!teacher || !isAssigned(teacher, absence.grade, absence.section)) {
+      return res.status(403).json({ error: 'هذا الطالب ليس ضمن صفوفك المسندة' });
+    }
   }
 
   await Absences.deleteAbsence(req.params.id);

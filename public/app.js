@@ -218,7 +218,16 @@ async function markAbsent(studentId) {
         myAbsenceByStudent.set(String(studentId), a);
         renderTeacherStudents();
         toast(`تم تسجيل غياب: ${student.name}`);
-    } catch (e) { toast(e.message, 'error'); }
+    } catch (e) {
+        // إن كان مسجّلاً غائباً مسبقاً (ربما سجّلته المديرة)، نزامن الحالة لإظهار زر التراجع
+        if (/مسجّل غائباً|بالفعل/.test(e.message)) {
+            await refreshMyAbsences();
+            renderTeacherStudents();
+            toast('الطالب مسجّل غائباً اليوم — يمكنك التراجع عن غيابه الآن', 'error');
+        } else {
+            toast(e.message, 'error');
+        }
+    }
 }
 
 async function undoAbsence(studentId) {
