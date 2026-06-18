@@ -3,6 +3,12 @@ import { db, COL, docToObj } from '../firestore.js';
 
 const col = () => db.collection(COL.teachers);
 
+// تطبيع اسم المستخدم: إزالة الفراغات + تحويله لحروف صغيرة.
+// هذا يجعل تسجيل الدخول غير حسّاس لحالة الأحرف (MOH = moh = Moh).
+function normUsername(u) {
+  return String(u || '').trim().toLowerCase();
+}
+
 // إزالة كلمة المرور قبل الإرجاع للواجهة
 function sanitize(t) {
   if (!t) return t;
@@ -12,7 +18,7 @@ function sanitize(t) {
 
 // إيجاد معلمة باسم المستخدم (تُرجع الوثيقة كاملة مع كلمة المرور للتحقق الداخلي)
 export async function findByUsername(username) {
-  const snap = await col().where('username', '==', String(username).trim()).limit(1).get();
+  const snap = await col().where('username', '==', normUsername(username)).limit(1).get();
   if (snap.empty) return null;
   return docToObj(snap.docs[0]);
 }
@@ -43,7 +49,7 @@ export async function createTeacher({ name, username, password, role = 'teacher'
   const hash = await bcrypt.hash(password, 10);
   const now = new Date().toISOString();
   const ref = await col().add({
-    name, username: String(username).trim(), password: hash, role,
+    name, username: normUsername(username), password: hash, role,
     assignments, createdAt: now, updatedAt: now,
   });
   return sanitize(docToObj(await ref.get()));
@@ -53,7 +59,7 @@ export async function createTeacher({ name, username, password, role = 'teacher'
 export async function updateTeacher(id, { name, username, role, assignments, password }) {
   const patch = { updatedAt: new Date().toISOString() };
   if (name !== undefined) patch.name = name;
-  if (username !== undefined) patch.username = String(username).trim();
+  if (username !== undefined) patch.username = normUsername(username);
   if (role !== undefined) patch.role = role;
   if (assignments !== undefined) patch.assignments = assignments;
   if (password) patch.password = await bcrypt.hash(password, 10);
