@@ -1068,57 +1068,86 @@ function printAdminSheet() {
     printSheet('كشف الغيابات المدرسية', rows, true);
 }
 
-function printSheet(title, rows, withTeacher) {
+// اسم من طبع التقرير: الاسم العربي + الصفة (مديرة/معلمة/مدير النظام) — بلا اسم مستخدم إنجليزي
+function printedByLabel() {
+    const roles = { superadmin: 'مدير النظام', admin: 'المديرة', teacher: 'المعلمة' };
+    const role = roles[currentUser.role] || '';
+    // إن كان الاسم مجرّد الصفة (مثل "المديرة") لا نكرّرها
+    if (!role || currentUser.name === role) return esc(currentUser.name);
+    return `${esc(currentUser.name)} — ${role}`;
+}
+
+// ترويسة احترافية موحّدة لكل المطبوعات
+function printHeader(icon, title, subtitle) {
     const now = new Date();
     const today = now.toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    const hijri = now.toLocaleDateString('ar-SA-u-ca-islamic', { year: 'numeric', month: 'long', day: 'numeric' });
     const time = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
-    const printedBy = `${currentUser.name} (${currentUser.username})`; // الاسم + اسم المستخدم
-
-    const head = `<tr style="background:#667eea;color:white;">
-        <th style="padding:11px;border:1px solid #ccc;">#</th>
-        <th style="padding:11px;border:1px solid #ccc;">الطالب</th>
-        <th style="padding:11px;border:1px solid #ccc;">الصف</th>
-        <th style="padding:11px;border:1px solid #ccc;">الشعبة</th>
-        <th style="padding:11px;border:1px solid #ccc;">التخصص</th>
-        <th style="padding:11px;border:1px solid #ccc;">التاريخ</th>
-        ${withTeacher ? '<th style="padding:11px;border:1px solid #ccc;">المعلمة</th>' : ''}
-        <th style="padding:11px;border:1px solid #ccc;">ملاحظات</th></tr>`;
-    const trs = rows.map((a, i) => `<tr>
-        <td style="padding:9px;border:1px solid #ccc;text-align:center;">${i + 1}</td>
-        <td style="padding:9px;border:1px solid #ccc;"><strong>${esc(a.studentName)}</strong></td>
-        <td style="padding:9px;border:1px solid #ccc;">${esc(a.grade)}</td>
-        <td style="padding:9px;border:1px solid #ccc;">${esc(a.section)}</td>
-        <td style="padding:9px;border:1px solid #ccc;">${esc(a.track) || '-'}</td>
-        <td style="padding:9px;border:1px solid #ccc;">${a.date}</td>
-        ${withTeacher ? `<td style="padding:9px;border:1px solid #ccc;">${esc(a.teacher)}</td>` : ''}
-        <td style="padding:9px;border:1px solid #ccc;">${esc(a.notes) || '-'}</td></tr>`).join('');
-
-    const area = document.getElementById('printArea');
-    area.innerHTML = `<div style="padding:36px;font-family:'Cairo',sans-serif;color:#1a202c;" dir="rtl">
-        <!-- الترويسة -->
-        <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #667eea;padding-bottom:16px;margin-bottom:8px;">
-            <div style="display:flex;align-items:center;gap:14px;">
-                <div style="width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;color:white;font-size:24px;">🏫</div>
+    return `
+    <div style="border:2px solid #4453d6;border-radius:14px;overflow:hidden;margin-bottom:18px;">
+        <div style="background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;">
+            <div style="display:flex;align-items:center;gap:16px;">
+                <div style="width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,0.18);border:2px solid rgba(255,255,255,0.5);display:flex;align-items:center;justify-content:center;font-size:30px;">${icon}</div>
                 <div>
-                    <div style="font-size:20px;font-weight:900;color:#1a202c;">مدرسة سحاب الثانوية للبنات</div>
-                    <div style="font-size:14px;font-weight:700;color:#444;">نظام الحضور والغياب المدرسي</div>
-                    <div style="font-size:13px;color:#667eea;font-weight:700;">${esc(title)}</div>
+                    <div style="font-size:22px;font-weight:900;letter-spacing:.3px;">مدرسة سحاب الثانوية للبنات</div>
+                    <div style="font-size:13px;font-weight:600;opacity:.92;">وزارة التربية والتعليم — لواء سحاب</div>
+                    <div style="font-size:13px;font-weight:700;opacity:.92;margin-top:2px;">نظام الحضور والغياب المدرسي</div>
                 </div>
             </div>
-            <div style="text-align:left;font-size:13px;color:#555;line-height:1.9;">
+            <div style="text-align:left;font-size:12.5px;line-height:1.95;opacity:.97;">
                 <div>📅 ${today}</div>
                 <div>🕐 ${time}</div>
             </div>
         </div>
-        <div style="font-size:13px;color:#555;margin-bottom:22px;">إجمالي السجلات: <strong>${rows.length}</strong></div>
-
-        <table style="width:100%;border-collapse:collapse;font-size:13px;"><thead>${head}</thead><tbody>${trs}</tbody></table>
-
-        <!-- التذييل -->
-        <div style="margin-top:34px;padding-top:14px;border-top:1px solid #ddd;display:flex;justify-content:space-between;font-size:13px;color:#555;">
-            <div>طُبع بواسطة: <strong>${esc(printedBy)}</strong></div>
-            <div>التوقيع: ............................</div>
+        <div style="background:#eef0ff;padding:10px 24px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid #d8ddff;">
+            <div style="font-size:16px;font-weight:800;color:#4453d6;">${esc(title)}</div>
+            ${subtitle ? `<div style="font-size:12.5px;color:#555;font-weight:600;">${subtitle}</div>` : ''}
         </div>
+    </div>`;
+}
+
+// تذييل احترافي موحّد: من طبع + خانة توقيع المديرة + ختم
+function printFooter() {
+    return `
+    <div style="margin-top:40px;display:flex;justify-content:space-between;align-items:flex-end;gap:30px;font-size:13px;color:#444;">
+        <div>
+            <div style="margin-bottom:4px;">طُبع بواسطة: <strong>${printedByLabel()}</strong></div>
+            <div style="color:#888;font-size:11.5px;">هذا التقرير صادر آلياً من نظام الحضور والغياب المدرسي.</div>
+        </div>
+        <div style="text-align:center;">
+            <div style="margin-bottom:36px;font-weight:700;">توقيع مديرة المدرسة</div>
+            <div style="border-top:1px solid #999;width:180px;"></div>
+        </div>
+    </div>`;
+}
+
+function printSheet(title, rows, withTeacher) {
+    // ترويسات الأعمدة
+    const cols = ['#', 'اسم الطالبة', 'الصف', 'الشعبة', 'التخصص', 'التاريخ', ...(withTeacher ? ['المعلمة'] : []), 'ملاحظات'];
+    const head = `<tr>${cols.map(c =>
+        `<th style="padding:11px 9px;border:1px solid #4453d6;background:#5b6ef5;color:#fff;font-weight:700;font-size:12.5px;">${c}</th>`).join('')}</tr>`;
+
+    const trs = rows.map((a, i) => {
+        const bg = i % 2 ? '#f5f7ff' : '#ffffff'; // صفوف متناوبة
+        return `<tr style="background:${bg};">
+        <td style="padding:8px 9px;border:1px solid #d8ddf0;text-align:center;color:#666;">${i + 1}</td>
+        <td style="padding:8px 9px;border:1px solid #d8ddf0;font-weight:700;">${esc(a.studentName)}</td>
+        <td style="padding:8px 9px;border:1px solid #d8ddf0;text-align:center;">${esc(a.grade)}</td>
+        <td style="padding:8px 9px;border:1px solid #d8ddf0;text-align:center;">${esc(a.section)}</td>
+        <td style="padding:8px 9px;border:1px solid #d8ddf0;text-align:center;">${esc(a.track) || '—'}</td>
+        <td style="padding:8px 9px;border:1px solid #d8ddf0;text-align:center;white-space:nowrap;">${a.date}</td>
+        ${withTeacher ? `<td style="padding:8px 9px;border:1px solid #d8ddf0;text-align:center;">${esc(a.teacher)}</td>` : ''}
+        <td style="padding:8px 9px;border:1px solid #d8ddf0;color:#555;">${esc(a.notes) || '—'}</td></tr>`;
+    }).join('');
+
+    const area = document.getElementById('printArea');
+    area.innerHTML = `<div style="padding:30px 34px;font-family:'Cairo',sans-serif;color:#1a202c;" dir="rtl">
+        ${printHeader('🏫', title, `إجمالي السجلات: ${rows.length}`)}
+        <table style="width:100%;border-collapse:collapse;font-size:12.5px;">
+            <thead style="display:table-header-group;">${head}</thead>
+            <tbody>${trs}</tbody>
+        </table>
+        ${printFooter()}
     </div>`;
     area.style.display = 'block';
     window.print();
@@ -1129,75 +1158,65 @@ function printSheet(title, rows, withTeacher) {
 function printReport() {
     if (!reportData) return toast('لا يوجد تقرير للطباعة', 'error');
     const d = reportData, t = d.totals;
-    const now = new Date();
-    const today = now.toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-    const time = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
-    const printedBy = `${currentUser.name} (${currentUser.username})`;
     const from = document.getElementById('rFrom').value;
     const to = document.getElementById('rTo').value;
     const period = (from || to) ? `${from || '...'} ← ${to || '...'}` : 'كل الفترات';
 
-    const kpi = (label, val) => `<div style="border:1px solid #ddd;border-radius:8px;padding:10px 14px;min-width:120px;">
-        <div style="font-size:12px;color:#666;">${label}</div><div style="font-size:20px;font-weight:800;">${esc(String(val))}</div></div>`;
+    // بطاقة مؤشّر ملوّنة
+    const kpi = (grad, label, val) => `<div style="flex:1;min-width:130px;border-radius:10px;overflow:hidden;border:1px solid #e2e6f5;">
+        <div style="background:linear-gradient(135deg,${grad});height:5px;"></div>
+        <div style="padding:12px 14px;">
+            <div style="font-size:12px;color:#666;margin-bottom:3px;">${label}</div>
+            <div style="font-size:22px;font-weight:900;color:#2d2f50;">${esc(String(val))}</div>
+        </div></div>`;
 
     const tableRows = (rows, cols) => rows.length
-        ? rows.map((r, i) => `<tr>${cols(r, i)}</tr>`).join('')
+        ? rows.map((r, i) => `<tr style="background:${i % 2 ? '#f5f7ff' : '#fff'};">${cols(r, i)}</tr>`).join('')
         : `<tr><td colspan="9" style="padding:10px;text-align:center;color:#888;">لا توجد بيانات</td></tr>`;
 
     const groupTable = (title, list) => `
-        <h3 style="margin:18px 0 8px;font-size:15px;">${title}</h3>
-        <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px;">
-            ${tableRows(list, x => `<td style="padding:7px;border:1px solid #ddd;">${esc(x.label)}</td><td style="padding:7px;border:1px solid #ddd;text-align:center;width:70px;">${x.count}</td>`)}
+        <div style="font-size:14px;font-weight:800;color:#4453d6;margin:16px 0 7px;">${title}</div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:6px;">
+            <thead><tr style="background:#eef0ff;">
+                <th style="padding:7px 9px;border:1px solid #d8ddf0;text-align:right;color:#4453d6;">البند</th>
+                <th style="padding:7px 9px;border:1px solid #d8ddf0;width:70px;color:#4453d6;">العدد</th></tr></thead>
+            ${tableRows(list, x => `<td style="padding:7px 9px;border:1px solid #d8ddf0;">${esc(x.label)}</td><td style="padding:7px 9px;border:1px solid #d8ddf0;text-align:center;font-weight:700;">${x.count}</td>`)}
         </table>`;
 
     const area = document.getElementById('printArea');
-    area.innerHTML = `<div style="padding:34px;font-family:'Cairo',sans-serif;color:#1a202c;" dir="rtl">
-        <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #667eea;padding-bottom:16px;margin-bottom:14px;">
-            <div style="display:flex;align-items:center;gap:14px;">
-                <div style="width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;color:white;font-size:24px;">📊</div>
-                <div>
-                    <div style="font-size:20px;font-weight:900;color:#1a202c;">مدرسة سحاب الثانوية للبنات</div>
-                    <div style="font-size:14px;font-weight:700;color:#444;">نظام الحضور والغياب المدرسي</div>
-                    <div style="font-size:13px;color:#667eea;font-weight:700;">التقرير الشامل — الفترة: ${esc(period)}</div>
-                </div>
-            </div>
-            <div style="text-align:left;font-size:13px;color:#555;line-height:1.9;"><div>📅 ${today}</div><div>🕐 ${time}</div></div>
+    area.innerHTML = `<div style="padding:30px 34px;font-family:'Cairo',sans-serif;color:#1a202c;" dir="rtl">
+        ${printHeader('📊', 'التقرير الإحصائي الشامل للغياب', `الفترة: ${esc(period)}`)}
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
+            ${kpi('#f093fb,#f5576c', 'إجمالي الغيابات', t.totalAbsences)}
+            ${kpi('#4facfe,#00f2fe', 'طالبات متغيّبات', `${t.uniqueStudents}/${t.studentCount}`)}
+            ${kpi('#43e97b,#38f9d7', 'نسبة الغياب', t.absentRate + '%')}
+            ${kpi('#fa709a,#fee140', 'متوسط يومي', t.avgPerDay)}
+            ${kpi('#a18cd1,#fbc2eb', 'أكثر يوم غياباً', t.peakDay ? `${t.peakDay.date} (${t.peakDay.count})` : '—')}
         </div>
 
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;">
-            ${kpi('إجمالي الغيابات', t.totalAbsences)}
-            ${kpi('طلاب متغيّبون', `${t.uniqueStudents}/${t.studentCount}`)}
-            ${kpi('نسبة الغياب', t.absentRate + '%')}
-            ${kpi('متوسط يومي', t.avgPerDay)}
-            ${kpi('أكثر يوم', t.peakDay ? `${t.peakDay.date} (${t.peakDay.count})` : '—')}
-        </div>
-
-        <h3 style="margin:8px 0;font-size:15px;">🔝 أكثر الطلاب غياباً</h3>
+        <div style="font-size:15px;font-weight:800;color:#4453d6;margin:6px 0 8px;border-right:4px solid #5b6ef5;padding-right:8px;">🔝 أكثر الطالبات غياباً</div>
         <table style="width:100%;border-collapse:collapse;font-size:12px;">
-            <thead><tr style="background:#667eea;color:white;">
-                <th style="padding:8px;border:1px solid #ccc;">#</th><th style="padding:8px;border:1px solid #ccc;">الطالب</th>
-                <th style="padding:8px;border:1px solid #ccc;">الصف</th><th style="padding:8px;border:1px solid #ccc;">الشعبة</th>
-                <th style="padding:8px;border:1px solid #ccc;">التخصص</th><th style="padding:8px;border:1px solid #ccc;">الغيابات</th>
-                <th style="padding:8px;border:1px solid #ccc;">آخر غياب</th></tr></thead>
+            <thead><tr>
+                ${['#', 'اسم الطالبة', 'الصف', 'الشعبة', 'التخصص', 'الغيابات', 'آخر غياب'].map(c =>
+                    `<th style="padding:8px;border:1px solid #4453d6;background:#5b6ef5;color:#fff;">${c}</th>`).join('')}
+            </tr></thead>
             <tbody>${tableRows(d.topStudents, (s, i) => `
-                <td style="padding:7px;border:1px solid #ddd;text-align:center;">${i + 1}</td>
-                <td style="padding:7px;border:1px solid #ddd;"><strong>${esc(s.studentName)}</strong></td>
-                <td style="padding:7px;border:1px solid #ddd;">${esc(s.grade)}</td>
-                <td style="padding:7px;border:1px solid #ddd;">${esc(s.section)}</td>
-                <td style="padding:7px;border:1px solid #ddd;">${esc(s.track) || '-'}</td>
-                <td style="padding:7px;border:1px solid #ddd;text-align:center;"><strong>${s.count}</strong></td>
-                <td style="padding:7px;border:1px solid #ddd;">${s.lastDate}</td>`)}</tbody>
+                <td style="padding:7px;border:1px solid #d8ddf0;text-align:center;color:#666;">${i + 1}</td>
+                <td style="padding:7px;border:1px solid #d8ddf0;"><strong>${esc(s.studentName)}</strong></td>
+                <td style="padding:7px;border:1px solid #d8ddf0;text-align:center;">${esc(s.grade)}</td>
+                <td style="padding:7px;border:1px solid #d8ddf0;text-align:center;">${esc(s.section)}</td>
+                <td style="padding:7px;border:1px solid #d8ddf0;text-align:center;">${esc(s.track) || '—'}</td>
+                <td style="padding:7px;border:1px solid #d8ddf0;text-align:center;"><strong style="color:#e53e3e;">${s.count}</strong></td>
+                <td style="padding:7px;border:1px solid #d8ddf0;text-align:center;white-space:nowrap;">${s.lastDate}</td>`)}</tbody>
         </table>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:10px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:10px;">
             <div>${groupTable('حسب الصف', d.byGrade)}${groupTable('حسب التخصص', d.byTrack)}</div>
             <div>${groupTable('حسب الصف والشعبة', d.bySection)}${groupTable('حسب المعلمة', d.byTeacher)}</div>
         </div>
 
-        <div style="margin-top:26px;padding-top:14px;border-top:1px solid #ddd;display:flex;justify-content:space-between;font-size:13px;color:#555;">
-            <div>طُبع بواسطة: <strong>${esc(printedBy)}</strong></div>
-            <div>التوقيع: ............................</div>
-        </div>
+        ${printFooter()}
     </div>`;
     area.style.display = 'block';
     window.print();

@@ -200,9 +200,15 @@
         small.hint { color: var(--muted); display: block; margin-top: 6px; font-size: 12px; }
 
         @media print {
+            @page { size: A4; margin: 12mm 10mm; }
             body * { visibility: hidden; }
             #printArea, #printArea * { visibility: visible; }
             #printArea { position: absolute; inset: 0; width: 100%; }
+            /* تكرار رأس الجدول في كل صفحة وعدم قطع الصفوف */
+            #printArea thead { display: table-header-group; }
+            #printArea tr { page-break-inside: avoid; }
+            /* إجبار طباعة ألوان الخلفيات (الترويسة والجداول) */
+            #printArea * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
 
         /* ===== التجاوب مع الأجهزة اللوحية ===== */
