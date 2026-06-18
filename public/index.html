@@ -177,6 +177,8 @@
         .modal { display: none; position: fixed; inset: 0; background: rgba(15, 20, 50, 0.55); z-index: 2000; align-items: center; justify-content: center; padding: 16px; }
         .modal.show { display: flex; }
         .modal-box { background: white; border-radius: 18px; padding: 30px; max-width: 600px; width: 100%; max-height: 92vh; overflow-y: auto; }
+        /* نافذة إدارة النظام أكبر — لاستيعاب قوائم الطلاب (800+) والمعلمات */
+        .modal-box.modal-lg { max-width: 1100px; }
         .modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; }
         .modal-head h2 { font-size: 21px; }
         .modal-close { background: none; border: none; font-size: 28px; cursor: pointer; color: var(--muted); line-height: 1; }
@@ -516,7 +518,7 @@
 
     <!-- ============ نافذة الإدارة ============ -->
     <div id="managementModal" class="modal">
-        <div class="modal-box">
+        <div class="modal-box modal-lg">
             <div class="modal-head">
                 <h2>إدارة النظام</h2>
                 <button class="modal-close" onclick="closeModal('managementModal')">×</button>
@@ -529,11 +531,34 @@
             <!-- تبويب الطلاب -->
             <div id="studentsTab" class="tab-content active">
                 <div class="form-grid">
-                    <div class="input-group"><label>الاسم</label><input id="sName" placeholder="اسم الطالب"></div>
-                    <div class="input-group"><label>الصف</label><input id="sGrade" placeholder="مثال: العاشر"></div>
-                    <div class="input-group"><label>الشعبة</label><input id="sSection" placeholder="مثال: أ"></div>
-                    <div class="input-group"><label>التخصص</label><input id="sTrack" placeholder="مثال: علمي"></div>
+                    <div class="input-group"><label>الاسم الكامل *</label><input id="sName" placeholder="اسم الطالب"></div>
+                    <div class="input-group">
+                        <label>الصف *</label>
+                        <select id="sGrade" onchange="onGradeChange()"></select>
+                    </div>
+                    <div class="input-group">
+                        <label>الشعبة *</label>
+                        <select id="sSection" onchange="onSectionChange()"></select>
+                    </div>
+                    <div class="input-group"><label>المسار / التخصص</label><input id="sTrack" placeholder="مثال: مسار أكاديمي"></div>
+                    <div class="input-group"><label>الرقم الوطني</label><input id="sNationalId" placeholder="الرقم الوطني / الشخصي" inputmode="numeric"></div>
+                    <div class="input-group"><label>تاريخ الميلاد</label><input id="sDob" type="date"></div>
+                    <div class="input-group"><label>رقم الهاتف</label><input id="sPhone" placeholder="هاتف الطالب" inputmode="tel" style="direction:ltr;text-align:right;"></div>
+                    <div class="input-group"><label>هاتف ولي الأمر</label><input id="sParentPhone" placeholder="هاتف ولي الأمر" inputmode="tel" style="direction:ltr;text-align:right;"></div>
+                    <div class="input-group"><label>الجنسية</label><input id="sNationality" placeholder="مثال: أردني"></div>
+                    <div class="input-group">
+                        <label>الجنس</label>
+                        <select id="sGender">
+                            <option value="">— غير محدد —</option>
+                            <option value="انثى">أنثى</option>
+                            <option value="ذكر">ذكر</option>
+                        </select>
+                    </div>
                 </div>
+                <small class="hint" style="margin-bottom:14px;">
+                    الحقول المعلَّمة بـ * مطلوبة. اختر الصف والشعبة من القائمة لتفادي الأخطاء الإملائية،
+                    ولإضافة صف أو شعبة جديدة اختر «➕ إضافة جديد…».
+                </small>
                 <button class="btn btn-primary" style="width:auto;" onclick="saveStudent()"><span id="sBtnText">➕ إضافة طالب</span></button>
                 <button class="btn btn-ghost btn-sm" id="sCancelBtn" style="display:none;margin-right:8px;" onclick="resetStudentForm()">إلغاء التعديل</button>
 
@@ -562,7 +587,12 @@
                     <div class="input-group"><label>اسم المستخدم</label><input id="tUsername" placeholder="username"></div>
                     <div class="input-group"><label id="tPassLabel">كلمة المرور</label><input type="password" id="tPassword" placeholder="كلمة المرور"></div>
                 </div>
-                <label style="font-weight:600;font-size:14px;margin-bottom:7px;display:block;">الصفوف/الشعب المسندة</label>
+                <label style="font-weight:600;font-size:14px;margin-bottom:7px;display:block;">الصفوف/الشعب المسندة <span id="assignCount" style="color:var(--primary);font-weight:700;"></span></label>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;align-items:center;">
+                    <input type="text" id="assignSearch" placeholder="🔍 ابحث عن صف أو شعبة..." style="flex:1;min-width:180px;padding:9px 12px;font-size:13px;" onkeyup="renderAssignGrid(window.__assignSelected)">
+                    <button type="button" class="btn btn-ghost btn-sm" onclick="selectAllAssign(true)">تحديد الكل</button>
+                    <button type="button" class="btn btn-ghost btn-sm" onclick="selectAllAssign(false)">إلغاء الكل</button>
+                </div>
                 <div class="assign-grid" id="assignGrid"></div>
                 <div style="margin-top:14px;">
                     <button class="btn btn-primary" style="width:auto;" onclick="saveTeacher()"><span id="tBtnText">➕ إضافة معلمة</span></button>

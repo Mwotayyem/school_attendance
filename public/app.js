@@ -512,11 +512,77 @@ function switchTab(name) {
 // ===== إدارة الطلاب =====
 let editingStudentId = null;
 
+// القيمة الخاصة التي تعني "أضف صفاً/شعبة جديدة" في القوائم المنسدلة
+const ADD_NEW = '__add_new__';
+
+// الصفوف الموجودة فعلاً (مرتّبة) — مشتقّة من الطلاب الحاليين
+function existingGrades() {
+    return [...new Set(adminStudents.map(s => s.grade).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b, 'ar'));
+}
+
+// الشعب الموجودة ضمن صف معيّن (أو كل الشعب إن لم يُحدّد صف)
+function sectionsForGrade(grade) {
+    const all = adminStudents
+        .filter(s => !grade || s.grade === grade)
+        .map(s => s.section)
+        .filter(Boolean);
+    return [...new Set(all)].sort((a, b) => a.localeCompare(b, 'ar'));
+}
+
+// ملء قائمة الصفوف المنسدلة في نموذج الطالب (مع خيار "إضافة جديد")
+function populateGradeSelect(selectedGrade = '') {
+    const sel = document.getElementById('sGrade');
+    const grades = existingGrades();
+    sel.innerHTML =
+        '<option value="">— اختر الصف —</option>' +
+        grades.map(g => `<option value="${esc(g)}" ${g === selectedGrade ? 'selected' : ''}>${esc(g)}</option>`).join('') +
+        `<option value="${ADD_NEW}">➕ إضافة صف جديد…</option>`;
+    populateSectionSelect(selectedGrade);
+}
+
+// ملء قائمة الشعب المنسدلة بناءً على الصف المختار (مع خيار "إضافة جديد")
+function populateSectionSelect(grade, selectedSection = '') {
+    const sel = document.getElementById('sSection');
+    const sections = sectionsForGrade(grade);
+    sel.innerHTML =
+        '<option value="">— اختر الشعبة —</option>' +
+        sections.map(s => `<option value="${esc(s)}" ${s === selectedSection ? 'selected' : ''}>${esc(s)}</option>`).join('') +
+        `<option value="${ADD_NEW}">➕ إضافة شعبة جديدة…</option>`;
+}
+
+// عند تغيير الصف: إن اختار "إضافة جديد" نطلب الاسم، وإلا نحدّث الشعب المتاحة
+function onGradeChange() {
+    const sel = document.getElementById('sGrade');
+    if (sel.value === ADD_NEW) {
+        const name = (prompt('اسم الصف الجديد (مثال: العاشر، الأول ثانوي):') || '').trim();
+        if (!name) { sel.value = ''; populateSectionSelect(''); return; }
+        // أضِف الخيار الجديد واخترْه
+        const opt = new Option(name, name, true, true);
+        sel.add(opt, sel.options[sel.options.length - 1]); // قبل خيار "إضافة جديد"
+        sel.value = name;
+    }
+    populateSectionSelect(sel.value);
+}
+
+// عند تغيير الشعبة: إن اختار "إضافة جديد" نطلب الاسم
+function onSectionChange() {
+    const sel = document.getElementById('sSection');
+    if (sel.value === ADD_NEW) {
+        const name = (prompt('اسم الشعبة الجديدة (مثال: أ، ب، ج):') || '').trim();
+        if (!name) { sel.value = ''; return; }
+        const opt = new Option(name, name, true, true);
+        sel.add(opt, sel.options[sel.options.length - 1]);
+        sel.value = name;
+    }
+}
+
 async function loadStudentsManage() {
     try { adminStudents = await api('/students'); } catch (e) { return toast(e.message, 'error'); }
     document.getElementById('statStudents').textContent = adminStudents.length;
     document.getElementById('studentsCount').textContent = adminStudents.length;
     populateAdminFilters();
+    if (!editingStudentId) populateGradeSelect(); // تجهيز قوائم النموذج
     renderStudentsManage();
 }
 
@@ -543,27 +609,63 @@ function renderStudentsManage() {
 function startEditStudent(s) {
     editingStudentId = s.id;
     document.getElementById('sName').value = s.name;
-    document.getElementById('sGrade').value = s.grade;
-    document.getElementById('sSection').value = s.section;
+    // املأ القوائم المنسدلة مع تحديد قيم الطالب (حتى لو كان صفّه/شعبته غير موجودين في غيره)
+    populateGradeSelect(s.grade);
+    ensureOption('sGrade', s.grade);
+    document.getElementById('sGrade').value = s.grade || '';
+    populateSectionSelect(s.grade, s.section);
+    ensureOption('sSection', s.section);
+    document.getElementById('sSection').value = s.section || '';
     document.getElementById('sTrack').value = s.track || '';
+    document.getElementById('sNationalId').value = s.nationalId || '';
+    document.getElementById('sDob').value = s.dob || '';
+    document.getElementById('sPhone').value = s.phone || '';
+    document.getElementById('sParentPhone').value = s.parentPhone || '';
+    document.getElementById('sNationality').value = s.nationality || '';
+    document.getElementById('sGender').value = s.gender || '';
     document.getElementById('sBtnText').textContent = '💾 حفظ التعديل';
     document.getElementById('sCancelBtn').style.display = 'inline-flex';
     document.getElementById('sName').focus();
+    document.getElementById('sName').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// يضمن وجود قيمة كخيار في القائمة المنسدلة (تُدرَج قبل خيار "إضافة جديد")
+function ensureOption(selectId, value) {
+    if (!value) return;
+    const sel = document.getElementById(selectId);
+    if ([...sel.options].some(o => o.value === value)) return;
+    const opt = new Option(value, value);
+    sel.add(opt, sel.options[sel.options.length - 1]);
 }
 
 function resetStudentForm() {
     editingStudentId = null;
-    ['sName', 'sGrade', 'sSection', 'sTrack'].forEach(id => document.getElementById(id).value = '');
+    ['sName', 'sTrack', 'sNationalId', 'sDob', 'sPhone', 'sParentPhone', 'sNationality']
+        .forEach(id => document.getElementById(id).value = '');
+    document.getElementById('sGender').value = '';
+    populateGradeSelect(); // يعيد ضبط الصف والشعبة على "اختر…"
     document.getElementById('sBtnText').textContent = '➕ إضافة طالب';
     document.getElementById('sCancelBtn').style.display = 'none';
 }
 
 async function saveStudent() {
+    const grade = document.getElementById('sGrade').value;
+    const section = document.getElementById('sSection').value;
+    // حماية: لو بقي خيار "إضافة جديد" دون إدخال اسم
+    if (grade === ADD_NEW || section === ADD_NEW) {
+        return toast('الرجاء اختيار الصف والشعبة (أو إدخال الجديد)', 'error');
+    }
     const body = {
         name: document.getElementById('sName').value.trim(),
-        grade: document.getElementById('sGrade').value.trim(),
-        section: document.getElementById('sSection').value.trim(),
+        grade: grade.trim(),
+        section: section.trim(),
         track: document.getElementById('sTrack').value.trim(),
+        nationalId: document.getElementById('sNationalId').value.trim(),
+        dob: document.getElementById('sDob').value.trim(),
+        phone: document.getElementById('sPhone').value.trim(),
+        parentPhone: document.getElementById('sParentPhone').value.trim(),
+        nationality: document.getElementById('sNationality').value.trim(),
+        gender: document.getElementById('sGender').value.trim(),
     };
     if (!body.name || !body.grade || !body.section) return toast('الاسم والصف والشعبة مطلوبة', 'error');
     try {
@@ -624,11 +726,23 @@ function classOptions() {
 }
 
 function renderAssignGrid(selected = []) {
-    const sel = new Set(selected.map(a => `${a.grade}|${a.section}`));
-    const opts = classOptions();
+    // نحفظ التحديد الحالي في الذاكرة كي يبقى ثابتاً أثناء البحث/التصفية
+    window.__assignSelected = selected || [];
+    const sel = new Set(window.__assignSelected.map(a => `${a.grade}|${a.section}`));
+    const term = (document.getElementById('assignSearch')?.value || '').trim().toLowerCase();
+    const opts = classOptions().filter(o =>
+        !term || `${o.grade} ${o.section}`.toLowerCase().includes(term));
+
     const grid = document.getElementById('assignGrid');
-    if (opts.length === 0) {
+    const countEl = document.getElementById('assignCount');
+    if (countEl) countEl.textContent = sel.size ? `(${sel.size} مختارة)` : '';
+
+    if (classOptions().length === 0) {
         grid.innerHTML = '<div style="color:var(--muted);font-size:13px;">أضف طلاباً أولاً لتظهر الصفوف.</div>';
+        return;
+    }
+    if (opts.length === 0) {
+        grid.innerHTML = '<div style="color:var(--muted);font-size:13px;">لا يوجد صف مطابق للبحث.</div>';
         return;
     }
     grid.innerHTML = opts.map(o => {
@@ -636,17 +750,36 @@ function renderAssignGrid(selected = []) {
         const checked = sel.has(key);
         return `<label class="assign-item ${checked ? 'checked' : ''}">
             <input type="checkbox" value="${esc(o.grade)}__${esc(o.section)}" ${checked ? 'checked' : ''}
-                onchange="this.closest('.assign-item').classList.toggle('checked', this.checked)">
+                onchange="toggleAssign(this)">
             ${esc(o.grade)} - ${esc(o.section)}
         </label>`;
     }).join('');
 }
 
-function collectAssignments() {
-    return [...document.querySelectorAll('#assignGrid input:checked')].map(cb => {
-        const [grade, section] = cb.value.split('__');
-        return { grade, section };
+// تبديل تحديد صف — نحدّث الذاكرة كي لا يضيع التحديد عند البحث
+function toggleAssign(cb) {
+    cb.closest('.assign-item').classList.toggle('checked', cb.checked);
+    const [grade, section] = cb.value.split('__');
+    const arr = window.__assignSelected || [];
+    const idx = arr.findIndex(a => a.grade === grade && a.section === section);
+    if (cb.checked && idx === -1) arr.push({ grade, section });
+    if (!cb.checked && idx !== -1) arr.splice(idx, 1);
+    window.__assignSelected = arr;
+    const countEl = document.getElementById('assignCount');
+    if (countEl) countEl.textContent = arr.length ? `(${arr.length} مختارة)` : '';
+}
+
+// تحديد كل الصفوف الظاهرة حالياً (أو إلغاؤها)
+function selectAllAssign(checked) {
+    const visible = [...document.querySelectorAll('#assignGrid input')];
+    visible.forEach(cb => {
+        if (cb.checked !== checked) { cb.checked = checked; toggleAssign(cb); }
     });
+}
+
+function collectAssignments() {
+    // المصدر الموثوق هو الذاكرة (يشمل اختيارات أُخفيت بالبحث)
+    return (window.__assignSelected || []).slice();
 }
 
 async function loadTeachersManage() {
@@ -700,6 +833,7 @@ function resetTeacherForm() {
     document.getElementById('tPassLabel').textContent = 'كلمة المرور';
     document.getElementById('tBtnText').textContent = '➕ إضافة معلمة';
     document.getElementById('tCancelBtn').style.display = 'none';
+    const as = document.getElementById('assignSearch'); if (as) as.value = '';
     renderAssignGrid([]);
 }
 
